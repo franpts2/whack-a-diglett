@@ -49,26 +49,45 @@ int (timer_get_conf)(uint8_t timer, uint8_t *st) {
         default:
             return 1;
     }
-    if (util_sys_inb(read_port, st) != 0) return 1;
+  if (util_sys_inb(read_port, st) != 0) return 1;
   return 0;
 }
 
 int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field field) {
-  /* To be implemented by the students */
   union timer_status_field_val val;
+
   switch (field) {
     case tsf_all:
       val.byte = st;
       break;
+
     case tsf_base:
       val.bcd = st & BIT(0);
       break;
+
     case tsf_mode:
-    val.count_mode = st & (BIT(1) | BIT(2) | BIT(3));
-    break;
+      val.count_mode = (st>>1) & (BIT(1) | BIT(2) | BIT(3));
+
+      if (st==6) val.count_mode = 2;
+      else if (st==7) val.count_mode = 3;
+      else val.count_mode = st;
+
+      break;
+
     case tsf_initial:
-    val.in_mode = st & (BIT(4) | BIT(5));
+      val.in_mode = (st >> 4) & (BIT(4) | BIT(5));
+
+      if (st==1) val.in_mode = LSB_only;
+      else if (st==2) val.in_mode = MSB_only;
+      else if (st==3) val.in_mode = MSB_after_LSB;
+      else val.in_mode = INVAL_val;
+
+      break;
+
+    default:
+      return 1;
   }
-  timer_print_config(timer, field, val);
-  return 1;
+
+  if (timer_print_config(timer, field, val)!=0) return 1;
+  return 0;
 }
