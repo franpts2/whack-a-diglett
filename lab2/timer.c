@@ -5,6 +5,8 @@
 
 #include "i8254.h"
 
+int hook_id = 0;
+
 int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
   /* To be implemented by the students */
   printf("%s is not yet implemented!\n", __func__);
@@ -13,17 +15,20 @@ int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
 }
 
 int (timer_subscribe_int)(uint8_t *bit_no) {
-    /* To be implemented by the students */
-  printf("%s is not yet implemented!\n", __func__);
+  
+  if (bit_no == NULL) return 1;
 
-  return 1;
+  *bit_no = BIT(hook_id); //function that called this one must know the mask to use
+
+  if (sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id) != 0) return 1; //interrupts subscription
+
+  return 0;
 }
 
 int (timer_unsubscribe_int)() {
-  /* To be implemented by the students */
-  printf("%s is not yet implemented!\n", __func__);
+  if (sys_irqrmpolicy(&hook_id) != 0) return 1; //turn off interrupts
 
-  return 1;
+  return 0;
 }
 
 void (timer_int_handler)() {
@@ -66,7 +71,7 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
       break;
 
     case tsf_mode:
-      st = (st>>1) & 0x07;
+      st = (st>>1) & 0x07; //extracts bits 1-3
 
       if (st==6) val.count_mode = 2;
       else if (st==7) val.count_mode = 3;
@@ -75,7 +80,7 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
       break;
 
     case tsf_initial:
-      st = (st >> 4) & 0x03;
+      st = (st >> 4) & 0x03; //extracts bits 4-5
 
       if (st==1) val.in_mode = LSB_only;
       else if (st==2) val.in_mode = MSB_only;
