@@ -6,6 +6,7 @@
 #include "i8254.h"
 
 int hook_id = 0;
+int counter = 0;
 
 int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
   /* To be implemented by the students */
@@ -32,8 +33,7 @@ int (timer_unsubscribe_int)() {
 }
 
 void (timer_int_handler)() {
-  /* To be implemented by the students */
-  printf("%s is not yet implemented!\n", __func__);
+  counter++;
 }
 
 int (timer_get_conf)(uint8_t timer, uint8_t *st) {
