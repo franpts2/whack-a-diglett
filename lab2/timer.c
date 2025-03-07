@@ -66,7 +66,7 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
       break;
 
     case tsf_mode:
-      val.count_mode = (st>>1) & (BIT(1) | BIT(2) | BIT(3));
+      st = (st>>1) & 0x07;
 
       if (st==6) val.count_mode = 2;
       else if (st==7) val.count_mode = 3;
@@ -75,7 +75,7 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
       break;
 
     case tsf_initial:
-      val.in_mode = (st >> 4) & (BIT(4) | BIT(5));
+      st = (st >> 4) & 0x03;
 
       if (st==1) val.in_mode = LSB_only;
       else if (st==2) val.in_mode = MSB_only;
