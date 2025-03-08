@@ -6,6 +6,7 @@
 #include "i8254.h"
 
 int counter = 0;
+int hook_id = 0;
 
 int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
   /* To be implemented by the students */
@@ -22,10 +23,8 @@ int (timer_subscribe_int)(uint8_t *bit_no) {
 }
 
 int (timer_unsubscribe_int)() {
-  /* To be implemented by the students */
-  printf("%s is not yet implemented!\n", __func__);
-
-  return 1;
+  if (sys_irqrmpolicy(&hook_id) != OK) return 1;
+  return 0;
 }
 
 void (timer_int_handler)() {
