@@ -49,29 +49,26 @@ int(timer_test_int)(uint8_t time) {
 
   if (timer_subscribe_int(&irq_set)!=0) return 1;
 
-  while( 1 ) { /* You may want to use a different condition */
+  while( 1 ) { 
 
-    /* Get a request message. */
     if ( (r = driver_receive(ANY, &msg, &ipc_status)) != 0 ) { 
       printf("driver_receive failed with: %d", r);
       continue;
     }
 
-    if (is_ipc_notify(ipc_status)) { /* received notification */
+    if (is_ipc_notify(ipc_status)) { 
 
       switch (_ENDPOINT_P(msg.m_source)) {
 
-        case HARDWARE: /* hardware interrupt notification */				
-          if (msg.m_notify.interrupts & irq_set) { /* subscribed interrupt */
-            /* process it */
+        case HARDWARE: 				
+          if (msg.m_notify.interrupts & irq_set) { 
           }
           break;
         
         default:
-          break; /* no other notifications expected: do nothing */	
+          break;
       }
-    } else { /* received a standard message, not a notification */
-      /* no standard messages expected: do nothing */
+    } else {
     }
   }
 
