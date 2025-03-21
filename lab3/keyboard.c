@@ -1,97 +1,41 @@
 #include <lcom/lcf.h>
-
 #include <stdint.h>
+#include "i8042.h"
 
-#include "i8254.h"
+static int keyboard_hook_id = 1;
+uint8_t scancode = 0;
 
-int hook_id = 0;
-int counter = 0;
-int hook_id = 0;
 
-int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
-  /* To be implemented by the students */
-  printf("%s is not yet implemented!\n", __func__);
-
-  return 1;
-}
-
-int (timer_subscribe_int)(uint8_t *bit_no) {
+int (keyboard_subscribe_int)(uint8_t *bit_no) {
   
   if (bit_no == NULL) return 1;
 
-  *bit_no = BIT(hook_id);
+  *bit_no = BIT(keyboard_hook_id);
 
-  if (sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id) != 0) return 1; //interrupts subscription
+  if (sys_irqsetpolicy(IRQ_KEYBOARD, IRQ_REENABLE | IRQ_EXCLUSIVE, &keyboard_hook_id) != OK) return 1; //interrupts subscription
 
   return 0;
 }
 
-int (timer_unsubscribe_int)() {
-  if (sys_irqrmpolicy(&hook_id) != OK) return 1;
+int (keyboard_unsubscribe_int)() {
+  if (sys_irqrmpolicy(&keyboard_hook_id) != OK) return 1;
   return 0;
 }
 
-void (timer_int_handler)() {
-  counter++;
+void (kbc_ih)() {
+  if (read_KBC_output(KBC_OUT_CMD, &scancode, 0) != 0) printf("Error: Could not read scancode!\n");
 }
 
-int (timer_get_conf)(uint8_t timer, uint8_t *st) {
-  if (st == NULL) return 1; 
-  uint32_t cmd = TIMER_RB_CMD | TIMER_RB_COUNT_ | TIMER_RB_SEL(timer);
-  if (sys_outb(TIMER_CTRL, cmd) != OK) return 1;
-  int read_port;
-    switch (timer) {
-        case 0:
-            read_port = TIMER_0;
-            break;
-        case 1:
-            read_port = TIMER_1;
-            break;
-        case 2:
-            read_port = TIMER_2;
-            break;
-        default:
-            return 1;
-    }
-  if (util_sys_inb(read_port, st) != 0) return 1;
-  return 0;
-}
+int (keyboard_restore)() {
+  uint8_t commandByte;
 
-int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field field) {
-  union timer_status_field_val val;
+  if (write_KBC_command(KBC_IN_CMD, KBC_READ_CMD) != 0) return 1;          
+  if (read_KBC_output(KBC_OUT_CMD, &commandByte, 0) != 0) return 1; 
 
-  switch (field) {
-    case tsf_all:
-      val.byte = st;
-      break;
+  commandByte |= ENABLE_INT;  
 
-    case tsf_base:
-      val.bcd = st & BIT(0);
-      break;
+  if (write_KBC_command(KBC_IN_CMD, KBC_WRITE_CMD) != 0) return 1;    
+  if (write_KBC_command(KBC_WRITE_CMD, commandByte) != 0) return 1;
 
-    case tsf_mode:
-      st = (st>>1) & 0x07; //extracts bits 1-3
-
-      if (st==6) val.count_mode = 2;
-      else if (st==7) val.count_mode = 3;
-      else val.count_mode = st;
-
-      break;
-
-    case tsf_initial:
-      st = (st >> 4) & 0x03; //extracts bits 4-5
-
-      if (st==1) val.in_mode = LSB_only;
-      else if (st==2) val.in_mode = MSB_only;
-      else if (st==3) val.in_mode = MSB_after_LSB;
-      else val.in_mode = INVAL_val;
-
-      break;
-
-    default:
-      return 1;
-  }
-
-  if (timer_print_config(timer, field, val)!=0) return 1;
   return 0;
 }
