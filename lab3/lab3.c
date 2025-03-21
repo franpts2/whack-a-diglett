@@ -30,7 +30,6 @@ int main(int argc, char *argv[]) {
 }
 
 int(kbd_test_scan)() {
-  /* To be completed by the students */
   printf("%s is not yet implemented!\n", __func__);
 
   return 1;
@@ -39,7 +38,6 @@ int(kbd_test_scan)() {
 int(kbd_test_poll)() {
   /* To be completed by the students */
   printf("%s is not yet implemented!\n", __func__);
-
   return 1;
 }
 
