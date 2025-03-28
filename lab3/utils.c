@@ -27,3 +27,5 @@ int (util_sys_inb)(int port, uint8_t *value) {
   *value = n &0xff;
   return 0;
 }
+
+read_KBC_output(KBC_OUT_CMD, &commandByte, 0) 

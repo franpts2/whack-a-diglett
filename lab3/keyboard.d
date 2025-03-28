@@ -1,4 +1,4 @@
-lab3.o: lab3.c /usr/include/lcom/lcf.h /usr/include/stdbool.h \
+keyboard.o: keyboard.c /usr/include/lcom/lcf.h /usr/include/stdbool.h \
   /usr/include/stdio.h /usr/include/sys/cdefs.h \
   /usr/include/machine/cdefs.h /usr/include/sys/cdefs_elf.h \
   /usr/include/sys/featuretest.h /usr/include/sys/ansi.h \
@@ -45,4 +45,4 @@ lab3.o: lab3.c /usr/include/lcom/lcf.h /usr/include/stdbool.h \
   /usr/include/lcom/lab4.h /usr/include/lcom/lab5.h \
   /usr/include/lcom/pixmap.h /usr/include/lcom/xpm.h \
   /usr/include/lcom/vbe.h /usr/include/lcom/video_gr.h \
-  /usr/include/lcom/proj.h /usr/include/lcom/types.h keyboard.h i8042.h
+  /usr/include/lcom/proj.h /usr/include/lcom/types.h i8042.h

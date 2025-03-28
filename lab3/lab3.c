@@ -4,12 +4,14 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "keyboard.h"
 
 #include "i8042.h"
 
 extern uint32_t counter_KBC;
 extern int counter_TIMER;
 extern uint8_t scancode;
+unsigned char bytes[2];
 
 int main(int argc, char *argv[]) {
   // sets the language of LCF messages (can be either EN-US or PT-PT)
@@ -55,7 +57,8 @@ int(kbd_test_scan)() {
         case HARDWARE:
           if (msg.m_notify.interrupts & irq_set) {
             kbc_ih();
-            kbd_print_scancode(/*smth*/);
+            bytes[0] = scancode;
+            kbd_print_scancode((scancode&BIT(7))==0, 1, bytes);
           }
           break;
 
@@ -77,8 +80,14 @@ int(kbd_test_poll)() {
 }
 
 int(kbd_test_timed_scan)(uint8_t n) {
-  /* To be completed by the students */
+    //int ipc_status;
+    // uint8_t irq_set_TIMER, irq_set_KBC;
+    //message msg;
+
+    // int seconds = 0;
+  
   printf("%s is not yet implemented!\n", __func__);
 
   return 1;
 }
+
