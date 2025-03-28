@@ -1,6 +1,6 @@
 #include <lcom/lcf.h>
 #include <stdint.h>
-#include "i8042.h"
+#include "keyboard.h"
 
 static int keyboard_hook_id = 1;
 uint8_t scancode = 0;

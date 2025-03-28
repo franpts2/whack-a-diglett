@@ -45,4 +45,5 @@ keyboard.o: keyboard.c /usr/include/lcom/lcf.h /usr/include/stdbool.h \
   /usr/include/lcom/lab4.h /usr/include/lcom/lab5.h \
   /usr/include/lcom/pixmap.h /usr/include/lcom/xpm.h \
   /usr/include/lcom/vbe.h /usr/include/lcom/video_gr.h \
-  /usr/include/lcom/proj.h /usr/include/lcom/types.h i8042.h
+  /usr/include/lcom/proj.h /usr/include/lcom/types.h keyboard.h kbc.h \
+  i8042.h
