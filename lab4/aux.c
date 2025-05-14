@@ -64,3 +64,36 @@ static void mouse_cleanup() {
   // 2. Unsubscribe interrupts
   sys_irqrmpolicy(&hook_id);
 }
+
+
+int (mouse_enable_data_reporting)() {
+  uint8_t response;
+  
+  // 1. send ENABLE_DATA_REPORTING command (0xF4)
+  if (write_to_mouse(0xF4) != 0) {
+      return 1; // error sending command
+  }
+  
+  // 2. wait for ACK (0xFA)
+  if (read_from_mouse(&response) != 0 || response != 0xFA) {
+      return 1; // didn't get proper ACK
+  }
+  
+  return 0; // success
+}
+
+int (mouse_disable_data_reporting)() {
+  uint8_t response;
+  
+  // 1. send DISABLE_DATA_REPORTING command (0xF5)
+  if (write_to_mouse(0xF5) != 0) {
+      return 1; // error sending command
+  }
+  
+  // 2. wait for ACK (0xFA)
+  if (read_from_mouse(&response) != 0 || response != 0xFA) {
+      return 1; // didn't get proper ACK
+  }
+  
+  return 0; // success
+}

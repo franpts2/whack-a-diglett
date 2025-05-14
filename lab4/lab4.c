@@ -44,7 +44,7 @@ int(mouse_test_packet)(uint32_t cnt) {
   }
 
   mouse_cleanup();
-  return 0; 
+  return 0;
 }
 
 int(mouse_test_async)(uint8_t idle_time) {
