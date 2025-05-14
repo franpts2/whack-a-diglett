@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 // Any header files included below this line should have been created by you
+#include "aux.h"
 
 int main(int argc, char *argv[]) {
   // sets the language of LCF messages (can be either EN-US or PT-PT)
@@ -30,29 +31,20 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-static struct {
-  uint8_t bytes[3];          // Current packet bytes
-  unsigned byte_count;       // Bytes received for current packet
-  volatile unsigned packets_complete; // Completed packets count
-  bool packet_ready;         // Flag for new complete packet
-  struct packet current;     // Parsed packet data
-} mouse_state;
-
 int(mouse_test_packet)(uint32_t cnt) {
-  
-  
+  if (mouse_init() != 0)
+    return 1;
+
   while (mouse_state.packets_complete < cnt) {
-    
     if (mouse_state.packet_ready) {
-        parse_packet();
-        mouse_print_packet(&mouse_state.current);
-        mouse_state.packet_ready = false;
+      mouse_print_packet(&mouse_state.current);
+      mouse_state.packet_ready = false;
     }
-    tickdelay(micros_to_ticks(20000)); // 20ms delay
+    tickdelay(micros_to_ticks(20000));
   }
-  
-  
-  return 1;
+
+  mouse_cleanup();
+  return 0; 
 }
 
 int(mouse_test_async)(uint8_t idle_time) {
