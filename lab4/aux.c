@@ -97,3 +97,50 @@ int (mouse_disable_data_reporting)() {
   
   return 0; // success
 }
+
+
+static int write_to_mouse(uint8_t command) {
+  uint8_t status;
+  unsigned int attempts = 0;
+  
+  // wait for KBC input buffer to be empty
+  while (attempts < MAX_ATTEMPTS) {
+      if (sys_inb(0x64, &status) != 0) return 1;
+      
+      if ((status & KBC_INPUT_BUFFER_FULL) == 0) {
+          // Write mouse command prefix (0xD4)
+          if (sys_outb(0x64, 0xD4) != 0) return 1;
+          
+          // Write actual command
+          if (sys_outb(0x60, command) != 0) return 1;
+          return 0;
+      }
+      
+      tickdelay(micros_to_ticks(DELAY_US));
+      attempts++;
+  }
+  
+  return 1; // timeout
+}
+
+static int read_from_mouse(uint8_t *data) {
+  uint8_t status;
+  unsigned int attempts = 0;
+  
+  // wait for data in output buffer
+  while (attempts < MAX_ATTEMPTS) {
+      if (sys_inb(0x64, &status) != 0) return 1;
+      
+      if (status & KBC_OUTPUT_BUFFER_FULL) {
+          if (status & (KBC_PARITY_ERROR | KBC_TIMEOUT_ERROR)) {
+              return 1; // Error in communication
+          }
+          return sys_inb(0x60, data);
+      }
+      
+      tickdelay(micros_to_ticks(DELAY_US));
+      attempts++;
+  }
+  
+  return 1; // timeout
+}
