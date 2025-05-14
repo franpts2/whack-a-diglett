@@ -30,27 +30,45 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
+static struct {
+  uint8_t bytes[3];          // Current packet bytes
+  unsigned byte_count;       // Bytes received for current packet
+  volatile unsigned packets_complete; // Completed packets count
+  bool packet_ready;         // Flag for new complete packet
+  struct packet current;     // Parsed packet data
+} mouse_state;
 
-int (mouse_test_packet)(uint32_t cnt) {
-    /* To be completed */
-    printf("%s(%u): under construction\n", __func__, cnt);
-    return 1;
+int(mouse_test_packet)(uint32_t cnt) {
+  
+  
+  while (mouse_state.packets_complete < cnt) {
+    
+    if (mouse_state.packet_ready) {
+        parse_packet();
+        mouse_print_packet(&mouse_state.current);
+        mouse_state.packet_ready = false;
+    }
+    tickdelay(micros_to_ticks(20000)); // 20ms delay
+  }
+  
+  
+  return 1;
 }
 
-int (mouse_test_async)(uint8_t idle_time) {
-    /* To be completed */
-    printf("%s(%u): under construction\n", __func__, idle_time);
-    return 1;
+int(mouse_test_async)(uint8_t idle_time) {
+  /* To be completed */
+  printf("%s(%u): under construction\n", __func__, idle_time);
+  return 1;
 }
 
-int (mouse_test_gesture)() {
-    /* To be completed */
-    printf("%s: under construction\n", __func__);
-    return 1;
+int(mouse_test_gesture)() {
+  /* To be completed */
+  printf("%s: under construction\n", __func__);
+  return 1;
 }
 
-int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
-    /* This year you need not implement this. */
-    printf("%s(%u, %u): under construction\n", __func__, period, cnt);
-    return 1;
+int(mouse_test_remote)(uint16_t period, uint8_t cnt) {
+  /* This year you need not implement this. */
+  printf("%s(%u, %u): under construction\n", __func__, period, cnt);
+  return 1;
 }
