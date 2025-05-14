@@ -5,15 +5,6 @@
 #include "aux.h"
 
 
-#define MOUSE_IRQ 12
-
-#define KBC_INPUT_BUFFER_FULL   BIT(1)
-#define KBC_OUTPUT_BUFFER_FULL  BIT(0)
-#define KBC_PARITY_ERROR        BIT(7)
-#define KBC_TIMEOUT_ERROR       BIT(6)
-#define MAX_ATTEMPTS            5
-#define DELAY_US                20000  // 20ms
-
 
 void (mouse_ih)(void) {
   uint8_t status;
