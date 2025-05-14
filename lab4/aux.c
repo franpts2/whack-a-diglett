@@ -1,31 +1,29 @@
 #include <lcom/lcf.h>
 
+#include "aux.h"
 #include <stdint.h>
 #include <stdio.h>
-#include "aux.h"
 
-
-
-void (mouse_ih)(void) {
+void(mouse_ih)(void) {
   uint8_t status;
-  sys_inb(0x64, &status);  // check status first
-  
-  if (status & 0x01) {     // output buffer full
-      uint8_t data;
-      sys_inb(0x60, &data);
-      
-      if (!(status & 0xC0)) {  // no errors
-          if (mouse_state.byte_count < 3) {
-              mouse_state.bytes[mouse_state.byte_count++] = data;
-              
-              if (mouse_state.byte_count == 3) {
-                  parse_packet();  // fill current struct
-                  mouse_state.packet_ready = true;
-                  mouse_state.packets_complete++;
-                  mouse_state.byte_count = 0;
-              }
-          }
+  sys_inb(0x64, &status); // check status first
+
+  if (status & 0x01) { // output buffer full
+    uint8_t data;
+    sys_inb(0x60, &data);
+
+    if (!(status & 0xC0)) { // no errors
+      if (mouse_state.byte_count < 3) {
+        mouse_state.bytes[mouse_state.byte_count++] = data;
+
+        if (mouse_state.byte_count == 3) {
+          parse_packet(); // fill current struct
+          mouse_state.packet_ready = true;
+          mouse_state.packets_complete++;
+          mouse_state.byte_count = 0;
+        }
       }
+    }
   }
 }
 
@@ -33,14 +31,14 @@ static int mouse_init() {
   // 1. Subscribe interrupts
   int hook_id = MOUSE_IRQ;
   if (sys_irqsetpolicy(MOUSE_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id) != 0)
-      return 1;
-  
+    return 1;
+
   // 2. Enable data reporting
   if (mouse_enable_data_reporting() != 0) {
-      sys_irqrmpolicy(&hook_id);
-      return 1;
+    sys_irqrmpolicy(&hook_id);
+    return 1;
   }
-  
+
   // 3. Reset state
   memset(&mouse_state, 0, sizeof(mouse_state));
   return 0;
@@ -51,87 +49,89 @@ static void mouse_cleanup() {
 
   // 1. Disable data reporting
   mouse_disable_data_reporting();
-  
+
   // 2. Unsubscribe interrupts
   sys_irqrmpolicy(&hook_id);
 }
 
-
-int (mouse_enable_data_reporting)() {
+int(mouse_enable_data_reporting)() {
   uint8_t response;
-  
+
   // 1. send ENABLE_DATA_REPORTING command (0xF4)
   if (write_to_mouse(0xF4) != 0) {
-      return 1; // error sending command
+    return 1; // error sending command
   }
-  
+
   // 2. wait for ACK (0xFA)
   if (read_from_mouse(&response) != 0 || response != 0xFA) {
-      return 1; // didn't get proper ACK
+    return 1; // didn't get proper ACK
   }
-  
+
   return 0; // success
 }
 
-int (mouse_disable_data_reporting)() {
+int(mouse_disable_data_reporting)() {
   uint8_t response;
-  
+
   // 1. send DISABLE_DATA_REPORTING command (0xF5)
   if (write_to_mouse(0xF5) != 0) {
-      return 1; // error sending command
+    return 1; // error sending command
   }
-  
+
   // 2. wait for ACK (0xFA)
   if (read_from_mouse(&response) != 0 || response != 0xFA) {
-      return 1; // didn't get proper ACK
+    return 1; // didn't get proper ACK
   }
-  
+
   return 0; // success
 }
-
 
 static int write_to_mouse(uint8_t command) {
   uint8_t status;
   unsigned int attempts = 0;
-  
+
   // wait for KBC input buffer to be empty
   while (attempts < MAX_ATTEMPTS) {
-      if (sys_inb(0x64, &status) != 0) return 1;
-      
-      if ((status & KBC_INPUT_BUFFER_FULL) == 0) {
-          // Write mouse command prefix (0xD4)
-          if (sys_outb(0x64, 0xD4) != 0) return 1;
-          
-          // Write actual command
-          if (sys_outb(0x60, command) != 0) return 1;
-          return 0;
-      }
-      
-      tickdelay(micros_to_ticks(DELAY_US));
-      attempts++;
+    if (sys_inb(0x64, &status) != 0)
+      return 1;
+
+    if ((status & KBC_INPUT_BUFFER_FULL) == 0) {
+      // Write mouse command prefix (0xD4)
+      if (sys_outb(0x64, 0xD4) != 0)
+        return 1;
+
+      // Write actual command
+      if (sys_outb(0x60, command) != 0)
+        return 1;
+      return 0;
+    }
+
+    tickdelay(micros_to_ticks(DELAY_US));
+    attempts++;
   }
-  
+
   return 1; // timeout
 }
 
 static int read_from_mouse(uint8_t *data) {
   uint8_t status;
   unsigned int attempts = 0;
-  
+
   // wait for data in output buffer
   while (attempts < MAX_ATTEMPTS) {
-      if (sys_inb(0x64, &status) != 0) return 1;
-      
-      if (status & KBC_OUTPUT_BUFFER_FULL) {
-          if (status & (KBC_PARITY_ERROR | KBC_TIMEOUT_ERROR)) {
-              return 1; // Error in communication
-          }
-          return sys_inb(0x60, data);
+    if (sys_inb(0x64, &status) != 0)
+      return 1;
+
+    if (status & KBC_OUTPUT_BUFFER_FULL) {
+      if (status & (KBC_PARITY_ERROR | KBC_TIMEOUT_ERROR)) {
+        return 1; // Error in communication
       }
-      
-      tickdelay(micros_to_ticks(DELAY_US));
-      attempts++;
+      return sys_inb(0x60, data);
+    }
+
+    tickdelay(micros_to_ticks(DELAY_US));
+    attempts++;
   }
-  
+
   return 1; // timeout
 }
