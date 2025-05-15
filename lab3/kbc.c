@@ -1,5 +1,6 @@
 #include "kbc.h"
 #include <stdint.h>
+#include <lcf.h>
 
 int (read_KBC_status)(uint8_t* status) {
     return util_sys_inb(KBC_STATUS_REG, status);

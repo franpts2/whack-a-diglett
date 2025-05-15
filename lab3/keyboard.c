@@ -12,13 +12,13 @@ int (keyboard_subscribe_int)(uint8_t *bit_no) {
 
   *bit_no = BIT(keyboard_hook_id);
 
-  if (sys_irqsetpolicy(IRQ_KEYBOARD, IRQ_REENABLE | IRQ_EXCLUSIVE, &keyboard_hook_id) != OK) return 1; //interrupts subscription
+  if (sys_irqsetpolicy(IRQ_KEYBOARD, IRQ_REENABLE | IRQ_EXCLUSIVE, &keyboard_hook_id) != 0) return 1; //interrupts subscription
 
   return 0;
 }
 
 int (keyboard_unsubscribe_int)() {
-  if (sys_irqrmpolicy(&keyboard_hook_id) != OK) return 1;
+  if (sys_irqrmpolicy(&keyboard_hook_id) != 0) return 1;
   return 0;
 }
 

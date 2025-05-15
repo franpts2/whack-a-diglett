@@ -7,13 +7,40 @@
 
 int hook_id = 0;
 int counter = 0;
-int hook_id = 0;
 
 int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
-  /* To be implemented by the students */
-  printf("%s is not yet implemented!\n", __func__);
 
-  return 1;
+  if (freq < 19 || freq > TIMER_FREQ) return 1;
+
+  uint8_t controlWord;
+
+  if (timer_get_conf(timer, &controlWord) != 0)
+    return 1;
+
+  controlWord = (controlWord & 0x0F) | TIMER_LSB_MSB; 
+
+  uint32_t initialValue = TIMER_FREQ / freq;
+  uint8_t MSB, LSB;
+  util_get_MSB(initialValue, &MSB);
+  util_get_LSB(initialValue, &LSB);
+
+  uint8_t selectedTimer;                                                
+  switch (timer) {  
+    case 0: 
+      controlWord |= TIMER_SEL0;
+      selectedTimer = TIMER_0;
+      break;
+    case 1:
+      controlWord |= TIMER_SEL1;
+      selectedTimer = TIMER_1;
+      break;
+    case 2:
+      controlWord |= TIMER_SEL2;
+      selectedTimer = TIMER_2;
+      break;
+  }
+  if (sys_outb(TIMER_CTRL, controlWord) | sys_outb(selectedTimer, LSB) | sys_outb(selectedTimer, MSB) != 0) return 1;
+  return 0;
 }
 
 int (timer_subscribe_int)(uint8_t *bit_no) {
@@ -22,13 +49,12 @@ int (timer_subscribe_int)(uint8_t *bit_no) {
 
   *bit_no = BIT(hook_id);
 
-  if (sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id) != 0) return 1; //interrupts subscription
-
+  if (sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id) != 0) return 1; 
   return 0;
 }
 
 int (timer_unsubscribe_int)() {
-  if (sys_irqrmpolicy(&hook_id) != OK) return 1;
+  if (sys_irqrmpolicy(&hook_id) != 0) return 1;
   return 0;
 }
 
