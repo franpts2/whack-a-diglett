@@ -149,25 +149,5 @@ int(kbd_test_timed_scan)(uint8_t idle) {
   if (timer_unsubscribe_int() != 0) return 1;
 
   return 0;
-
-  /*
-
-  1. subscribe both keyboard and timer interrupts 
-
-  2. interrupt handling looop
-  - check both timer and keyboard interrupts in the same loop
-  - for timer interrupts:
-    - track idle time since last keypress
-    - exit if idle time exceeds specified duration
-  - for keyboard interrupts:
-    - process scancodes as in kbd_test_scan()
-    - reset idle timer on each keypress
-    - exit on ESC break code (0x81)
-
-  3. unsubscribe both keyboard and timer interrupts
-
-  */
-
-
 }
 
