@@ -34,6 +34,9 @@
 #define OUT_BUF_FULL BIT(0)
 #define IN_BUF_FULL BIT(1)
 
+#define TIMEOUT_ERROR BIT(6)
+#define PARITY_ERROR BIT(7)
+
 static struct {
   uint8_t bytes[3];                   // Current packet bytes
   unsigned byte_count;                // Bytes received for current packet

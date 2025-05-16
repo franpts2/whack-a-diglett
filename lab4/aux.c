@@ -7,6 +7,7 @@
 #include <minix/sysutil.h>
 
 int hook_id_mouse = 3;
+uint8_t current_byte;
 
 
 int(write_to_mouse)(uint8_t command) {
@@ -68,28 +69,9 @@ static void parse_packet() {
   packet->y_ov = (packet->bytes[0] & BIT(7)) != 0; // y overflow
 }
 
-void (mouse_ih)(void) {
-  uint32_t status;
-  if (sys_inb(KBC_STATUS_REG, &status) != OK) //skip if data read failed
-
-  if (status & KBC_OUTPUT_BUFFER_FULL) { // output buffer full
-    uint32_t data = 0;
-    if (sys_inb(KBC_DATA_REG, &data) != OK) 
-
-    if (!(status & (KBC_PARITY_ERROR | KBC_TIMEOUT_ERROR))) { // no errors
-      if (mouse_state.byte_count < 3) {
-        mouse_state.bytes[mouse_state.byte_count++] = (uint8_t)data;
-
-        if (mouse_state.byte_count == 3) {
-          parse_packet();
-          mouse_state.packet_ready = true;
-          mouse_state.packets_complete++;
-          mouse_state.byte_count = 0;
-        }
-      }
-    }
-    // else -> byte discarded automatically
-  }
+void(mouse_ih)() {
+  if (read_KBC_output(KBC_OUT_COMMAND, &current_byte, 1))
+    printf("couldn't read byte from mouse\n");
 }
 
 int(mouse_init)(uint8_t *mouse_mask) {
@@ -192,4 +174,44 @@ int(write_KBC_command)(uint8_t port, uint8_t commandByte) {
 
 int(read_KBC_status)(uint8_t *status) {
   return util_sys_inb(KBC_STATUS_REG, status);
+}
+
+
+int(read_KBC_output)(uint8_t port, uint8_t *output, uint8_t mouse) {
+  uint8_t status;
+  uint8_t attemps = MAX_ATTEMPTS;
+
+  while (attemps > 0) {
+    if (read_KBC_status(&status) != 0) {
+      printf("status not available\n");
+      return 1;
+    }
+
+    if ((status & BIT(0)) != 0) {
+      if (util_sys_inb(port, output) != 0) {
+        printf("couldn't read output\n");
+        return 1;
+      }
+      if ((status & PARITY_ERROR)) {
+        printf("parity error\n");
+        return 1;
+      }
+      if ((status & TIMEOUT_ERROR)) {
+        printf("timeout error!\n");
+        return 1;
+      }
+      if (mouse && !(status & BIT(5))) {
+        printf("mouse output not found\n");
+        return 1;
+      }
+      if (!mouse && (status & BIT(5))) {
+        printf("keyboard output not found\n");
+        return 1;
+      }
+      return 0;
+    }
+    tickdelay(micros_to_ticks(20000));
+    attemps--;
+  }
+  return 1;
 }
