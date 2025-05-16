@@ -4,60 +4,49 @@
 #include <stdint.h>
 #include <stdio.h>
 
-static int write_to_mouse(uint8_t command) {
-  uint32_t status;
-  unsigned int attempts = 0;
+#include <minix/sysutil.h>
 
-  // wait for KBC input buffer to be empty
-  while (attempts < MAX_ATTEMPTS) {
-    if (sys_inb(KBC_STATUS_REG, &status) != 0)
+int hook_id_mouse = 3;
+
+
+int(write_to_mouse)(uint8_t command) {
+  uint8_t mouse_response;
+
+  for (uint8_t attempts = MAX_ATTEMPTS; attempts > 0; attempts--) {
+    if (write_KBC_command(KBC_IN_COMMAND, WRITE_BYTE_MOUSE))
       return 1;
-
-    if ((status & KBC_INPUT_BUFFER_FULL) == 0) {
-      // Write mouse command prefix (0xD4)
-      if (sys_outb(KBC_CMD_REG, 0xD4) != 0)
-        return 1;
-
-      // Write actual command
-      if (sys_outb(KBC_DATA_REG, command) != 0)
-        return 1;
+    if (write_KBC_command(KBC_OUT_COMMAND, command))
+      return 1;
+    tickdelay(micros_to_ticks(WAIT_TIME));
+    if (util_sys_inb(KBC_OUT_COMMAND, &mouse_response))
+      return 1;
+    if (mouse_response == ACK)
       return 0;
-    }
-
-    tickdelay(micros_to_ticks(DELAY_US));
-    attempts++;
+  
+    // only continue loop if we didn't get ACK
+    if (mouse_response == ACK)
+      break;
   }
 
-  return 1; // timeout
+  return 1;
 }
 
-static int read_from_mouse(uint8_t *data) {
-  uint32_t status;
-  uint32_t temp_data;
-  unsigned int attempts = 0;
+int(read_from_mouse)(uint8_t *output) {
+  if (output == NULL)
+    return 1;
 
-  // wait for data in output buffer
-  while (attempts < MAX_ATTEMPTS) {
-    if (sys_inb(KBC_STATUS_REG, &status) != 0)
-      return 1;
+  // Send the Read Data command to mouse
+  if (write_to_mouse(MOUSE_READ_DATA) != 0)
+    return 1;
 
-    if (status & KBC_OUTPUT_BUFFER_FULL) {
-      if (status & (KBC_PARITY_ERROR | KBC_TIMEOUT_ERROR)) {
-        return 1; // Error in communication
-      }
-      // Read into temp_data and cast to uint8_t when storing
-      if (sys_inb(KBC_DATA_REG, &temp_data) != 0)
-        return 1;
-        
-      *data = (uint8_t)temp_data;
-      return 0; // Success
-    }
+  // Wait for the mouse to send the data (ACK has already been handled by write_to_mouse)
+  tickdelay(micros_to_ticks(WAIT_TIME));
 
-    tickdelay(micros_to_ticks(DELAY_US));
-    attempts++;
-  }
+  // Read the actual data byte from the mouse
+  if (read_KBC_output(KBC_OUT_COMMAND, output, 1) != 0)
+    return 1;
 
-  return 1; // timeout
+  return 0;
 }
 
 static void parse_packet() {
@@ -153,4 +142,54 @@ int (mouse_disable_data_reporting)() {
   }
 
   return 0; // success
+}
+
+int(util_sys_inb)(int port, uint8_t *value) {
+  if (value == NULL)
+    return 1;
+
+  uint32_t val;
+  if (sys_inb(port, &val) != 0)
+    return 1;
+
+  *value = (uint8_t) (val & 0xFF);
+  return 0;
+}
+
+int(mouse_subscribe_int)(uint8_t *bit_no) {
+  if (bit_no == NULL)
+    return 1;
+  *bit_no = BIT(hook_id_mouse);
+  return sys_irqsetpolicy(MOUSE_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id_mouse);
+}
+
+int(mouse_unsubscribe_int)() {
+  return sys_irqrmpolicy(&hook_id_mouse);
+}
+
+int(write_KBC_command)(uint8_t port, uint8_t commandByte) {
+  uint8_t status;
+  uint8_t attemps = MAX_ATTEMPTS;
+
+  while (attemps > 0) {
+    if (read_KBC_status(&status) != 0) {
+      printf("tatus not available!\n");
+      return 1;
+    }
+
+    if (!(status & IN_BUF_FULL)) {
+      if (sys_outb(port, commandByte) != 0) {
+        printf("ould not write commandByte!\n");
+        return 1;
+      }
+      return 0;
+    }
+    tickdelay(micros_to_ticks(WAIT_TIME));
+    attemps--;
+  }
+  return 1;
+}
+
+int(read_KBC_status)(uint8_t *status) {
+  return util_sys_inb(KBC_STATUS_REG, status);
 }
