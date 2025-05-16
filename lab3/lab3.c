@@ -106,18 +106,19 @@ int(kbd_test_poll)() {
   return 0;
 }
 
-int(kbd_test_timed_scan)(uint8_t n) {
-  int ipc_status;
+int(kbd_test_timed_scan)(uint8_t idle) {
+  int ipc_status, r;
   uint8_t irq_set_TIMER, irq_set_KBC;
   message msg;
-  
-  int ipc_status;
 
   // subscribe both keyboard and timer interrupts
-  if(keyboard_subscribe_int(&irq_set_KBC) != 0) return 1;
-  if(timer_subscribe_int(&irq_set_TIMER) != 0) return 1;
+  if (keyboard_subscribe_int(&irq_set_KBC) != 0) return 1;
+  if (timer_subscribe_int(&irq_set_TIMER) != 0) {
+    keyboard_unsubscribe_int();
+    return 1;
+  }
 
-  while (scancode != BREAK_ESC) {
+  while (scancode != BREAK_ESC && counter_TIMER < idle) {
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d", r);
       continue;
@@ -126,16 +127,14 @@ int(kbd_test_timed_scan)(uint8_t n) {
     if (is_ipc_notify(ipc_status)) {
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:
-          if (msg.m_notify.interrupts & irq_set_KBC) {
+          if (msg.m_notify.interrupts & irq_set_KBC) { // keyboard interrupt
             kbc_ih();
             bytes[0] = scancode;
-            kbd_print_scancode((scancode&BIT(7))==0, 1, bytes);
+            kbd_print_scancode((scancode & BIT(7)) == 0, 1, bytes);
+            counter_TIMER = 0; // reset idle timer on keypress
           }
-          if (msg.m_notify.interrupts & irq_set_TIMER) {
-            timer_int_handler();
-            if (counter_TIMER == n) {
-              break;
-            }
+          if (msg.m_notify.interrupts & irq_set_TIMER) { // timer interrupt
+            timer_int_handler(); // counter++
           }
           break;
 
@@ -146,9 +145,9 @@ int(kbd_test_timed_scan)(uint8_t n) {
   }
 
   // unsubscribe both keyboard and timer interrupts
-  if (keyboard_unsubscribe_int()!=0) return 1;
-  if (timer_unsubscribe_int()!=0) return 1;
-  
+  if (keyboard_unsubscribe_int() != 0) return 1;
+  if (timer_unsubscribe_int() != 0) return 1;
+
   return 0;
 
   /*
@@ -168,5 +167,7 @@ int(kbd_test_timed_scan)(uint8_t n) {
   3. unsubscribe both keyboard and timer interrupts
 
   */
+
+
 }
 
