@@ -235,3 +235,106 @@ int(util_get_MSB)(uint16_t val, uint8_t *msb) {
   *msb = (uint8_t) (val >> 8);
   return 0;
 }
+
+// ===== Gesture Detection auxiliary functions =====
+
+gesture_state_t(process_init_state)(struct packet *packet) {
+  // start of the first line: LB pressed, no other buttons
+  if (packet->lb && !packet->rb && !packet->mb) {
+    return DRAW_UP; // transition to DRAW_UP state
+  }
+  return INIT;
+}
+
+gesture_state_t(process_draw_up_state)(struct packet *packet, int16_t *x_disp, int16_t *y_disp, uint8_t x_len, uint8_t tolerance) {
+  // check if LB is still pressed
+  if (packet->lb && !packet->rb && !packet->mb) {
+    // check if movement is mostly upward and to the right
+    // allow for small negative movements within tolerance
+    if (packet->delta_x < 0 && ((-1) * packet->delta_x > tolerance)) {
+      return INIT; // negative X movement beyond tolerance - reset state
+    } 
+    else if (packet->delta_y < 0 && ((-1) * packet->delta_y > tolerance)) {
+      return INIT; // negative Y movement beyond tolerance - reset state
+    }
+    else {
+      // valid movement, update displacements
+      *x_disp += packet->delta_x;
+      *y_disp += packet->delta_y;
+      return DRAW_UP; // stay in DRAW_UP state
+    }
+  }
+  // check if LB was released - potential transition to VERTEX state
+  else if (!packet->lb && !packet->rb && !packet->mb) {
+    if (is_line_valid(*x_disp, *y_disp, x_len)) {
+      return VERTEX; // transition to VERTEX state
+    } else {
+      return INIT; // doesn't meet requirements - reset state
+    }
+  } 
+  else {
+    // other buttons were pressed - reset state
+    return INIT;
+  }
+}
+
+gesture_state_t(process_vertex_state)(struct packet *packet, uint8_t tolerance) {
+  // at the vertex, we should have no buttons pressed and small movements only (within tolerance)
+  if (packet->rb && !packet->lb && !packet->mb) {
+    // right button pressed - move to next line
+    return DRAW_DOWN; // transition to DRAW_DOWN state
+  }
+  else if (!packet->lb && !packet->rb && !packet->mb) {
+    // no buttons pressed - check if movement is within tolerance
+    if (!is_movement_within_tolerance(packet, tolerance)) {
+      return INIT; // movement too large - reset state
+    }
+    return VERTEX;
+  }
+  else {
+    return INIT; // invalid button combination - reset state
+  }
+}
+
+gesture_state_t(process_draw_down_state)(struct packet *packet, int16_t *x_disp, int16_t *y_disp, uint8_t x_len, uint8_t tolerance) {
+  // check if RB is still pressed
+  if (packet->rb && !packet->lb && !packet->mb) {
+    // check if movement is mostly downward and to the right
+    if (packet->delta_x < 0 && ((-1) * packet->delta_x > tolerance)) {
+      return INIT;
+    }
+    else if (packet->delta_y < 0 && ((-1) * packet->delta_y > tolerance)) {
+      return INIT;
+    }
+    else {
+      // valid movement, update displacements
+      *x_disp += packet->delta_x;
+      *y_disp += abs(packet->delta_y); 
+      return DRAW_DOWN;
+    }
+  }
+  // check if RB was released - potential completion of gesture
+  else if (!packet->lb && !packet->rb && !packet->mb) {
+    // check if the second line meets the requirements
+    if (is_line_valid(*x_disp, *y_disp, x_len)) {
+      return COMPLETE; // gesture completed
+    } else {
+      return INIT; // line doesn't meet requirements - reset state
+    }
+  }
+  else {
+    return INIT; // other buttons were pressed - reset state
+  }
+}
+
+bool(is_line_valid)(int16_t x_displacement, int16_t y_displacement, uint8_t x_len) {
+  // check if line meets the requirements:
+  // 1. x displacement >= x_len
+  // 2. |slope| > 1 (y displacement > x displacement)
+  return (x_displacement >= x_len && y_displacement > x_displacement);
+}
+
+bool(is_movement_within_tolerance)(struct packet *packet, uint8_t tolerance) {
+  // check if movement is within tolerance in both axes
+  return (abs(packet->delta_x) <= tolerance && abs(packet->delta_y) <= tolerance);
+}

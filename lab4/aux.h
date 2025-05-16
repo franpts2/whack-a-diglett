@@ -57,7 +57,16 @@ extern struct packet mouse_packet;
 extern uint8_t byte_index;
 extern uint8_t mouse_bytes[3];
 
+// Gesture state machine states
+typedef enum {
+  INIT,           // initial state, waiting for left button press
+  DRAW_UP,        // drawing the first line (left button pressed)
+  VERTEX,         // at the vertex, between the release of LB and press of RB
+  DRAW_DOWN,      // drawing the second line (right button pressed)
+  COMPLETE        // gesture completed successfully
+} gesture_state_t;
 
+// Mouse interrupt handling
 int(mouse_subscribe_int)(uint8_t *bit_no);
 int(mouse_unsubscribe_int)();
 
@@ -83,3 +92,11 @@ int(write_KBC_command)(uint8_t port, uint8_t commandByte);
 int(util_sys_inb)(int port, uint8_t *value);
 int(util_get_LSB)(uint16_t val, uint8_t *lsb);
 int(util_get_MSB)(uint16_t val, uint8_t *msb);
+
+// Gesture detection auxiliary functions
+gesture_state_t(process_init_state)(struct packet *packet);
+gesture_state_t(process_draw_up_state)(struct packet *packet, int16_t *x_disp, int16_t *y_disp, uint8_t x_len, uint8_t tolerance);
+gesture_state_t(process_vertex_state)(struct packet *packet, uint8_t tolerance);
+gesture_state_t(process_draw_down_state)(struct packet *packet, int16_t *x_disp, int16_t *y_disp, uint8_t x_len, uint8_t tolerance);
+bool(is_line_valid)(int16_t x_displacement, int16_t y_displacement, uint8_t x_len);
+bool(is_movement_within_tolerance)(struct packet *packet, uint8_t tolerance);
