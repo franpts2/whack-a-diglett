@@ -135,3 +135,23 @@ static int read_from_mouse(uint8_t *data) {
 
   return 1; // timeout
 }
+
+
+static void parse_packet() {
+  struct packet *packet = &mouse_state.current;
+
+  // copy raw bytes from the mouse_state to the packet
+  packet->bytes[0] = mouse_state.bytes[0];
+  packet->bytes[1] = mouse_state.bytes[1];
+  packet->bytes[2] = mouse_state.bytes[2];
+
+  packet->lb = (packet->bytes[0] & BIT(0)) != 0; // left button
+  packet->rb = (packet->bytes[0] & BIT(1)) != 0; // right button
+  packet->mb = (packet->bytes[0] & BIT(2)) != 0; // middle button
+
+  packet->delta_x = (int8_t)packet->bytes[1]; // x-displacement
+  packet->delta_y = (int8_t)packet->bytes[2]; // y-displacement
+
+  packet->x_ov = (packet->bytes[0] & BIT(6)) != 0; // x overflow
+  packet->y_ov = (packet->bytes[0] & BIT(7)) != 0; // y overflow
+}
