@@ -9,6 +9,10 @@
 int hook_id_mouse = 3;
 uint8_t current_byte;
 
+struct packet mouse_packet;
+uint8_t byte_index = 0;
+uint8_t mouse_bytes[3];
+
 
 int(write_to_mouse)(uint8_t command) {
   uint8_t mouse_response;
@@ -214,4 +218,17 @@ int(read_KBC_output)(uint8_t port, uint8_t *output, uint8_t mouse) {
     attemps--;
   }
   return 1;
+}
+
+void(mouse_collect_packet_byte)() {
+
+  if (byte_index == 0 && (current_byte & FIRST_BYTE)) {
+    mouse_bytes[byte_index] = current_byte;
+    byte_index++;
+  }
+
+  else if (byte_index > 0) {
+    mouse_bytes[byte_index] = current_byte;
+    byte_index++;
+  }
 }

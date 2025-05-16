@@ -37,13 +37,7 @@
 #define TIMEOUT_ERROR BIT(6)
 #define PARITY_ERROR BIT(7)
 
-static struct {
-  uint8_t bytes[3];                   // Current packet bytes
-  unsigned byte_count;                // Bytes received for current packet
-  volatile unsigned packets_complete; // Completed packets count
-  bool packet_ready;                  // Flag for new complete packet
-  struct packet current;              // Parsed packet data
-} mouse_state;
+#define FIRST_BYTE BIT(3)
 
 
 int(mouse_init)(uint8_t *mouse_mask);
