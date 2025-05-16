@@ -78,15 +78,34 @@ int(kbd_test_scan)() {
 
 int(kbd_test_poll)() {
   uint8_t commandByte;
+  int ipc_status;
 
-  // read command byte at port 0x20
-  if (read_KBC_output(KBC_READ_CMD, &commandByte, 0) != 0) return 1; 
+  // 1. disable keyboard interrupts
+  if (read_KBC_output(KBC_READ_CMD, &commandByte, 0) != 0) return 1; // read command byte at port 0x20
+  commandByte &= ~ENABLE_INT; // disable keyboard interrupts
+  if (write_KBC_command(KBC_WRITE_CMD, commandByte) != 0) return 1; // write modified command byte
 
-  // disable keyboard interrupts
-  commandByte &= ~ENABLE_INT; 
+  while (scancode != BREAK_ESC) {
+    if (read_KBC_status(&ipc_status)); // read status register at port 0x64
+    if ((ipc_status & FULL_OUT_BUFFER) && !(ipc_status & FULL_IN_BUFFER)) { // OBF set and AUX clear
+      if (read_KBC_output(KBC_OUT_CMD, &scancode, 0) != 0) return 1; // read scancode from 0x60
 
-  // write modified command byte
-  if (write_KBC_command(KBC_WRITE_CMD, commandByte) != 0) return 1; 
+      // check for errors
+      if (ipc_status & TIMEOUT_ERROR) {
+        printf("Timeout error\n");
+        continue;
+      }
+      if (ipc_status & PARITY_ERROR) {
+        printf("Parity error\n");
+        continue;
+      }
+
+      // print make/break codes
+      bytes[0] = scancode;
+      kbd_print_scancode((scancode&BIT(7))==0, 1, bytes);
+    }
+  }
+
   /*
 
   1. disable keyboard interrupts
