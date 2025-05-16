@@ -4,26 +4,27 @@
 #include <stdint.h>
 #include <stdio.h>
 
-void(mouse_ih)(void) {
+void (mouse_ih)(void) {
   uint8_t status;
-  sys_inb(0x64, &status); // check status first
+  if (sys_inb(0x64, &status) != OK) return; //skip if data read failed
 
-  if (status & 0x01) { // output buffer full
+  if (status & KBC_OUTPUT_BUFFER_FULL) { // output buffer full
     uint8_t data;
-    sys_inb(0x60, &data);
+    if (sys_inb(0x64, &status) != OK) return;
 
-    if (!(status & 0xC0)) { // no errors
+    if (!(status & (KBC_PARITY_ERROR | KBC_TIMEOUT_ERROR))) { // no errors
       if (mouse_state.byte_count < 3) {
         mouse_state.bytes[mouse_state.byte_count++] = data;
 
         if (mouse_state.byte_count == 3) {
-          parse_packet(); // fill current struct
+          parse_packet();
           mouse_state.packet_ready = true;
           mouse_state.packets_complete++;
           mouse_state.byte_count = 0;
         }
       }
     }
+    //else -> byte discarded automatically
   }
 }
 
