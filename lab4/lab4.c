@@ -31,40 +31,41 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-int(mouse_test_packet)(uint32_t cnt) {
-  int ipc_status, r;
+int (mouse_test_packet)(uint32_t cnt) {
+   
+  int ipc_status;
   message msg;
-  int irq_set = BIT(MOUSE_IRQ);
+  uint8_t mouse_mask;
 
-  if (mouse_init() != 0)
-    return 1;
+  if (mouse_init(&mouse_mask) != 0) return 1;
 
-  while (mouse_state.packets_complete < cnt) {
-    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
-      printf("driver_receive failed with: %d", r);
+  while (cnt > 0) { 
+
+    if (driver_receive(ANY, &msg, &ipc_status) != 0){
+      printf("error");
       continue;
     }
 
-    if (is_ipc_notify(ipc_status)) {
-      switch (_ENDPOINT_P(msg.m_source)) {
-        case HARDWARE:
-          if (msg.m_notify.interrupts & irq_set) {
-            mouse_ih(); // Handle mouse interrupt
-
-            // Check if we have a complete packet
-            if (mouse_state.packet_ready) {
-              mouse_print_packet(&mouse_state.current);
-              mouse_state.packet_ready = false;
+    if (is_ipc_notify(ipc_status)){
+      switch(_ENDPOINT_P(msg.m_source)){
+        case HARDWARE: 
+          if (msg.m_notify.interrupts & mouse_mask){ 
+            mouse_ih();                               
+            mouse_collect_packet_byte();                       
+            if (byte_index == 3) {                    
+              assemble_mouse_packet();                
+              mouse_print_packet(&mouse_packet);      
+              byte_index = 0;
+              cnt--;
             }
           }
-          break;
-        default:
           break;
       }
     }
   }
 
-  mouse_cleanup();
+  if (mouse_cleanup() != 0) return 1;
+ 
   return 0;
 }
 

@@ -52,6 +52,13 @@
 #define MOUSE_X_OVERFLOW BIT(6)
 #define MOUSE_Y_OVERFLOW BIT(7)
 
+extern int hook_id_mouse;
+extern uint8_t current_byte;
+
+extern struct packet mouse_packet;
+extern uint8_t byte_index;
+extern uint8_t mouse_bytes[3];
+
 
 int (mouse_subscribe_int)(uint8_t *bit_no);
 int (mouse_unsubscribe_int)();
@@ -64,7 +71,7 @@ int (write_to_mouse)(uint8_t command);
 int (read_from_mouse)(uint8_t *output);
 
 int(mouse_init)(uint8_t *mouse_mask);
-void mouse_cleanup();
+int mouse_cleanup();
 
 int (my_mouse_enable_data_reporting)();
 int (mouse_disable_data_reporting)();
