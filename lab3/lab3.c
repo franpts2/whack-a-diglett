@@ -99,7 +99,7 @@ int(kbd_test_poll)() {
     }
   }
 
-  // re-enable keyboard interrupts
+  // reenable keyboard interrupts
   commandByte |= ENABLE_INT;
   if (write_KBC_command(KBC_WRITE_CMD, commandByte) != 0) return 1;
 
@@ -112,6 +112,44 @@ int(kbd_test_timed_scan)(uint8_t n) {
   message msg;
   
   int ipc_status;
+
+  // subscribe both keyboard and timer interrupts
+  if(keyboard_subscribe_int(&irq_set_KBC) != 0) return 1;
+  if(timer_subscribe_int(&irq_set_TIMER) != 0) return 1;
+
+  while (scancode != BREAK_ESC) {
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d", r);
+      continue;
+    }
+
+    if (is_ipc_notify(ipc_status)) {
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:
+          if (msg.m_notify.interrupts & irq_set_KBC) {
+            kbc_ih();
+            bytes[0] = scancode;
+            kbd_print_scancode((scancode&BIT(7))==0, 1, bytes);
+          }
+          if (msg.m_notify.interrupts & irq_set_TIMER) {
+            timer_int_handler();
+            if (counter_TIMER == n) {
+              break;
+            }
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+  }
+
+  // unsubscribe both keyboard and timer interrupts
+  if (keyboard_unsubscribe_int()!=0) return 1;
+  if (timer_unsubscribe_int()!=0) return 1;
+  
+  return 0;
 
   /*
 
@@ -130,16 +168,5 @@ int(kbd_test_timed_scan)(uint8_t n) {
   3. unsubscribe both keyboard and timer interrupts
 
   */
-
-  // subscribe both keyboard and timer interrupts
-  if(keyboard_subscribe_int(&irq_set_KBC) != 0) return 1;
-  if(timer_subscribe_int(&irq_set_TIMER) != 0) return 1;
-
-
-  // unsubscribe both keyboard and timer interrupts
-  if (keyboard_unsubscribe_int()!=0) return 1;
-  if (timer_unsubscribe_int()!=0) return 1;
-  
-  return 0;
 }
 
