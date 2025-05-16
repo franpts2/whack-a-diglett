@@ -20,8 +20,9 @@ static struct {
   struct packet current;              // Parsed packet data
 } mouse_state;
 
-void(mouse_ih)(void);
 
-static int mouse_init();
+int mouse_init();
+void mouse_cleanup();
+int (my_mouse_enable_data_reporting)();
+int (mouse_disable_data_reporting)();
 
-static void mouse_cleanup();
