@@ -10,16 +10,16 @@ static int write_to_mouse(uint8_t command) {
 
   // wait for KBC input buffer to be empty
   while (attempts < MAX_ATTEMPTS) {
-    if (sys_inb(0x64, &status) != 0)
+    if (sys_inb(KBC_STATUS_REG, &status) != 0)
       return 1;
 
     if ((status & KBC_INPUT_BUFFER_FULL) == 0) {
       // Write mouse command prefix (0xD4)
-      if (sys_outb(0x64, 0xD4) != 0)
+      if (sys_outb(KBC_CMD_REG, 0xD4) != 0)
         return 1;
 
       // Write actual command
-      if (sys_outb(0x60, command) != 0)
+      if (sys_outb(KBC_DATA_REG, command) != 0)
         return 1;
       return 0;
     }
@@ -38,7 +38,7 @@ static int read_from_mouse(uint8_t *data) {
 
   // wait for data in output buffer
   while (attempts < MAX_ATTEMPTS) {
-    if (sys_inb(0x64, &status) != 0)
+    if (sys_inb(KBC_STATUS_REG, &status) != 0)
       return 1;
 
     if (status & KBC_OUTPUT_BUFFER_FULL) {
@@ -46,7 +46,7 @@ static int read_from_mouse(uint8_t *data) {
         return 1; // Error in communication
       }
       // Read into temp_data and cast to uint8_t when storing
-      if (sys_inb(0x60, &temp_data) != 0)
+      if (sys_inb(KBC_DATA_REG, &temp_data) != 0)
         return 1;
         
       *data = (uint8_t)temp_data;
@@ -81,11 +81,11 @@ static void parse_packet() {
 
 void (mouse_ih)(void) {
   uint32_t status;
-  if (sys_inb(0x64, &status) != OK) return; //skip if data read failed
+  if (sys_inb(KBC_STATUS_REG, &status) != OK) //skip if data read failed
 
   if (status & KBC_OUTPUT_BUFFER_FULL) { // output buffer full
     uint32_t data = 0;
-    if (sys_inb(0x60, &status) != OK) return;
+    if (sys_inb(KBC_DATA_REG, &data) != OK) 
 
     if (!(status & (KBC_PARITY_ERROR | KBC_TIMEOUT_ERROR))) { // no errors
       if (mouse_state.byte_count < 3) {

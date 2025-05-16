@@ -5,6 +5,10 @@
 
 #define MOUSE_IRQ 12
 
+#define KBC_STATUS_REG  0x64
+#define KBC_CMD_REG     0x64
+#define KBC_DATA_REG    0x60
+
 #define KBC_INPUT_BUFFER_FULL BIT(1)
 #define KBC_OUTPUT_BUFFER_FULL BIT(0)
 #define KBC_PARITY_ERROR BIT(7)
