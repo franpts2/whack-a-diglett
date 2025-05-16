@@ -42,8 +42,10 @@ int(kbd_test_scan)() {
   int ipc_status, r;
   message msg;
 
+  // subscribe keyboard interrupts
   if(keyboard_subscribe_int(&irq_set) != 0) return 1;
 
+  // terminate when ESC break code is received
   while (scancode != BREAK_ESC) {
 
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
@@ -68,26 +70,82 @@ int(kbd_test_scan)() {
     }
   }
 
+  // unsubscribe keyboard interrupts
   if (keyboard_unsubscribe_int()!=0) return 1;
 
   return 0;
 }
 
 int(kbd_test_poll)() {
-  /* To be completed by the students */
-  printf("%s is not yet implemented!\n", __func__);
-  return 1;
+  uint8_t commandByte;
+
+  // read command byte at port 0x20
+  if (read_KBC_output(KBC_READ_CMD, &commandByte, 0) != 0) return 1; 
+
+  // disable keyboard interrupts
+  commandByte &= ~ENABLE_INT; 
+
+  // write modified command byte
+  if (write_KBC_command(KBC_WRITE_CMD, commandByte) != 0) return 1; 
+  /*
+
+  1. disable keyboard interrupts
+  - read current command byte (kbd command 0x20)
+  - disable keyboard interrupts (clear bit 0 of command byte)
+  - write modified command byte (kbd command 0x60)
+
+  2. polling loop
+  - continuosly read status register (0x64)
+  - when OBF is set and AUX is clear, read scancode from 0x60
+  - check for errors in status register
+  - print make/break codes
+  - exit on ESC break code (0x81)
+
+  3. restore settings
+  - reenable keyboard interrupts (set bit 0 of command byte)
+  - write back original command byte
+  
+  */
+
+  
+
+  return 0;
 }
 
 int(kbd_test_timed_scan)(uint8_t n) {
-    //int ipc_status;
-    // uint8_t irq_set_TIMER, irq_set_KBC;
-    //message msg;
-
-    // int seconds = 0;
+  int ipc_status;
+  uint8_t irq_set_TIMER, irq_set_KBC;
+  message msg;
   
-  printf("%s is not yet implemented!\n", __func__);
+  int ipc_status;
 
-  return 1;
+  /*
+
+  1. subscribe both keyboard and timer interrupts 
+
+  2. interrupt handling looop
+  - check both timer and keyboard interrupts in the same loop
+  - for timer interrupts:
+    - track idle time since last keypress
+    - exit if idle time exceeds specified duration
+  - for keyboard interrupts:
+    - process scancodes as in kbd_test_scan()
+    - reset idle timer on each keypress
+    - exit on ESC break code (0x81)
+
+  3. unsubscribe both keyboard and timer interrupts
+
+  */
+
+  // subscribe both keyboard and timer interrupts
+  if(keyboard_subscribe_int(&irq_set_KBC) != 0) return 1;
+  if(timer_subscribe_int(&irq_set_TIMER) != 0) return 1;
+
+
+  // unsubscribe both keyboard and timer interrupts
+  if (keyboard_unsubscribe_int()!=0) return 1;
+  if (timer_unsubscribe_int()!=0) return 1;
+  
+  return 0;
 }
 
