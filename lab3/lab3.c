@@ -106,6 +106,12 @@ int(kbd_test_poll)() {
     }
   }
 
+  //reenable keyboard interrupts
+  commandByte &= ENABLE_INT;
+  if (write_KBC_command(KBC_WRITE_CMD, commandByte) != 0) return 1;
+
+  return 0;
+
   /*
 
   1. disable keyboard interrupts
@@ -125,10 +131,6 @@ int(kbd_test_poll)() {
   - write back original command byte
   
   */
-
-  
-
-  return 0;
 }
 
 int(kbd_test_timed_scan)(uint8_t n) {
