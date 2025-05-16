@@ -54,23 +54,26 @@ int(read_from_mouse)(uint8_t *output) {
   return 0;
 }
 
-static void parse_packet() {
-  struct packet *packet = &mouse_state.current;
+void(assemble_mouse_packet)() {
+  for (int i = 0; i < 3; i++) {
+    mouse_packet.bytes[i] = mouse_bytes[i];
+  }
 
-  // copy raw bytes from the mouse_state to the packet
-  packet->bytes[0] = mouse_state.bytes[0];
-  packet->bytes[1] = mouse_state.bytes[1];
-  packet->bytes[2] = mouse_state.bytes[2];
+  mouse_packet.lb = mouse_bytes[0] & MOUSE_LB;
+  mouse_packet.mb = mouse_bytes[0] & MOUSE_MB;
+  mouse_packet.rb = mouse_bytes[0] & MOUSE_RB;
 
-  packet->lb = (packet->bytes[0] & BIT(0)) != 0; // left button
-  packet->rb = (packet->bytes[0] & BIT(1)) != 0; // right button
-  packet->mb = (packet->bytes[0] & BIT(2)) != 0; // middle button
-
-  packet->delta_x = (int8_t)packet->bytes[1]; // x-displacement
-  packet->delta_y = (int8_t)packet->bytes[2]; // y-displacement
-
-  packet->x_ov = (packet->bytes[0] & BIT(6)) != 0; // x overflow
-  packet->y_ov = (packet->bytes[0] & BIT(7)) != 0; // y overflow
+  mouse_packet.x_ov = mouse_bytes[0] & MOUSE_X_OVERFLOW;
+  mouse_packet.y_ov = mouse_bytes[0] & MOUSE_Y_OVERFLOW;
+  
+  // check if the sign bit is set (negative value)
+  bool x_negative = mouse_bytes[0] & MOUSE_X_SIGNAL;
+  // if negative, extend the sign (2's complement) by setting upper 8 bits to 1
+  // otherwise use the raw value
+  mouse_packet.delta_x = x_negative ? (0xFF00 | mouse_bytes[1]) : mouse_bytes[1];
+  
+  bool y_negative = mouse_bytes[0] & MOUSE_Y_SIGNAL;
+  mouse_packet.delta_y = y_negative ? (0xFF00 | mouse_bytes[2]) : mouse_bytes[2];
 }
 
 void(mouse_ih)() {

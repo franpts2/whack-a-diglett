@@ -40,6 +40,16 @@
 #define FIRST_BYTE BIT(3)
 
 
+#define MOUSE_LB BIT(0)
+#define MOUSE_RB BIT(1)
+#define MOUSE_MB BIT(2)
+
+#define MOUSE_X_SIGNAL BIT(4)
+#define MOUSE_Y_SIGNAL BIT(5)
+#define MOUSE_X_OVERFLOW BIT(6)
+#define MOUSE_Y_OVERFLOW BIT(7)
+
+
 int(mouse_init)(uint8_t *mouse_mask);
 void mouse_cleanup();
 
