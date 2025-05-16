@@ -4,6 +4,14 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "keyboard.h"
+
+#include "i8042.h"
+
+extern uint32_t counter_KBC;
+extern int counter_TIMER;
+extern uint8_t scancode;
+unsigned char bytes[2];
 
 int main(int argc, char *argv[]) {
   // sets the language of LCF messages (can be either EN-US or PT-PT)
@@ -30,9 +38,39 @@ int main(int argc, char *argv[]) {
 }
 
 int(kbd_test_scan)() {
-  printf("%s is not yet implemented!\n", __func__);
+  uint8_t irq_set;
+  int ipc_status, r;
+  message msg;
 
-  return 1;
+  if(keyboard_subscribe_int(&irq_set) != 0) return 1;
+
+  while (scancode != BREAK_ESC) {
+
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d", r);
+      continue;
+    }
+
+    if (is_ipc_notify(ipc_status)) {
+      switch (_ENDPOINT_P(msg.m_source)) {
+        
+        case HARDWARE:
+          if (msg.m_notify.interrupts & irq_set) {
+            kbc_ih();
+            bytes[0] = scancode;
+            kbd_print_scancode((scancode&BIT(7))==0, 1, bytes);
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+  }
+
+  if (keyboard_unsubscribe_int()!=0) return 1;
+
+  return 0;
 }
 
 int(kbd_test_poll)() {
@@ -42,8 +80,14 @@ int(kbd_test_poll)() {
 }
 
 int(kbd_test_timed_scan)(uint8_t n) {
-  /* To be completed by the students */
+    //int ipc_status;
+    // uint8_t irq_set_TIMER, irq_set_KBC;
+    //message msg;
+
+    // int seconds = 0;
+  
   printf("%s is not yet implemented!\n", __func__);
 
   return 1;
 }
+

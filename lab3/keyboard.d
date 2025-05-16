@@ -1,4 +1,4 @@
-lab3.o: lab3.c /usr/include/lcom/lcf.h /usr/include/stdbool.h \
+keyboard.o: keyboard.c /usr/include/lcom/lcf.h /usr/include/stdbool.h \
   /usr/include/stdio.h /usr/include/sys/cdefs.h \
   /usr/include/machine/cdefs.h /usr/include/sys/cdefs_elf.h \
   /usr/include/sys/featuretest.h /usr/include/sys/ansi.h \
