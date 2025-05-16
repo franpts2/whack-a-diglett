@@ -3,6 +3,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <lcom/lcf.h>
+#include <minix/sysutil.h>
+
 #define MOUSE_IRQ 12
 
 #define KBC_STATUS_REG  0x64
@@ -50,9 +53,28 @@
 #define MOUSE_Y_OVERFLOW BIT(7)
 
 
+int (mouse_subscribe_int)(uint8_t *bit_no);
+int (mouse_unsubscribe_int)();
+
+void (mouse_ih)();
+void (mouse_collect_packet_byte)();
+void (assemble_mouse_packet)();
+
+int (write_to_mouse)(uint8_t command);
+int (read_from_mouse)(uint8_t *output);
+
 int(mouse_init)(uint8_t *mouse_mask);
 void mouse_cleanup();
 
 int (my_mouse_enable_data_reporting)();
 int (mouse_disable_data_reporting)();
 
+// KBC functions
+int (read_KBC_status)(uint8_t *status);
+int (read_KBC_output)(uint8_t port, uint8_t *output, uint8_t mouse);
+int (write_KBC_command)(uint8_t port, uint8_t commandByte);
+
+// Utility functions
+int (util_get_LSB)(uint16_t val, uint8_t *lsb);
+int (util_get_MSB)(uint16_t val, uint8_t *msb);
+int (util_sys_inb)(int port, uint8_t *value);
