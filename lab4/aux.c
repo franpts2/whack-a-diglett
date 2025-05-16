@@ -108,14 +108,14 @@ int(mouse_init)(uint8_t *mouse_mask) {
   if (mouse_subscribe_int(mouse_mask) != 0)
     return 1;
 
-  if (write_to_mouse(ENABLE_DATA_REPORTING) != 0)
+  if (my_mouse_enable_data_reporting() != 0)
     return 1;
 
   return 0;
 }
 
 int(mouse_cleanup)() {
-  if (write_to_mouse(DISABLE_DATA_REPORTING) != 0)
+  if (mouse_disable_data_reporting() != 0)
     return 1;
 
   if (mouse_unsubscribe_int() != 0)
@@ -125,35 +125,17 @@ int(mouse_cleanup)() {
 }
 
 int(my_mouse_enable_data_reporting)() {
-  uint8_t response;
+  if (write_to_mouse(ENABLE_DATA_REPORTING) != 0)
+    return 1;
 
-  // 1. send ENABLE_DATA_REPORTING command (0xF4)
-  if (write_to_mouse(0xF4) != 0) {
-    return 1; // error sending command
-  }
-
-  // 2. wait for ACK (0xFA)
-  if (read_from_mouse(&response) != 0 || response != 0xFA) {
-    return 1; // didn't get proper ACK
-  }
-
-  return 0; // success
+  return 0;
 }
 
 int(mouse_disable_data_reporting)() {
-  uint8_t response;
+  if (write_to_mouse(DISABLE_DATA_REPORTING) != 0)
+    return 1;
 
-  // 1. send DISABLE_DATA_REPORTING command (0xF5)
-  if (write_to_mouse(0xF5) != 0) {
-    return 1; // error sending command
-  }
-
-  // 2. wait for ACK (0xFA)
-  if (read_from_mouse(&response) != 0 || response != 0xFA) {
-    return 1; // didn't get proper ACK
-  }
-
-  return 0; // success
+  return 0;
 }
 
 // ===== KBC Functions =====
