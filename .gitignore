@@ -1,1 +1,7 @@
 .vscode
+
+*.depend
+*.gbinit
+*.d
+*.o
+*.exe
