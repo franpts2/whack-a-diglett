@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "video.h"
+#include "keyboard.h"
 
 // Any header files included below this line should have been created by you
 
@@ -45,10 +46,9 @@ int(video_test_init)(uint16_t mode, uint8_t delay) {
 int (esc_key)(){
   int ipc_status, r;
   message msg;
-  uint8_t kbd_bit_no = 0;
-  uint8_t scancode;
+  uint8_t bit_no;
 
-  if (kbd_subscribe_int(&kbd_bit_no) != 0) return 1;
+  if ((r = keyboard_subscribe_int(&bit_no)) != 0) return 1;
 
   while (scancode != 0x81){
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0){
@@ -60,10 +60,8 @@ int (esc_key)(){
       switch (_ENDPOINT_P(msg.m_source))
       {
       case HARDWARE:
-        if (msg.m_notify.interrupts & BIT(kbd_bit_no)){
-          if(kbd_ih() == 0){
-            scancode = kbd_get_scancode();
-          }
+        if (msg.m_notify.interrupts & bit_no){
+          kbc_ih();
         }
         break;
       
@@ -73,7 +71,7 @@ int (esc_key)(){
     }
   }
 
-  if (kbd_unsubscribe_int() != 0){
+  if (keyboard_unsubscribe_int() != 0){
     return 1;
   }
   return 0;
@@ -87,6 +85,10 @@ int(video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y,
   if (set_video_mode(mode) != 0) return 1;
 
   if (vg_draw_rectangle(x, y, width, height, color) != 0) return 1;
+
+  printf("Rectangle drawn. Press ESC to exit...\n");
+
+  if (esc_key() != 0) return 1;
 
   if (vg_exit() != 0) return 1;
 
