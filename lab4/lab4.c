@@ -31,30 +31,31 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-int (mouse_test_packet)(uint32_t cnt) {
-   
+int(mouse_test_packet)(uint32_t cnt) {
+
   int ipc_status;
   message msg;
   uint8_t mouse_mask;
 
-  if (mouse_init(&mouse_mask) != 0) return 1;
+  if (mouse_init(&mouse_mask) != 0)
+    return 1;
 
-  while (cnt > 0) { 
+  while (cnt > 0) {
 
-    if (driver_receive(ANY, &msg, &ipc_status) != 0){
+    if (driver_receive(ANY, &msg, &ipc_status) != 0) {
       printf("error");
       continue;
     }
 
-    if (is_ipc_notify(ipc_status)){
-      switch(_ENDPOINT_P(msg.m_source)){
-        case HARDWARE: 
-          if (msg.m_notify.interrupts & mouse_mask){ 
-            mouse_ih();                               
-            mouse_collect_packet_byte();                       
-            if (byte_index == 3) {                    
-              assemble_mouse_packet();                
-              mouse_print_packet(&mouse_packet);      
+    if (is_ipc_notify(ipc_status)) {
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:
+          if (msg.m_notify.interrupts & mouse_mask) {
+            mouse_ih();
+            mouse_collect_packet_byte();
+            if (byte_index == 3) {
+              assemble_mouse_packet();
+              mouse_print_packet(&mouse_packet);
               byte_index = 0;
               cnt--;
             }
@@ -64,8 +65,9 @@ int (mouse_test_packet)(uint32_t cnt) {
     }
   }
 
-  if (mouse_cleanup() != 0) return 1;
- 
+  if (mouse_cleanup() != 0)
+    return 1;
+
   return 0;
 }
 

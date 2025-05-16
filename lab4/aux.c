@@ -13,6 +13,56 @@ struct packet mouse_packet;
 uint8_t byte_index = 0;
 uint8_t mouse_bytes[3];
 
+int(mouse_subscribe_int)(uint8_t *bit_no) {
+  if (bit_no == NULL)
+    return 1;
+  *bit_no = BIT(hook_id_mouse);
+  return sys_irqsetpolicy(MOUSE_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id_mouse);
+}
+
+int(mouse_unsubscribe_int)() {
+  return sys_irqrmpolicy(&hook_id_mouse);
+}
+
+void(mouse_ih)() {
+  if (read_KBC_output(KBC_OUT_COMMAND, &current_byte, 1))
+    printf("couldn't read byte from mouse\n");
+}
+
+void(mouse_collect_packet_byte)() {
+
+  if (byte_index == 0 && (current_byte & FIRST_BYTE)) {
+    mouse_bytes[byte_index] = current_byte;
+    byte_index++;
+  }
+
+  else if (byte_index > 0) {
+    mouse_bytes[byte_index] = current_byte;
+    byte_index++;
+  }
+}
+
+void(assemble_mouse_packet)() {
+  for (int i = 0; i < 3; i++) {
+    mouse_packet.bytes[i] = mouse_bytes[i];
+  }
+
+  mouse_packet.lb = mouse_bytes[0] & MOUSE_LB;
+  mouse_packet.mb = mouse_bytes[0] & MOUSE_MB;
+  mouse_packet.rb = mouse_bytes[0] & MOUSE_RB;
+
+  mouse_packet.x_ov = mouse_bytes[0] & MOUSE_X_OVERFLOW;
+  mouse_packet.y_ov = mouse_bytes[0] & MOUSE_Y_OVERFLOW;
+
+  // check if the sign bit is set (negative value)
+  bool x_negative = mouse_bytes[0] & MOUSE_X_SIGNAL;
+  // if negative, extend the sign (2's complement) by setting upper 8 bits to 1
+  // otherwise use the raw value
+  mouse_packet.delta_x = x_negative ? (0xFF00 | mouse_bytes[1]) : mouse_bytes[1];
+
+  bool y_negative = mouse_bytes[0] & MOUSE_Y_SIGNAL;
+  mouse_packet.delta_y = y_negative ? (0xFF00 | mouse_bytes[2]) : mouse_bytes[2];
+}
 
 int(write_to_mouse)(uint8_t command) {
   uint8_t mouse_response;
@@ -27,7 +77,7 @@ int(write_to_mouse)(uint8_t command) {
       return 1;
     if (mouse_response == ACK)
       return 0;
-  
+
     // only continue loop if we didn't get ACK
     if (mouse_response == ACK)
       break;
@@ -54,33 +104,6 @@ int(read_from_mouse)(uint8_t *output) {
   return 0;
 }
 
-void(assemble_mouse_packet)() {
-  for (int i = 0; i < 3; i++) {
-    mouse_packet.bytes[i] = mouse_bytes[i];
-  }
-
-  mouse_packet.lb = mouse_bytes[0] & MOUSE_LB;
-  mouse_packet.mb = mouse_bytes[0] & MOUSE_MB;
-  mouse_packet.rb = mouse_bytes[0] & MOUSE_RB;
-
-  mouse_packet.x_ov = mouse_bytes[0] & MOUSE_X_OVERFLOW;
-  mouse_packet.y_ov = mouse_bytes[0] & MOUSE_Y_OVERFLOW;
-  
-  // check if the sign bit is set (negative value)
-  bool x_negative = mouse_bytes[0] & MOUSE_X_SIGNAL;
-  // if negative, extend the sign (2's complement) by setting upper 8 bits to 1
-  // otherwise use the raw value
-  mouse_packet.delta_x = x_negative ? (0xFF00 | mouse_bytes[1]) : mouse_bytes[1];
-  
-  bool y_negative = mouse_bytes[0] & MOUSE_Y_SIGNAL;
-  mouse_packet.delta_y = y_negative ? (0xFF00 | mouse_bytes[2]) : mouse_bytes[2];
-}
-
-void(mouse_ih)() {
-  if (read_KBC_output(KBC_OUT_COMMAND, &current_byte, 1))
-    printf("couldn't read byte from mouse\n");
-}
-
 int(mouse_init)(uint8_t *mouse_mask) {
   if (mouse_subscribe_int(mouse_mask) != 0)
     return 1;
@@ -101,7 +124,7 @@ int(mouse_cleanup)() {
   return 0;
 }
 
-int (my_mouse_enable_data_reporting)() {
+int(my_mouse_enable_data_reporting)() {
   uint8_t response;
 
   // 1. send ENABLE_DATA_REPORTING command (0xF4)
@@ -117,7 +140,7 @@ int (my_mouse_enable_data_reporting)() {
   return 0; // success
 }
 
-int (mouse_disable_data_reporting)() {
+int(mouse_disable_data_reporting)() {
   uint8_t response;
 
   // 1. send DISABLE_DATA_REPORTING command (0xF5)
@@ -133,56 +156,11 @@ int (mouse_disable_data_reporting)() {
   return 0; // success
 }
 
-int(util_sys_inb)(int port, uint8_t *value) {
-  if (value == NULL)
-    return 1;
-
-  uint32_t val;
-  if (sys_inb(port, &val) != 0)
-    return 1;
-
-  *value = (uint8_t) (val & 0xFF);
-  return 0;
-}
-
-int(mouse_subscribe_int)(uint8_t *bit_no) {
-  if (bit_no == NULL)
-    return 1;
-  *bit_no = BIT(hook_id_mouse);
-  return sys_irqsetpolicy(MOUSE_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id_mouse);
-}
-
-int(mouse_unsubscribe_int)() {
-  return sys_irqrmpolicy(&hook_id_mouse);
-}
-
-int(write_KBC_command)(uint8_t port, uint8_t commandByte) {
-  uint8_t status;
-  uint8_t attemps = MAX_ATTEMPTS;
-
-  while (attemps > 0) {
-    if (read_KBC_status(&status) != 0) {
-      printf("tatus not available!\n");
-      return 1;
-    }
-
-    if (!(status & IN_BUF_FULL)) {
-      if (sys_outb(port, commandByte) != 0) {
-        printf("ould not write commandByte!\n");
-        return 1;
-      }
-      return 0;
-    }
-    tickdelay(micros_to_ticks(WAIT_TIME));
-    attemps--;
-  }
-  return 1;
-}
+// ===== KBC Functions =====
 
 int(read_KBC_status)(uint8_t *status) {
   return util_sys_inb(KBC_STATUS_REG, status);
 }
-
 
 int(read_KBC_output)(uint8_t port, uint8_t *output, uint8_t mouse) {
   uint8_t status;
@@ -223,23 +201,47 @@ int(read_KBC_output)(uint8_t port, uint8_t *output, uint8_t mouse) {
   return 1;
 }
 
-void(mouse_collect_packet_byte)() {
+int(write_KBC_command)(uint8_t port, uint8_t commandByte) {
+  uint8_t status;
+  uint8_t attemps = MAX_ATTEMPTS;
 
-  if (byte_index == 0 && (current_byte & FIRST_BYTE)) {
-    mouse_bytes[byte_index] = current_byte;
-    byte_index++;
-  }
+  while (attemps > 0) {
+    if (read_KBC_status(&status) != 0) {
+      printf("tatus not available!\n");
+      return 1;
+    }
 
-  else if (byte_index > 0) {
-    mouse_bytes[byte_index] = current_byte;
-    byte_index++;
+    if (!(status & IN_BUF_FULL)) {
+      if (sys_outb(port, commandByte) != 0) {
+        printf("ould not write commandByte!\n");
+        return 1;
+      }
+      return 0;
+    }
+    tickdelay(micros_to_ticks(WAIT_TIME));
+    attemps--;
   }
+  return 1;
+}
+
+// ===== Utility Functions =====
+
+int(util_sys_inb)(int port, uint8_t *value) {
+  if (value == NULL)
+    return 1;
+
+  uint32_t val;
+  if (sys_inb(port, &val) != 0)
+    return 1;
+
+  *value = (uint8_t) (val & 0xFF);
+  return 0;
 }
 
 int(util_get_LSB)(uint16_t val, uint8_t *lsb) {
   if (lsb == NULL)
     return 1;
-    
+
   *lsb = (uint8_t) (val & 0xFF);
   return 0;
 }
