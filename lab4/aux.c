@@ -103,31 +103,24 @@ void (mouse_ih)(void) {
   }
 }
 
-int mouse_init() {
-  // 1. Subscribe interrupts
-  int hook_id = MOUSE_IRQ;
-  if (sys_irqsetpolicy(MOUSE_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id) != 0)
+int(mouse_init)(uint8_t *mouse_mask) {
+  if (mouse_subscribe_int(mouse_mask) != 0)
     return 1;
 
-  // 2. Enable data reporting
-  if (my_mouse_enable_data_reporting() != 0) {
-    sys_irqrmpolicy(&hook_id);
+  if (write_to_mouse(ENABLE_DATA_REPORTING) != 0)
     return 1;
-  }
 
-  // 3. Reset state
-  memset(&mouse_state, 0, sizeof(mouse_state));
   return 0;
 }
 
-void mouse_cleanup() {
-  int hook_id = MOUSE_IRQ;
+int(mouse_cleanup)() {
+  if (write_to_mouse(DISABLE_DATA_REPORTING) != 0)
+    return 1;
 
-  // 1. Disable data reporting
-  mouse_disable_data_reporting();
+  if (mouse_unsubscribe_int() != 0)
+    return 1;
 
-  // 2. Unsubscribe interrupts
-  sys_irqrmpolicy(&hook_id);
+  return 0;
 }
 
 int (my_mouse_enable_data_reporting)() {

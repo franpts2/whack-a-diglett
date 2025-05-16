@@ -13,8 +13,11 @@
 #define KBC_OUTPUT_BUFFER_FULL BIT(0)
 #define KBC_PARITY_ERROR BIT(7)
 #define KBC_TIMEOUT_ERROR BIT(6)
-#define MAX_ATTEMPTS 5
+#define MAX_ATTEMPTS 10
 #define DELAY_US 20000 // 20ms
+
+#define ENABLE_DATA_REPORTING 0xF4
+#define DISABLE_DATA_REPORTING 0xF5
 
 static struct {
   uint8_t bytes[3];                   // Current packet bytes
