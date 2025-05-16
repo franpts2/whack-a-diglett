@@ -121,12 +121,12 @@ int(mouse_test_gesture)(uint8_t x_len, uint8_t tolerance) {
                     y_displacement_up = 0;
                   }
                   break;
-                
+
                 case DRAW_UP:
-                  state = process_draw_up_state(&mouse_packet, &x_displacement_up, 
-                                               &y_displacement_up, x_len, tolerance);
+                  state = process_draw_up_state(&mouse_packet, &x_displacement_up,
+                                                &y_displacement_up, x_len, tolerance);
                   break;
-                
+
                 case VERTEX:
                   state = process_vertex_state(&mouse_packet, tolerance);
                   // if transitioning to DRAW_DOWN, reset displacement counters
@@ -135,16 +135,16 @@ int(mouse_test_gesture)(uint8_t x_len, uint8_t tolerance) {
                     y_displacement_down = 0;
                   }
                   break;
-                
+
                 case DRAW_DOWN:
-                  state = process_draw_down_state(&mouse_packet, &x_displacement_down, 
-                                                 &y_displacement_down, x_len, tolerance);
+                  state = process_draw_down_state(&mouse_packet, &x_displacement_down,
+                                                  &y_displacement_down, x_len, tolerance);
                   // if gesture is complete, exit the loop
                   if (state == COMPLETE) {
                     running = false;
                   }
                   break;
-                
+
                 default:
                   break;
               }

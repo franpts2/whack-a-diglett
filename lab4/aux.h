@@ -3,7 +3,6 @@
 #include <lcom/lcf.h>
 #include <minix/sysutil.h>
 
-
 #define MOUSE_IRQ 12
 
 #define KBC_STATUS_REG 0x64
@@ -57,13 +56,14 @@ extern struct packet mouse_packet;
 extern uint8_t byte_index;
 extern uint8_t mouse_bytes[3];
 
+
 // Gesture state machine states
 typedef enum {
-  INIT,           // initial state, waiting for left button press
-  DRAW_UP,        // drawing the first line (left button pressed)
-  VERTEX,         // at the vertex, between the release of LB and press of RB
-  DRAW_DOWN,      // drawing the second line (right button pressed)
-  COMPLETE        // gesture completed successfully
+  INIT,      // initial state, waiting for left button press
+  DRAW_UP,   // drawing the first line (left button pressed)
+  VERTEX,    // at the vertex, between the release of LB and press of RB
+  DRAW_DOWN, // drawing the second line (right button pressed)
+  COMPLETE   // gesture completed successfully
 } gesture_state_t;
 
 // Mouse interrupt handling

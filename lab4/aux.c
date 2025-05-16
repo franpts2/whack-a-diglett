@@ -253,7 +253,7 @@ gesture_state_t(process_draw_up_state)(struct packet *packet, int16_t *x_disp, i
     // allow for small negative movements within tolerance
     if (packet->delta_x < 0 && ((-1) * packet->delta_x > tolerance)) {
       return INIT; // negative X movement beyond tolerance - reset state
-    } 
+    }
     else if (packet->delta_y < 0 && ((-1) * packet->delta_y > tolerance)) {
       return INIT; // negative Y movement beyond tolerance - reset state
     }
@@ -268,10 +268,11 @@ gesture_state_t(process_draw_up_state)(struct packet *packet, int16_t *x_disp, i
   else if (!packet->lb && !packet->rb && !packet->mb) {
     if (is_line_valid(*x_disp, *y_disp, x_len)) {
       return VERTEX; // transition to VERTEX state
-    } else {
+    }
+    else {
       return INIT; // doesn't meet requirements - reset state
     }
-  } 
+  }
   else {
     // other buttons were pressed - reset state
     return INIT;
@@ -309,7 +310,7 @@ gesture_state_t(process_draw_down_state)(struct packet *packet, int16_t *x_disp,
     else {
       // valid movement, update displacements
       *x_disp += packet->delta_x;
-      *y_disp += abs(packet->delta_y); 
+      *y_disp += abs(packet->delta_y);
       return DRAW_DOWN;
     }
   }
@@ -318,7 +319,8 @@ gesture_state_t(process_draw_down_state)(struct packet *packet, int16_t *x_disp,
     // check if the second line meets the requirements
     if (is_line_valid(*x_disp, *y_disp, x_len)) {
       return COMPLETE; // gesture completed
-    } else {
+    }
+    else {
       return INIT; // line doesn't meet requirements - reset state
     }
   }
