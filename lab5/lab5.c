@@ -42,6 +42,42 @@ int(video_test_init)(uint16_t mode, uint8_t delay) {
   return 0;
 }
 
+int (esc_key)(){
+  int ipc_status, r;
+  message msg;
+  uint8_t kbd_bit_no = 0;
+  uint8_t scancode;
+
+  if (kbd_subscribe_int(&kbd_bit_no) != 0) return 1;
+
+  while (scancode != 0x81){
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0){
+      printf("driver_receive failed with: %d\n", r);
+      continue;
+    }
+
+    if (is_ipc_notify(ipc_status)){
+      switch (_ENDPOINT_P(msg.m_source))
+      {
+      case HARDWARE:
+        if (msg.m_notify.interrupts & BIT(kbd_bit_no)){
+          if(kbd_ih() == 0){
+            scancode = kbd_get_scancode();
+          }
+        }
+        break;
+      
+      default:
+        break;
+      }
+    }
+  }
+
+  if (kbd_unsubscribe_int() != 0){
+    return 1;
+  }
+  return 0;
+}
 
 int(video_test_rectangle)(uint16_t mode, uint16_t x, uint16_t y,
                           uint16_t width, uint16_t height, uint32_t color) {
