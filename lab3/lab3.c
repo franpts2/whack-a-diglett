@@ -43,11 +43,10 @@ int(kbd_test_scan)() {
   message msg;
 
   // subscribe keyboard interrupts
-  if(keyboard_subscribe_int(&irq_set) != 0) return 1;
+  if (keyboard_subscribe_int(&irq_set) != 0) return 1;
 
   // terminate when ESC break code is received
   while (scancode != BREAK_ESC) {
-
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
       printf("driver_receive failed with: %d", r);
       continue;
@@ -55,7 +54,6 @@ int(kbd_test_scan)() {
 
     if (is_ipc_notify(ipc_status)) {
       switch (_ENDPOINT_P(msg.m_source)) {
-        
         case HARDWARE:
           if (msg.m_notify.interrupts & irq_set) {
             kbc_ih();
@@ -71,66 +69,41 @@ int(kbd_test_scan)() {
   }
 
   // unsubscribe keyboard interrupts
-  if (keyboard_unsubscribe_int()!=0) return 1;
+  if (keyboard_unsubscribe_int() != 0) return 1;
 
   return 0;
 }
 
 int(kbd_test_poll)() {
   uint8_t commandByte;
-  int ipc_status;
 
-  // 1. disable keyboard interrupts
-  if (read_KBC_output(KBC_READ_CMD, &commandByte, 0) != 0) return 1; // read command byte at port 0x20
-  commandByte &= ~ENABLE_INT; // disable keyboard interrupts
-  if (write_KBC_command(KBC_WRITE_CMD, commandByte) != 0) return 1; // write modified command byte
+  // disable keyboard interrupts
+  if (read_KBC_output(KBC_READ_CMD, &commandByte, 0) != 0) return 1;
+  commandByte &= ~ENABLE_INT;
+  if (write_KBC_command(KBC_WRITE_CMD, commandByte) != 0) return 1;
 
   while (scancode != BREAK_ESC) {
-    if (read_KBC_status(&ipc_status)); // read status register at port 0x64
-    if ((ipc_status & FULL_OUT_BUFFER) && !(ipc_status & FULL_IN_BUFFER)) { // OBF set and AUX clear
-      if (read_KBC_output(KBC_OUT_CMD, &scancode, 0) != 0) return 1; // read scancode from 0x60
+    uint8_t status;
+    if (read_KBC_status(&status) != 0) continue;
 
-      // check for errors
-      if (ipc_status & TIMEOUT_ERROR) {
-        printf("Timeout error\n");
-        continue;
-      }
-      if (ipc_status & PARITY_ERROR) {
-        printf("Parity error\n");
+    if ((status & FULL_OUT_BUFFER) && !(status & FULL_IN_BUFFER)) {
+      if (read_KBC_output(KBC_OUT_CMD, &scancode, 0) != 0) continue;
+
+      if (status & (TIMEOUT_ERROR | PARITY_ERROR)) {
+        printf("Error: Timeout or Parity error\n");
         continue;
       }
 
-      // print make/break codes
       bytes[0] = scancode;
       kbd_print_scancode((scancode&BIT(7))==0, 1, bytes);
     }
   }
 
-  //reenable keyboard interrupts
-  commandByte &= ENABLE_INT;
+  // re-enable keyboard interrupts
+  commandByte |= ENABLE_INT;
   if (write_KBC_command(KBC_WRITE_CMD, commandByte) != 0) return 1;
 
   return 0;
-
-  /*
-
-  1. disable keyboard interrupts
-  - read current command byte (kbd command 0x20)
-  - disable keyboard interrupts (clear bit 0 of command byte)
-  - write modified command byte (kbd command 0x60)
-
-  2. polling loop
-  - continuosly read status register (0x64)
-  - when OBF is set and AUX is clear, read scancode from 0x60
-  - check for errors in status register
-  - print make/break codes
-  - exit on ESC break code (0x81)
-
-  3. restore settings
-  - reenable keyboard interrupts (set bit 0 of command byte)
-  - write back original command byte
-  
-  */
 }
 
 int(kbd_test_timed_scan)(uint8_t n) {
