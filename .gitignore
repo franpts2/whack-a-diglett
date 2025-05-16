@@ -1,7 +1,8 @@
-.vscode
+**/.vscode
+**/.clang-format
 
-*.depend
-*.gbinit
-*.d
-*.o
-*.exe
+**/.depend
+**/.gdbinit
+**/*.d
+**/*.o
+**/*.exe
