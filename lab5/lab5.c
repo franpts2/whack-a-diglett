@@ -125,8 +125,15 @@ int(video_test_pattern)(uint16_t mode, uint8_t no_rectangles, uint32_t first, ui
 }
 
 int(video_test_xpm)(xpm_map_t xpm, uint16_t x, uint16_t y) {
-  /* To be completed */
-  printf("%s(%8p, %u, %u): under construction\n", __func__, xpm, x, y);
+  if (map_frame_buffer(0x105) != 0) return 1;
+
+  if (set_video_mode(0x105) != 0) return 1;
+
+  // function here
+  
+  if (esc_key() != 0) return 1;
+
+  if (vg_exit() != 0) return 1;
 
   return 1;
 }
