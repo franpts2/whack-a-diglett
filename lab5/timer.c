@@ -114,3 +114,4 @@ int (timer_display_conf)(uint8_t timer, uint8_t st, enum timer_status_field fiel
   if (timer_print_config(timer, field, val)!=0) return 1;
   return 0;
 }
+
