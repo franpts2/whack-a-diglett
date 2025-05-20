@@ -7,13 +7,31 @@
 
 int hook_id = 0;
 int counter = 0;
-int hook_id = 0;
 
 int (timer_set_frequency)(uint8_t timer, uint32_t freq) {
-  /* To be implemented by the students */
-  printf("%s is not yet implemented!\n", __func__);
+  if (freq < 19 || freq > TIMER_FREQ) return 1;
 
-  return 1;
+  uint8_t st;
+  if (timer_get_conf(timer, &st)) return 1;
+
+  uint8_t ctrl = (st & 0x0F) | TIMER_LSB_MSB;
+  uint8_t port;
+  switch (timer) {
+    case 0: ctrl |= TIMER_SEL0; port = TIMER_0; break;
+    case 1: ctrl |= TIMER_SEL1; port = TIMER_1; break;
+    case 2: ctrl |= TIMER_SEL2; port = TIMER_2; break;
+    default: return 1;
+  }
+
+  uint32_t div = TIMER_FREQ / freq;
+  uint8_t lsb, msb;
+  util_get_LSB(div, &lsb);
+  util_get_MSB(div, &msb);
+
+  if (sys_outb(TIMER_CTRL, ctrl)) return 1;
+  if (sys_outb(port, lsb)) return 1;
+  if (sys_outb(port, msb)) return 1;
+  return 0;
 }
 
 int (timer_subscribe_int)(uint8_t *bit_no) {
@@ -22,7 +40,7 @@ int (timer_subscribe_int)(uint8_t *bit_no) {
 
   *bit_no = BIT(hook_id);
 
-  if (sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id) != 0) return 1; //interrupts subscription
+  if (sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id) != OK) return 1;
 
   return 0;
 }
