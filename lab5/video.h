@@ -11,6 +11,8 @@ int (map_frame_buffer)(uint16_t mode);
 
 void *video_mem;
 
+uint32_t get_rectangle_color (uint8_t row, uint8_t col, uint32_t first, uint8_t step, uint8_t n_rect, bool is_direct);
+
 
 
 #endif

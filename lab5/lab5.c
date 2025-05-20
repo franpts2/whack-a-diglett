@@ -101,7 +101,21 @@ int(video_test_pattern)(uint16_t mode, uint8_t no_rectangles, uint32_t first, ui
 
   if (set_video_mode(mode) != 0) return 1;
 
-  /*functions to implement here*/
+  uint32_t width = m_info.XResolution / no_rectangles;
+  uint32_t height = m_info.YResolution / no_rectangles;
+  bool is_direct = m_info.MemoryModel == 6; // 6 -> direct color
+
+  for (uint8_t row = 0; row < no_rectangles; row++){
+    for (uint8_t col = 0; col < no_rectangles; col++){
+      
+      uint32_t color = get_rectangle_color(row, col, first, step, no_rectangles, is_direct);
+
+      uint16_t x = col * width;
+      uint16_t y = row * height;
+
+      if(vg_draw_rectangle(x, y, width, height, color) != 0) return 1;
+    }
+  }
 
   if (esc_key() != 0) return 1;
   
