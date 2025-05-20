@@ -40,7 +40,7 @@ int (timer_subscribe_int)(uint8_t *bit_no) {
 
   *bit_no = BIT(hook_id);
 
-  if (sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id) != 0) return 1; //interrupts subscription
+  if (sys_irqsetpolicy(TIMER0_IRQ, IRQ_REENABLE, &hook_id) != OK) return 1;
 
   return 0;
 }
