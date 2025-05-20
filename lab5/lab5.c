@@ -2,7 +2,7 @@
 #include <lcom/lcf.h>
 
 #include <lcom/lab5.h>
-
+#include <lcom/xpm.h>
 #include <stdint.h>
 #include <stdio.h>
 #include "video.h"
@@ -129,8 +129,8 @@ int(video_test_xpm)(xpm_map_t xpm, uint16_t x, uint16_t y) {
 
   if (set_video_mode(0x105) != 0) return 1;
 
-  // function here
-  
+  if (draw_pixmap(xpm, x, y) != 0) return 1;
+
   if (esc_key() != 0) return 1;
 
   if (vg_exit() != 0) return 1;
