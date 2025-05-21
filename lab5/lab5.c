@@ -149,25 +149,20 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
   if (timer_subscribe_int(&bit_timer) != 0) return 1;
   if (timer_set_frequency(0, fr_rate) != 0) return 1;
 
-  xpm_image_t img;
-  uint8_t *pixmap = xpm_load(xpm, XPM_INDEXED, &img);
-  if (!pixmap) return 1;
   if (draw_pixmap(xpm, xi, yi) != 0) return 1;
+
+  uint16_t x = xi;
+  uint16_t y = yi;
 
   int ipc_status, r;
   message msg;
 
-  uint8_t vertical;
-  if (xi == xf && yi < yf) vertical = 1;
-  else if (yi == yf && xi < xf) vertical = 0;
-  else return 1;
+  bool vertical = xi == xf;
+  // if (xi == xf && yi < yf) vertical = true;
+  // else if (yi == yf && xi < xf) vertical = false;
+  // else return 1;
 
-  uint16_t curr_x = xi, curr_y = yi;
-  uint16_t prev_x = xi, prev_y = yi;
-  static int frame_counter = 0;
-
-  while (scancode != 0x81 && (curr_x != xf || curr_y != yf)){
-
+  while (scancode != 0x81 && (x != xf || x != yf)){
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0){
       printf("driver_receive failed with: %d\n", r);
       continue;
@@ -175,49 +170,38 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
 
     if (is_ipc_notify(ipc_status)){
       switch (_ENDPOINT_P(msg.m_source)){
-      case HARDWARE:
-        if (msg.m_notify.interrupts & bit_kbd){
-          kbc_ih();
-        }
-        if (msg.m_notify.interrupts &bit_timer){
-          if (vg_draw_rectangle(prev_x, prev_y, img.width, img.height, 0) != 0) return 1;
-          prev_x = curr_x;
-          prev_y = curr_y;
-         
-          if (vertical) {
-            if (speed > 0) {
-              if (curr_y != yf) {
-                if (abs(yf - curr_y) > speed)
-                  curr_y += (yf > yi) ? speed : -speed;
-                else
-                  curr_y = yf;
-              }
-            } else {
-              frame_counter++;
-              if (frame_counter >= -speed && curr_y != yf) {
-                curr_y += (yf > yi) ? 1 : -1;
-                frame_counter = 0;
-              }
-            }
-          } else {
-            if (speed > 0) {
-              if (curr_x != xf) {
-                if (abs(xf - curr_x) > speed)
-                  curr_x += (xf > xi) ? speed : -speed;
-                else
-                  curr_x = xf;
-              }
-            } else {
-              frame_counter++;
-              if (frame_counter >= -speed && curr_x != xf) {
-                curr_x += (xf > xi) ? 1 : -1;
-                frame_counter = 0;
-              }
-            }
+        case HARDWARE:
+          if (msg.m_notify.interrupts & bit_kbd){
+            kbc_ih();
           }
+          if (msg.m_notify.interrupts & bit_timer){
+            xpm_image_t img;
+            xpm_load(xpm, XPM_INDEXED, &img);
+
+            for (int row = 0; row < img.width; row++){
+              for (int col = 0; col < img.height; col++){
+                vg_draw_rectangle(x + row, y + col, 1, 1, 0);
+              }
+            }
+
+            if (vertical){
+              y+= speed;
+              if (y > yf) y = yf;
+            } else {
+              x += speed;
+              if (x > xf) x = xf;
+            }
+
+            if (draw_pixmap(xpm, x, y) != 0) return 1;
+            
+          }
+          break;
           
-        }
+        default:
+          break;
       }
+    } else {
+      // do nothing
     }
 
   }
