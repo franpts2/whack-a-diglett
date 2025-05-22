@@ -72,9 +72,64 @@ int(mouse_test_packet)(uint32_t cnt) {
 }
 
 int(mouse_test_async)(uint8_t idle_time) {
-  /* To be completed */
-  printf("%s(%u): under construction\n", __func__, idle_time);
-  return 1;
+  int ipc_status;
+  message msg;
+  uint8_t seconds = 0;
+  uint8_t mouse_mask = 0, timer_mask = 0;
+  uint32_t timer_frequency = sys_hz();
+  extern int counter; // Access the counter variable from timer.c
+
+  // Initialize mouse and subscribe to timer
+  if (mouse_init(&mouse_mask) != 0) return 1;
+  if (timer_subscribe_int(&timer_mask) != 0) {
+    mouse_cleanup();
+    return 1;
+  }
+
+  while (seconds < idle_time) { // Terminate after idle_time without mouse packets
+
+    if (driver_receive(ANY, &msg, &ipc_status) != 0) {
+      printf("Error receiving message\n");
+      continue;
+    }
+
+    if (is_ipc_notify(ipc_status)) {
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:
+
+          if (msg.m_notify.interrupts & timer_mask) { // Timer interrupt
+            timer_int_handler();
+            if (counter % timer_frequency == 0) seconds++;
+          }
+
+          if (msg.m_notify.interrupts & mouse_mask) { // Mouse interrupt
+            mouse_ih();
+            mouse_collect_packet_byte();
+
+            if (byte_index == 3) {
+              assemble_mouse_packet();
+              mouse_print_packet(&mouse_packet);
+              byte_index = 0;
+            }
+
+            // Reset idle time counters whenever mouse data is received
+            seconds = 0;
+            counter = 0;
+          }
+          break;
+      }
+    }
+  }
+
+  // Cleanup: unsubscribe timer and mouse interrupts
+  if (timer_unsubscribe_int() != 0) {
+    mouse_cleanup();
+    return 1;
+  }
+
+  if (mouse_cleanup() != 0) return 1;
+
+  return 0;
 }
 
 int(mouse_test_gesture)(uint8_t x_len, uint8_t tolerance) {
