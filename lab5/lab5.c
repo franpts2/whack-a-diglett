@@ -154,15 +154,17 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
   uint16_t x = xi;
   uint16_t y = yi;
 
+  bool stop = false;
+
   int ipc_status, r;
   message msg;
 
-  bool vertical = xi == xf;
+  bool vertical = (xi == xf);
   // if (xi == xf && yi < yf) vertical = true;
   // else if (yi == yf && xi < xf) vertical = false;
   // else return 1;
 
-  while (scancode != 0x81 && (x != xf || x != yf)){
+  while (scancode != 0x81){
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0){
       printf("driver_receive failed with: %d\n", r);
       continue;
@@ -175,25 +177,31 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
             kbc_ih();
           }
           if (msg.m_notify.interrupts & bit_timer){
-            xpm_image_t img;
-            xpm_load(xpm, XPM_INDEXED, &img);
+            timer_int_handler();
 
-            for (int row = 0; row < img.width; row++){
-              for (int col = 0; col < img.height; col++){
-                vg_draw_rectangle(x + row, y + col, 1, 1, 0);
+            if (!stop) {
+              xpm_image_t img;
+              xpm_load(xpm, XPM_INDEXED, &img);
+
+              for (int row = 0; row < img.width; row++){
+                for (int col = 0; col < img.height; col++){
+                  vg_draw_rectangle(x + row, y + col, 1, 1, 0);
+                }
               }
-            }
 
-            if (vertical){
-              y+= speed;
-              if (y > yf) y = yf;
-            } else {
-              x += speed;
-              if (x > xf) x = xf;
-            }
+              if (vertical){
+                y+= speed;
+                if (y > yf) y = yf;
+              } else {
+                x += speed;
+                if (x > xf) x = xf;
+              }
 
-            if (draw_pixmap(xpm, x, y) != 0) return 1;
-            
+              if (draw_pixmap(xpm, x, y) != 0) return 1;
+
+              if (x == xf && y == yf) stop = true;
+
+            }
           }
           break;
           
