@@ -1,0 +1,8 @@
+**/.vscode
+**/.clang-format
+
+**/.depend
+**/.gdbinit
+**/*.d
+**/*.o
+**/*.exe
