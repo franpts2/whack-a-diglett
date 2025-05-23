@@ -9,9 +9,10 @@ PROG=proj
 .PATH: ${.CURDIR}/game
 .PATH: ${.CURDIR}/game/modes
 .PATH: ${.CURDIR}/utils
+.PATH: ${.CURDIR}/fonts
 
 # List all your source files (just the filenames, not the paths)
-SRCS = main.c timer.c keyboard.c kbc.c aux.c utils.c video.c game.c menu.c
+SRCS = main.c timer.c keyboard.c kbc.c aux.c utils.c video.c game.c menu.c testfont.c
 
 # additional compilation flags
 # "-Wall -Wextra -Werror -I . -std=c11 -Wno-unused-parameter" are already set
