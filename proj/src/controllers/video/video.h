@@ -6,16 +6,20 @@
 
 vbe_mode_info_t m_info;
 
-int (set_video_mode)(uint16_t mode);
+int(set_video_mode)(uint16_t mode);
 
-int (map_frame_buffer)(uint16_t mode);
+int(map_frame_buffer)(uint16_t mode);
 
 void *video_mem;
 
-uint32_t get_rectangle_color (uint8_t row, uint8_t col, uint32_t first, uint8_t step, uint8_t n_rect, bool is_direct);
+uint32_t get_rectangle_color(uint8_t row, uint8_t col, uint32_t first, uint8_t step, uint8_t n_rect, bool is_direct);
 
 int draw_pixmap(xpm_map_t xpm, uint16_t x, uint16_t y);
 
+void draw_pixel(int x, int y, uint32_t color);
 
+void draw_pixel_scaled(int x, int y, uint32_t color, int scale);
+
+int(vg_draw_rectangle)(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color);
 
 #endif

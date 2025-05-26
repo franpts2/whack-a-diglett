@@ -129,3 +129,10 @@ int draw_pixmap(xpm_map_t xpm, uint16_t x, uint16_t y){
 
 }
 
+void draw_pixel(int x, int y, uint32_t color) {
+    vg_draw_rectangle(x, y, 1, 1, color);
+}
+
+void draw_pixel_scaled(int x, int y, uint32_t color, int scale) {
+    vg_draw_rectangle(x, y, scale, scale, color);
+}
