@@ -1,6 +1,7 @@
 #include <lcom/lcf.h>
 #include "video.h"
 #include <lcom/xpm.h>
+#include "../kbdmouse/keyboard.h"
 
 
 int (set_video_mode)(uint16_t mode){

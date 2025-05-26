@@ -4,6 +4,7 @@
 #include "kbc.h"
 #include "i8042.h"
 
+extern uint8_t scancode;
 int (keyboard_subscribe_int)(uint8_t *bit_no);
 int (keyboard_unsubscribe_int)();
 void (kbc_ih)();
