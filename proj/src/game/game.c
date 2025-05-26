@@ -42,12 +42,28 @@ int game_main_loop(void) {
       }
     }
 
-    if (current_mode == MODE_MENU && prev_mode != MODE_MENU) {
-      menu_init();
-      prev_mode = MODE_MENU;
-      prev_selected = -1;
+    // Check for mode changes and initialize accordingly
+    if (current_mode != prev_mode) {
+      switch (current_mode) {
+        case MODE_MENU:
+          menu_init();
+          prev_selected = -1;
+          break;
+        case MODE_PLAYING:
+          // Initialize the playing mode when it's implemented
+          // playing_init();
+          break;
+        case MODE_INSTRUCTIONS:
+          // Initialize the instructions mode when it's implemented
+          // instructions_init();
+          break;
+        default:
+          break;
+      }
+      prev_mode = current_mode;
     }
 
+    // Handle mode-specific updates
     extern int selected;
     if (current_mode == MODE_MENU && selected != prev_selected) {
       menu_update_selection();

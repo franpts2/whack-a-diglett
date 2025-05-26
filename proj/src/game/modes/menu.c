@@ -2,6 +2,7 @@
 #include "../../controllers/video/video.h" 
 #include "../../controllers/kbdmouse/keyboard.h"
 #include "../../fonts/testfont.h"
+#include "../../game/game.h"
 
 #define MENU_ITEMS 3
 
@@ -13,6 +14,8 @@ void menu_handle_input(uint8_t scancode) {
         selected = (selected - 1 + MENU_ITEMS) % MENU_ITEMS;
     } else if (scancode == 0x50) { // Down
         selected = (selected + 1) % MENU_ITEMS;
+    } else if (scancode == 0x1C) { // Enter
+        menu_select_option();
     }
 }
 
@@ -63,4 +66,21 @@ void menu_init(void) {
 // Chamado sempre que atualizarmos o selected
 void menu_update_selection(void) {
     draw_menu_selection();
+}
+
+// Handles the selection of a menu item
+void menu_select_option(void) {
+    extern GameMode current_mode;
+    
+    switch (selected) {
+        case 0: // Start Game
+            current_mode = MODE_PLAYING;
+            break;
+        case 1: // Instructions
+            current_mode = MODE_INSTRUCTIONS;
+            break;
+        case 2: // Exit
+            // Exit functionality will be handled in the game loop
+            break;
+    }
 }

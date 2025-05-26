@@ -6,6 +6,7 @@
 void menu_init(void);
 void menu_handle_input(uint8_t scancode);
 void menu_update_selection(void);
+void menu_select_option(void);
 
 extern int selected;
 
