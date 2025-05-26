@@ -18,7 +18,7 @@ void menu_handle_input(uint8_t scancode) {
 
 // Desenha as coisas que não precisam de refresh (botões fundo etc)
 void draw_menu_bg_and_buttons(void) {
-    vg_draw_rectangle(0, 0, 1024, 768, 0x02); // Background EU NAI SEI METER UMA COR DECENTE AQUI IM SO SORRY
+    vg_draw_rectangle(0, 0, 1024, 768, 0xd50d); // Background EU NAI SEI METER UMA COR DECENTE AQUI IM SO SORRY
 
     int screen_w = 1024;
     int btn_w = 300, btn_h = 50;
@@ -27,7 +27,7 @@ void draw_menu_bg_and_buttons(void) {
     const char* btn_labels[MENU_ITEMS] = { "Start Game", "Instructions", "Exit" };
 
     for (int i = 0; i < MENU_ITEMS; ++i) {
-        vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, 0xAAAAAA); 
+        vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, 0xb3c9); 
         int scale = 2;
         int text_width = strlen(btn_labels[i]) * 8 * scale;
         int text_x = btn_x + (btn_w - text_width) / 2;
@@ -46,10 +46,10 @@ void draw_menu_selection(void) {
     int arrow_w = 30, arrow_h = 50;
 
     // Isto "apaga" a seleção anterior. Mudar a cor caso se mude o background.
-    vg_draw_rectangle(arrow_x, btn_y[prev_selected], arrow_w, arrow_h, 0x02);
+    vg_draw_rectangle(arrow_x, btn_y[prev_selected], arrow_w, arrow_h, 0xd50d);
 
     // Nova seleção
-    vg_draw_rectangle(arrow_x, btn_y[selected], arrow_w, arrow_h, 0xFF); 
+    vg_draw_rectangle(arrow_x, btn_y[selected], arrow_w, arrow_h, 0xb3c9); 
 
     prev_selected = selected;
 }

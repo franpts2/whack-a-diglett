@@ -9,7 +9,7 @@
 
 int(proj_main_loop)(int argc, char* argv[]) {
   // Set up do video
-  uint16_t mode = 0x105;
+  uint16_t mode = 0x117;
   if (map_frame_buffer(mode) != 0) {
     printf("Failed to map frame buffer!\n");
     return 1;
