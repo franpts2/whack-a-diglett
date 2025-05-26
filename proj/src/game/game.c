@@ -1,11 +1,12 @@
 #include "game.h"
-#include <lcom/lcf.h>
-#include <stdio.h>
 #include "../controllers/kbdmouse/keyboard.h"
 #include "modes/menu.h"
+#include "modes/playing.h"
+#include <lcom/lcf.h>
+#include <stdio.h>
 
 GameMode current_mode = MODE_MENU;
-GameMode prev_mode = -1; 
+GameMode prev_mode = -1;
 int prev_selected = -1;
 
 int game_main_loop(void) {
@@ -31,10 +32,21 @@ int game_main_loop(void) {
           if (msg.m_notify.interrupts & kbd_irq) {
             kbc_ih();
             extern uint8_t scancode;
-            if ((scancode & 0x80) == 0) {
-              menu_handle_input(scancode);
+            if ((scancode & 0x80) == 0) { 
+              // handle input based on current game mode
+              switch (current_mode) {
+                case MODE_MENU:
+                  menu_handle_input(scancode);
+                  break;
+                case MODE_PLAYING:
+                  playing_handle_input(scancode);
+                  break;
+                default:
+                  break;
+              }
             }
-            if (scancode == 0x81) running = 0; // ESC para parar
+            if (scancode == 0x81)
+              running = 0; // ESC para parar
           }
           break;
         default:
@@ -42,7 +54,7 @@ int game_main_loop(void) {
       }
     }
 
-    // Check for mode changes and initialize accordingly
+    // check for mode changes and initialize 
     if (current_mode != prev_mode) {
       switch (current_mode) {
         case MODE_MENU:
@@ -50,11 +62,9 @@ int game_main_loop(void) {
           prev_selected = -1;
           break;
         case MODE_PLAYING:
-          // Initialize the playing mode when it's implemented
-          // playing_init();
+          playing_init();
           break;
         case MODE_INSTRUCTIONS:
-          // Initialize the instructions mode when it's implemented
           // instructions_init();
           break;
         default:
@@ -63,11 +73,13 @@ int game_main_loop(void) {
       prev_mode = current_mode;
     }
 
-    // Handle mode-specific updates
     extern int selected;
     if (current_mode == MODE_MENU && selected != prev_selected) {
       menu_update_selection();
       prev_selected = selected;
+    }
+    else if (current_mode == MODE_PLAYING) {
+      playing_update(); // update game state
     }
   }
 
