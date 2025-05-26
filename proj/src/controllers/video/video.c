@@ -1,5 +1,7 @@
 #include <lcom/lcf.h>
 #include "video.h"
+#include <lcom/xpm.h>
+
 
 int (set_video_mode)(uint16_t mode){
   reg86_t r;
@@ -80,5 +82,50 @@ int (vg_draw_rectangle)(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
     }
   }
   return 0;
+}
+
+uint32_t get_rectangle_color (uint8_t row, uint8_t col, uint32_t first, uint8_t step, uint8_t n_rect, bool is_direct){
+
+  if (!is_direct){
+    // indexed color mode
+    return (first + (row * n_rect + col) * step) % (1 << m_info.BitsPerPixel);
+  }
+  else {
+    // direct color mode
+    uint8_t red_mask = m_info.RedMaskSize;
+    uint8_t green_mask = m_info.GreenMaskSize;
+    uint8_t blue_mask = m_info.BlueMaskSize;
+    
+    uint8_t red_pos = m_info.RedFieldPosition;
+    uint8_t green_pos = m_info.GreenFieldPosition;
+    uint8_t blue_pos = m_info.BlueFieldPosition;
+
+    uint32_t r_first = (((1 << red_mask) - 1) & (first >> red_pos));
+    uint32_t g_first = (((1 << green_mask) - 1) & (first >> green_pos));
+    uint32_t b_first = (((1 << blue_mask) - 1) & (first >> blue_pos));
+
+    uint32_t red = (r_first + col * step) % (1 << red_mask);
+    uint32_t green = (g_first + row * step) % (1 << green_mask);
+    uint32_t blue = (b_first + (col + row) * step) % (1 << blue_mask);
+
+    return (red << red_pos) | (green << green_pos) | (blue << blue_pos);
+
+  }
+}
+
+int draw_pixmap(xpm_map_t xpm, uint16_t x, uint16_t y){
+
+  xpm_image_t img;
+  uint8_t *pixmap = xpm_load(xpm, XPM_INDEXED, &img);
+  if (!pixmap) return 1;
+
+  for (uint16_t row = 0; row < img.height; row++){
+    for (uint16_t col = 0; col < img.width; col++){
+      uint32_t color = pixmap[row*img.width + col];
+      vg_draw_rectangle(x + col, y + row, 1, 1, color);
+    }
+  }
+  return 0;
+
 }
 
