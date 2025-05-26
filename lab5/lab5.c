@@ -141,16 +141,6 @@ int(video_test_xpm)(xpm_map_t xpm, uint16_t x, uint16_t y) {
 int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint16_t yf,
                      int16_t speed, uint8_t fr_rate) {
 
-  if (map_frame_buffer(0x105) != 0) return 1;
-  if (set_video_mode(0x105) != 0) return 1;
-
-  uint8_t bit_kbd, bit_timer;
-  if (keyboard_subscribe_int(&bit_kbd) != 0) return 1;
-  if (timer_subscribe_int(&bit_timer) != 0) return 1;
-  if (timer_set_frequency(0, fr_rate) != 0) return 1;
-
-  if (draw_pixmap(xpm, xi, yi) != 0) return 1;
-
   uint16_t x = xi;
   uint16_t y = yi;
 
@@ -160,9 +150,27 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
   message msg;
 
   bool vertical = (xi == xf);
+
+  uint8_t bit_kbd, bit_timer;
+  if (keyboard_subscribe_int(&bit_kbd) != 0) return 1;
+  if (timer_subscribe_int(&bit_timer) != 0) return 1;
+  // if (timer_set_frequency(0, fr_rate) != 0) return 1;
+
+  int ticks = 0;
+  if (timer_set_frequency(0, 60) != 0) return 1;
+  int ticks_frame = 60 / fr_rate; 
+
+  if (map_frame_buffer(0x105) != 0) return 1;
+  if (set_video_mode(0x105) != 0) return 1;
+
+  if (draw_pixmap(xpm, xi, yi) != 0) return 1;
+
+  
   // if (xi == xf && yi < yf) vertical = true;
   // else if (yi == yf && xi < xf) vertical = false;
   // else return 1;
+
+  int frame_counter = 0;
 
   while (scancode != 0x81){
     if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0){
@@ -178,8 +186,9 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
           }
           if (msg.m_notify.interrupts & bit_timer){
             timer_int_handler();
+            ticks++;
 
-            if (!stop) {
+            if (!stop && ticks %ticks_frame == 0) {
               xpm_image_t img;
               xpm_load(xpm, XPM_INDEXED, &img);
 
@@ -189,13 +198,34 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
                 }
               }
 
-              if (vertical){
-                y+= speed;
-                if (y > yf) y = yf;
-              } else {
-                x += speed;
-                if (x > xf) x = xf;
+              if (speed > 0) {
+                if (vertical){
+                  if ((y > yf &&  y - speed <= yf) || (y < yf &&  y + speed >= yf)) y = yf;
+                  else y += (yf > y) ? speed : -speed;
+                }
+                else {
+                  if ((x > xf &&  x - speed <= xf) || (x < xf &&  x + speed >= xf)) x = xf;
+                  else x += (xf > x) ? speed : -speed;
+
+                }
+
               }
+              else if (speed < 0){
+                frame_counter++;
+
+                if (frame_counter >= -speed){
+                  frame_counter = 0;
+                  if (vertical){
+                    if (y < yf) y++;
+                    else if (y > yf) y--;
+                  }
+                  else {
+                    if (x < xf) x++;
+                    else if (x > xf) x--;
+                  }
+                }
+              }
+        
 
               if (draw_pixmap(xpm, x, y) != 0) return 1;
 
@@ -218,6 +248,7 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
   if (timer_unsubscribe_int() != 0) return 1;
   if (vg_exit() != 0) return 1;
   return 0;
+
 }
 
 int(video_test_controller)() {
