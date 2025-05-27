@@ -34,6 +34,10 @@ int cursor_draw(Cursor *cursor) {
     for (uint16_t col = 0; col < cursor->img.width; col++) {
       uint32_t color_index = cursor->pixmap[row * cursor->img.width + col];
 
+      if (color_index == xpm_transparency_color(XPM_8_8_8_8)) {
+        // Skip drawing transparent pixels (assuming 0xFFFFFFFF is the transparent color)
+        continue;
+      }
       // Skip drawing transparent pixels
       if (color_index != 0) {
         vg_draw_rectangle(cursor->x + col, cursor->y + row, 1, 1, color_index);
