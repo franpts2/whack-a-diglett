@@ -1,5 +1,6 @@
 #include "game.h"
 #include "../controllers/kbdmouse/keyboard.h"
+#include "../controllers/timer/timer.h"
 #include "cursor/cursor.h"
 #include "modes/menu.h"
 #include <lcom/lcf.h>
@@ -13,6 +14,13 @@ GameMode prev_mode = -1;
 int prev_selected = -1;
 
 Cursor *g_cursor = NULL;
+extern int counter; // timer counter
+
+// frame rate control constants and variables
+#define FRAME_RATE 60
+#define TICKS_PER_FRAME (sys_hz() / FRAME_RATE)
+uint32_t frame_timer = 0;
+bool render_frame = false;
 
 int game_main_loop(void) {
   // Initialize cursor
@@ -45,6 +53,17 @@ int game_main_loop(void) {
     return 1;
   }
 
+  // timer interrupts for consistent frame rate
+  uint8_t timer_irq;
+  if (timer_subscribe_int(&timer_irq) != 0) {
+    printf("Failed to subscribe timer interrupt\n");
+    mouse_disable_data_reporting();
+    mouse_unsubscribe_int();
+    keyboard_unsubscribe_int();
+    cursor_destroy(g_cursor);
+    return 1;
+  }
+
   int running = 1;
   int ipc_status;
   message msg;
@@ -57,6 +76,16 @@ int game_main_loop(void) {
     if (is_ipc_notify(ipc_status)) {
       switch (_ENDPOINT_P(msg.m_source)) {
         case HARDWARE:
+          if (msg.m_notify.interrupts & timer_irq) {
+            timer_int_handler();
+            frame_timer++;
+
+            if (frame_timer >= TICKS_PER_FRAME) {
+              render_frame = true;
+              frame_timer = 0;
+            }
+          }
+
           if (msg.m_notify.interrupts & kbd_irq) {
             kbc_ih();
             extern uint8_t scancode;
@@ -75,23 +104,9 @@ int game_main_loop(void) {
             if (byte_index == 3) {
               assemble_mouse_packet();
 
-              // update cursor position
+              // Update cursor position using our refactored function
               if (g_cursor != NULL) {
-                // current cursor position
-                int new_x = g_cursor->x + mouse_packet.delta_x;
-                int new_y = g_cursor->y - mouse_packet.delta_y; // Y is inverted
-
-                // keep inside screen (800x600)
-                if (new_x < 0)
-                  new_x = 0;
-                if (new_x > 800 - g_cursor->width)
-                  new_x = 800 - g_cursor->width;
-                if (new_y < 0)
-                  new_y = 0;
-                if (new_y > 600 - g_cursor->height)
-                  new_y = 600 - g_cursor->height;
-
-                cursor_set_position(g_cursor, new_x, new_y);
+                cursor_handle_mouse_packet(g_cursor, &mouse_packet);
               }
 
               // Reset byte index for next packet
@@ -118,34 +133,55 @@ int game_main_loop(void) {
         unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
         memset(static_buffer, 0, buffer_size);
 
-        draw_menu_bg_and_buttons();
+        // draw_menu_bg_and_buttons();
         set_drawing_to_back();
       }
     }
 
-    copy_static_to_back(); // also sets current_drawing_buffer to back_buffer
+    // render on mouse movement for responsiveness, use timer for animations, track recent movement for smoothness
+    static bool mouse_moved_recently = false;
+    bool mouse_moving_now = (mouse_packet.delta_x != 0 || mouse_packet.delta_y != 0);
 
-    if (current_mode == MODE_MENU) {
-      // update selection if needed
-      extern int selected;
-      if (selected != prev_selected) {
-        prev_selected = selected;
-      }
-      draw_menu_selection(); // always draw selection (dynamic)
-
-      // draw cursor on top of everything
-      if (g_cursor != NULL) {
-        cursor_draw(g_cursor);
-      }
+    if (mouse_moving_now) {
+      mouse_moved_recently = true;
     }
 
-    swap_buffers();
+    if (render_frame || mouse_moving_now || mouse_moved_recently) {
+      copy_static_to_back(); // also sets current_drawing_buffer to back_buffer
+
+      if (current_mode == MODE_MENU) {
+        // update selection if needed
+        extern int selected;
+        if (selected != prev_selected) {
+          prev_selected = selected;
+        }
+        // draw_menu_selection(); // always draw selection (dynamic)
+
+        // draw cursor on top of everything
+        if (g_cursor != NULL) {
+          cursor_draw(g_cursor);
+        }
+      }
+
+      swap_buffers();
+      render_frame = false;
+
+      // reset mouse movement flag after a few frames to avoid unnecessary rendering
+      if (render_frame && mouse_moved_recently && !mouse_moving_now) {
+        static int post_movement_frames = 0;
+        if (++post_movement_frames >= 3) { // continue rendering for 3 frames after movement stops
+          mouse_moved_recently = false;
+          post_movement_frames = 0;
+        }
+      }
+    }
   }
 
   // cleanup
   mouse_disable_data_reporting();
   mouse_unsubscribe_int();
   keyboard_unsubscribe_int();
+  timer_unsubscribe_int();
   cursor_destroy(g_cursor);
   destroy_buffers();
 

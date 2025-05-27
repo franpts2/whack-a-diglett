@@ -27,6 +27,7 @@ void(destroy_buffers)(void);
 void(copy_static_to_back)(void);   // copy static buffer to back buffer
 void(set_drawing_to_static)(void); // redirect drawing to static buffer
 void(set_drawing_to_back)(void);   // redirect drawing to back buffer
+void *get_current_buffer(void);    // get the current drawing buffer
 
 uint32_t get_rectangle_color(uint8_t row, uint8_t col, uint32_t first, uint8_t step, uint8_t n_rect, bool is_direct);
 

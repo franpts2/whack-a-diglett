@@ -5,6 +5,11 @@
 // Global to track where we're currently drawing
 static void *current_drawing_buffer = NULL;
 
+// Function to expose the current drawing buffer to other modules
+void *get_current_buffer(void) {
+  return (current_drawing_buffer != NULL) ? current_drawing_buffer : back_buffer;
+}
+
 int(set_video_mode)(uint16_t mode) {
   reg86_t r;
   memset(&r, 0, sizeof(r));
@@ -198,17 +203,15 @@ void(swap_buffers)(void) {
   // back buffer to video memory (display)
   memcpy(video_mem, back_buffer, buffer_size);
 
-  // rotate buffers: back buffer -> middle buffer -> (previous)back buffer
+  // buffer rotation 
   void *temp = back_buffer;
   back_buffer = middle_buffer;
   middle_buffer = temp;
 
   // skip new back buffer clearing - content will be copied from static buffer next frame
 
-  // drawing buffer to new back buffer
   current_drawing_buffer = back_buffer;
 
-  // buffer-index++
   current_buffer = (current_buffer + 1) % 3;
 }
 
@@ -243,8 +246,8 @@ void(copy_static_to_back)(void) {
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
 
+  // static buffer to back buffer
   memcpy(back_buffer, static_buffer, buffer_size);
 
-  // ensure we're drawing to the back buffer
   current_drawing_buffer = back_buffer;
 }

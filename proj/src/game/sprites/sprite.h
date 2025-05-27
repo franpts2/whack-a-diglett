@@ -1,6 +1,7 @@
 #ifndef _SPRITE_H_
 #define _SPRITE_H_
 
+#include "../../controllers/video/video.h"
 #include <lcom/lcf.h>
 #include <stdlib.h>
 
