@@ -65,8 +65,14 @@ void playing_init(void) {
   visible_diglett_count = 0;
   player_points = 0;
 
-  // First, ensure we're completely stopping all rendering related to menu
   extern GameMode prev_mode;
+  extern Cursor *g_cursor;
+
+  // hide cursor in playing mode by moving it off-screen (it won't be rendered anyway)
+  if (g_cursor != NULL) {
+    cursor_set_position(g_cursor, -100, -100);
+  }
+
   prev_mode = MODE_PLAYING; // Mark transition as complete
 
   // Reset the screen completely - this is crucial to remove menu artifacts

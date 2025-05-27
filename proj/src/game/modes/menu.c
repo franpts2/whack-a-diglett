@@ -134,6 +134,12 @@ void draw_menu_selection(void) {
 void menu_init(void) {
   selected = 0;       // reset selection to first item
   prev_selected = -1; // force redraw of selection on first display
+
+  // reset cursor position to center of screen when returning to menu
+  extern Cursor *g_cursor;
+  if (g_cursor != NULL) {
+    cursor_set_position(g_cursor, 400, 300);
+  }
 }
 
 // Chamado sempre que atualizarmos o selected
