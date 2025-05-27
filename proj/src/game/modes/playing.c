@@ -13,11 +13,11 @@
 #define DIGLETT_COLOR 0x885500
 
 // Game timing constants
-#define MIN_DIGLETT_SHOW_TIME 120 // Minimum frames a diglett stays visible (1 second at 60Hz)
-#define MAX_DIGLETT_SHOW_TIME 240 // Maximum frames a diglett stays visible (3 seconds at 60Hz)
-#define MIN_DIGLETT_HIDE_TIME 120 // Minimum frames a diglett stays hidden (0.5 second at 60Hz)
-#define MAX_DIGLETT_HIDE_TIME 180 // Maximum frames a diglett stays hidden (2 seconds at 60Hz)
-#define MAX_VISIBLE_DIGLETTS 5    // Maximum digletts visible at once
+#define MIN_DIGLETT_SHOW_TIME 120 // min frames a diglett stays visible (2 second at 60Hz)
+#define MAX_DIGLETT_SHOW_TIME 240 // max frames a diglett stays visible (4 seconds at 60Hz)
+#define MIN_DIGLETT_HIDE_TIME 120 // min frames a diglett stays hidden (2 second at 60Hz)
+#define MAX_DIGLETT_HIDE_TIME 180 // max frames a diglett stays hidden (3 seconds at 60Hz)
+#define MAX_VISIBLE_DIGLETTS 5    // max digletts visible at once
 
 typedef struct {
   int x;        // x position of the rectangle
@@ -35,6 +35,7 @@ typedef struct {
 Diglett digletts[NUM_DIGLETTS];
 
 int visible_diglett_count = 0;
+int player_points = 0;
 
 // scancodes for the keys assigned to digletts
 const uint8_t diglett_keys[NUM_DIGLETTS] = {
@@ -48,12 +49,29 @@ int get_random_timer(int min, int max) {
   return min + (rand() % (max - min + 1));
 }
 
+// Function to draw the points counter
+void draw_points_counter() {
+  // caclcular posição pro counter de pontos nao sair da tela
+  int counter_width = 200;
+  int counter_x = 800 - counter_width - 10;
+
+  // clear previous points
+  vg_draw_rectangle(counter_x, 10, counter_width, 30, BACKGROUND_COLOR);
+
+  // "Points: XX"
+  char points_str[20];
+  sprintf(points_str, "Points: %d", player_points);
+
+  draw_text_scaled(points_str, counter_x + 10, 10, 0xFFFFFF, 2);
+}
+
 // initialize the playing screen
 void playing_init(void) {
   // seed the random number generator
   srand(time(NULL));
 
   visible_diglett_count = 0;
+  player_points = 0;
 
   // pinta o background
   vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
@@ -95,6 +113,8 @@ void playing_init(void) {
       vg_draw_rectangle(x, y, rect_width, rect_height, BACKGROUND_COLOR);
     }
   }
+
+  draw_points_counter();
 }
 
 // handles keyboard input in playing mode
@@ -120,6 +140,17 @@ void playing_handle_input(uint8_t scancode) {
         digletts[i].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
 
         update_diglett_visibility(i);
+
+        // +1 point
+        player_points++;
+        draw_points_counter(); // update
+      }
+      else {
+        // -1 point
+        if (player_points > 0) {
+          player_points--;
+          draw_points_counter(); // update
+        }
       }
 
       break;

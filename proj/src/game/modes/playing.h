@@ -3,15 +3,14 @@
 
 #include <stdint.h>
 
-// Initialize the playing mode
 void playing_init(void);
 
-// Handle input in playing mode
 void playing_handle_input(uint8_t scancode);
 
-// Update the playing mode
 void playing_update(void);
 
 void update_diglett_visibility(int index);
+
+void draw_points_counter(void);
 
 #endif // PLAYING_H
