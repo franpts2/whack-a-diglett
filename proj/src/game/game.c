@@ -5,9 +5,7 @@
 #include <lcom/lcf.h>
 #include <stdio.h>
 
-// Mouse includes and functions
 #include "../controllers/kbdmouse/aux.h"
-// Video buffer functions
 #include "../controllers/video/video.h"
 
 GameMode current_mode = MODE_MENU;
@@ -69,7 +67,7 @@ int game_main_loop(void) {
               running = 0; // ESC para parar
           }
 
-          // Handle mouse interrupt
+          // handle mouse ints
           if (msg.m_notify.interrupts & mouse_irq) {
             mouse_ih();
             mouse_collect_packet_byte();
@@ -106,37 +104,45 @@ int game_main_loop(void) {
       }
     }
 
-    // Clear the back buffer before drawing a new frame
-    clear_buffer();
+    // check if changed to new mode
+    if (current_mode != prev_mode) {
+      if (current_mode == MODE_MENU) {
+        prev_mode = MODE_MENU;
+        prev_selected = -1;
 
-    // First mode change detection
-    if (current_mode == MODE_MENU && prev_mode != MODE_MENU) {
-      prev_mode = MODE_MENU;
-      prev_selected = -1;
+        // prepare static background only once
+        set_drawing_to_static();
+
+        // clear static buffer and draw static content
+        unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+        unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+        memset(static_buffer, 0, buffer_size);
+
+        draw_menu_bg_and_buttons();
+        set_drawing_to_back();
+      }
     }
 
-    // Draw the appropriate UI for the current mode
-    if (current_mode == MODE_MENU) {
-      // Redraw menu background and buttons every frame
-      draw_menu_bg_and_buttons();
+    copy_static_to_back(); // also sets current_drawing_buffer to back_buffer
 
-      // Update selection if needed
+    if (current_mode == MODE_MENU) {
+      // update selection if needed
       extern int selected;
       if (selected != prev_selected) {
         prev_selected = selected;
       }
-      draw_menu_selection(); // Always draw selection
-    }
+      draw_menu_selection(); // always draw selection (dynamic)
 
-    // Draw the cursor on top of everything else
-    if (g_cursor != NULL) {
-      cursor_draw(g_cursor);
+      // draw cursor on top of everything
+      if (g_cursor != NULL) {
+        cursor_draw(g_cursor);
+      }
     }
 
     swap_buffers();
   }
 
-  // Disable mouse data reporting and unsubscribe from mouse interrupts
+  // cleanup
   mouse_disable_data_reporting();
   mouse_unsubscribe_int();
   keyboard_unsubscribe_int();

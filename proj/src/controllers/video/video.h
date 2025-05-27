@@ -10,6 +10,7 @@ vbe_mode_info_t m_info;
 void *video_mem;        // physical VRAM address
 void *back_buffer;      // back buffer
 void *middle_buffer;    // middle buffer
+void *static_buffer;    // static buffer for background elements
 uint8_t current_buffer; // current buffer index (0, 1, 2)
 
 int(set_video_mode)(uint16_t mode);
@@ -21,6 +22,11 @@ int(init_buffers)(void);
 void(clear_buffer)(void);
 void(swap_buffers)(void);
 void(destroy_buffers)(void);
+
+// static buffer functions
+void(copy_static_to_back)(void);   // copy static buffer to back buffer
+void(set_drawing_to_static)(void); // redirect drawing to static buffer
+void(set_drawing_to_back)(void);   // redirect drawing to back buffer
 
 uint32_t get_rectangle_color(uint8_t row, uint8_t col, uint32_t first, uint8_t step, uint8_t n_rect, bool is_direct);
 

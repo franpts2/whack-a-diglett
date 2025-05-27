@@ -2,6 +2,9 @@
 #include <lcom/lcf.h>
 #include <lcom/xpm.h>
 
+// Global to track where we're currently drawing
+static void *current_drawing_buffer = NULL;
+
 int(set_video_mode)(uint16_t mode) {
   reg86_t r;
   memset(&r, 0, sizeof(r));
@@ -60,6 +63,9 @@ int(vg_draw_hline)(uint16_t x, uint16_t y, uint16_t len, uint32_t color) {
   if (x + len > m_info.XResolution || y >= m_info.YResolution)
     return 1;
 
+  // If current_drawing_buffer is NULL, default to back_buffer
+  void *target_buffer = (current_drawing_buffer != NULL) ? current_drawing_buffer : back_buffer;
+
   unsigned bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
 
   unsigned int start_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
@@ -72,7 +78,7 @@ int(vg_draw_hline)(uint16_t x, uint16_t y, uint16_t len, uint32_t color) {
 
   for (uint16_t i = 0; i < len; i++) {
     unsigned int current_pos = start_pos + (i * bytes_per_pixel);
-    memcpy((uint8_t *) back_buffer + current_pos, color_buffer, bytes_per_pixel);
+    memcpy((uint8_t *) target_buffer + current_pos, color_buffer, bytes_per_pixel);
   }
 
   return 0;
@@ -140,51 +146,56 @@ void draw_pixel_scaled(int x, int y, uint32_t color, int scale) {
   vg_draw_rectangle(x, y, scale, scale, color);
 }
 
-// Triple buffer implementation
+//======= Triple buffer implementation =======
 
 int(init_buffers)(void) {
-  // Initialize the buffer index
   current_buffer = 0;
 
-  // Calculate buffer size
+  // buffer size
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
 
-  // Allocate memory for back buffer and middle buffer
   back_buffer = malloc(buffer_size);
   middle_buffer = malloc(buffer_size);
+  static_buffer = malloc(buffer_size);
 
-  // Check if allocation was successful
-  if (back_buffer == NULL || middle_buffer == NULL) {
+  if (back_buffer == NULL || middle_buffer == NULL || static_buffer == NULL) {
     printf("Failed to allocate memory for buffers\n");
     if (back_buffer != NULL)
       free(back_buffer);
     if (middle_buffer != NULL)
       free(middle_buffer);
+    if (static_buffer != NULL)
+      free(static_buffer);
     return 1;
   }
 
-  // Clear the buffers initially
+  // clear buffers initially
   memset(back_buffer, 0, buffer_size);
   memset(middle_buffer, 0, buffer_size);
+  memset(static_buffer, 0, buffer_size);
+
+  // initial drawing buffer to back buffer
+  current_drawing_buffer = back_buffer;
 
   return 0;
 }
 
 void(clear_buffer)(void) {
-  // Calculate buffer size
+  // buffer size
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
 
-  // Clear back buffer
-  memset(back_buffer, 0, buffer_size);
+  // clear the current drawing buffer (or back buffer if none is set)
+  void *target_buffer = (current_drawing_buffer != NULL) ? current_drawing_buffer : back_buffer;
+  memset(target_buffer, 0, buffer_size);
 }
 
 void(swap_buffers)(void) {
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
 
-  // copy back buffer to video memory (display)
+  // back buffer to video memory (display)
   memcpy(video_mem, back_buffer, buffer_size);
 
   // rotate buffers: back buffer -> middle buffer -> (previous)back buffer
@@ -192,10 +203,12 @@ void(swap_buffers)(void) {
   back_buffer = middle_buffer;
   middle_buffer = temp;
 
-  // clear the new back buffer
-  clear_buffer();
+  // skip new back buffer clearing - content will be copied from static buffer next frame
 
-  // increment buffer index
+  // drawing buffer to new back buffer
+  current_drawing_buffer = back_buffer;
+
+  // buffer-index++
   current_buffer = (current_buffer + 1) % 3;
 }
 
@@ -209,4 +222,29 @@ void(destroy_buffers)(void) {
     free(middle_buffer);
     middle_buffer = NULL;
   }
+
+  if (static_buffer != NULL) {
+    free(static_buffer);
+    static_buffer = NULL;
+  }
+}
+
+//=== Static buffer management ===
+
+void(set_drawing_to_static)(void) {
+  current_drawing_buffer = static_buffer;
+}
+
+void(set_drawing_to_back)(void) { // reset to drawing to the back buffer
+  current_drawing_buffer = back_buffer;
+}
+
+void(copy_static_to_back)(void) {
+  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+
+  memcpy(back_buffer, static_buffer, buffer_size);
+
+  // ensure we're drawing to the back buffer
+  current_drawing_buffer = back_buffer;
 }
