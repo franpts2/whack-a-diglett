@@ -25,7 +25,12 @@ void menu_handle_input(uint8_t scancode) {
 void draw_menu_bg_and_buttons(void) {
   vg_draw_rectangle(0, 0, 800, 600, 0x02); // Background EU NAI SEI METER UMA COR DECENTE AQUI IM SO SORRY
 
-  draw_text_scaled("WHACK'A DIGGLET", 225, 100, 0xFF, 3); // titulo
+  // titulo centrado
+  int title_scale = 3;
+  const char *title = "WHACK'A DIGGLET";
+  int title_width = strlen(title) * 8 * title_scale;
+  int title_x = (800 - title_width) / 2;
+  draw_text_scaled(title, title_x, 100, 0xFF, title_scale);
 
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;

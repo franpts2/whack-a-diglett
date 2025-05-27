@@ -10,8 +10,12 @@ void playing_init(void) {
   // pinta o background
   vg_draw_rectangle(0, 0, 800, 600, 0x325918);
 
-  // titulo
-  draw_text_scaled("WHACK'A DIGGLET", 290, 50, 0xFFFFFF, 3);
+  // titulo centrado
+  int title_scale = 3;
+  const char *title = "WHACK'A DIGGLET";
+  int title_width = strlen(title) * 8 * title_scale;
+  int title_x = (800 - title_width) / 2;
+  draw_text_scaled(title, title_x, 50, 0xFFFFFF, title_scale);
 
   int rect_width = 60;
   int rect_height = 80;
