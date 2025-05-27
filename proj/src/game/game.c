@@ -3,6 +3,7 @@
 #include "../controllers/timer/timer.h"
 #include "cursor/cursor.h"
 #include "modes/menu.h"
+#include "modes/playing.h"
 #include <lcom/lcf.h>
 #include <stdio.h>
 
@@ -68,7 +69,9 @@ int game_main_loop(void) {
     return 1;
   }
 
-  // running is now a global variable declared at the top of this file
+  // Set timer frequency to 60Hz (for smoother animations)
+  timer_set_frequency(0, 60);
+
   int ipc_status;
   message msg;
 
@@ -94,7 +97,27 @@ int game_main_loop(void) {
             kbc_ih();
             extern uint8_t scancode;
             if ((scancode & 0x80) == 0) {
-              menu_handle_input(scancode);
+              // handle input based on current game mode
+              switch (current_mode) {
+                case MODE_MENU:
+                  menu_handle_input(scancode);
+                  break;
+                case MODE_PLAYING:
+                  playing_handle_input(scancode);
+                  break;
+                default:
+                  break;
+              }
+            }
+            if (scancode == 0x81)
+              running = 0; // ESC para parar
+          }
+
+          if (msg.m_notify.interrupts & timer_irq) {
+            timer_int_handler(); // update timer counter
+
+            if (current_mode == MODE_PLAYING) {
+              playing_update(); // process diglett animations/timer updates
             }
             if (scancode == 0x81)
               running = 0; // ESC para parar
@@ -134,28 +157,39 @@ int game_main_loop(void) {
       }
     }
 
-    // check if changed to new mode
+    // check for mode changes and initialize
     if (current_mode != prev_mode) {
-      if (current_mode == MODE_MENU) {
-        prev_mode = MODE_MENU;
+      switch (current_mode) {
+        case MODE_MENU:
+          prev_mode = MODE_MENU;
 
-        // reset menu and selection
-        menu_init();
+          // reset menu and selection
+          menu_init();
 
-        // prepare static background only once
-        set_drawing_to_static();
+          // prepare static background only once
+          set_drawing_to_static();
 
-        // clear static buffer and draw static content
-        unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
-        unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
-        memset(static_buffer, 0, buffer_size);
+          // clear static buffer and draw static content
+          unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+          unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+          memset(static_buffer, 0, buffer_size);
 
-        draw_menu_bg_and_buttons();
-        set_drawing_to_back();
+          draw_menu_bg_and_buttons();
+          set_drawing_to_back();
 
-        // force a render frame to ensure selection is drawn
-        render_frame = true;
+          // force a render frame to ensure selection is drawn
+          render_frame = true;
+          break;
+        case MODE_PLAYING:
+          playing_init();
+          break;
+        case MODE_INSTRUCTIONS:
+          // instructions_init();
+          break;
+        default:
+          break;
       }
+      prev_mode = current_mode;
     }
 
     // render on mouse movement for responsiveness, use timer for animations, track recent movement for smoothness

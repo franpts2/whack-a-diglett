@@ -1,6 +1,7 @@
 #include "video.h"
 #include <lcom/lcf.h>
 #include <lcom/xpm.h>
+#include "../kbdmouse/keyboard.h"
 
 // Global to track where we're currently drawing
 static void *current_drawing_buffer = NULL;
@@ -140,6 +141,98 @@ int draw_pixmap(xpm_map_t xpm, uint16_t x, uint16_t y) {
       draw_pixel(x + col, y + row, color);
     }
   }
+  return 0;
+}
+
+int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint16_t yf,
+                     int16_t speed, uint8_t fr_rate) {
+
+  if (map_frame_buffer(0x115) != 0)
+    return 1;
+  if (set_video_mode(0x115) != 0)
+    return 1;
+
+  uint8_t bit_kbd, bit_timer;
+  if (keyboard_subscribe_int(&bit_kbd) != 0)
+    return 1;
+  if (timer_subscribe_int(&bit_timer) != 0)
+    return 1;
+  if (timer_set_frequency(0, fr_rate) != 0)
+    return 1;
+
+  if (draw_pixmap(xpm, xi, yi) != 0)
+    return 1;
+
+  uint16_t x = xi;
+  uint16_t y = yi;
+
+  bool stop = false;
+
+  int ipc_status, r;
+  message msg;
+
+  bool vertical = (xi == xf);
+
+  while (scancode != 0x81) {
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d\n", r);
+      continue;
+    }
+
+    if (is_ipc_notify(ipc_status)) {
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:
+          if (msg.m_notify.interrupts & bit_kbd) {
+            kbc_ih();
+          }
+          if (msg.m_notify.interrupts & bit_timer) {
+            timer_int_handler();
+
+            if (!stop) {
+              xpm_image_t img;
+              xpm_load(xpm, XPM_INDEXED, &img);
+
+              for (int row = 0; row < img.width; row++) {
+                for (int col = 0; col < img.height; col++) {
+                  vg_draw_rectangle(x + row, y + col, 1, 1, 0);
+                }
+              }
+
+              if (vertical) {
+                y += speed;
+                if (y > yf)
+                  y = yf;
+              }
+              else {
+                x += speed;
+                if (x > xf)
+                  x = xf;
+              }
+
+              if (draw_pixmap(xpm, x, y) != 0)
+                return 1;
+
+              if (x == xf && y == yf)
+                stop = true;
+            }
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+    else {
+      // do nothing
+    }
+  }
+
+  if (keyboard_unsubscribe_int() != 0)
+    return 1;
+  if (timer_unsubscribe_int() != 0)
+    return 1;
+  if (vg_exit() != 0)
+    return 1;
   return 0;
 }
 

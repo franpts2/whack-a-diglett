@@ -6,12 +6,18 @@
 
 vbe_mode_info_t m_info;
 
+<<<<<<< HEAD
 // Triple buffering setup
 void *video_mem;        // physical VRAM address
 void *back_buffer;      // back buffer
 void *middle_buffer;    // middle buffer
 void *static_buffer;    // static buffer for background elements
 uint8_t current_buffer; // current buffer index (0, 1, 2)
+=======
+
+
+int (set_video_mode)(uint16_t mode);
+>>>>>>> main
 
 int(set_video_mode)(uint16_t mode);
 

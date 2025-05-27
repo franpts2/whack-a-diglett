@@ -27,23 +27,20 @@ void menu_handle_input(uint8_t scancode) { // only change selection on arrow key
     prev_selected = -1;
   }
   else if (scancode == 0x1C) { // Enter key
-    switch (selected) {
-      case 0: // "Start Game" button
-        current_mode = MODE_PLAYING;
-        break;
-      case 1: // "Instructions" button
-        current_mode = MODE_INSTRUCTIONS;
-        break;
-      case 2:        // "Exit" button
-        running = 0; 
-        break;
-    }
+    menu_select_option();
   }
 }
 
 // Desenha as coisas que não precisam de refresh (botões fundo etc)
 void draw_menu_bg_and_buttons(void) {
   vg_draw_rectangle(0, 0, 800, 600, 0x02);
+
+    // titulo centrado
+  int title_scale = 3;
+  const char *title = "WHACK'A DIGGLET";
+  int title_width = strlen(title) * 8 * title_scale;
+  int title_x = (800 - title_width) / 2;
+  draw_text_scaled(title, title_x, 100, 0xFF, title_scale);
 
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
@@ -189,4 +186,19 @@ void menu_handle_mouse(int x, int y, bool left_button_clicked) {
 
   // If mouse wasn't over any button, don't change selection
   // This allows the selection to stay where it was last set
+// Handles the selection of a menu item
+void menu_select_option(void) {
+  extern GameMode current_mode;
+
+  switch (selected) {
+    case 0: // Start Game
+      current_mode = MODE_PLAYING;
+      break;
+    case 1: // Instructions
+      current_mode = MODE_INSTRUCTIONS;
+      break;
+    case 2: // Exit
+      // Exit functionality will be handled in the game loop
+      break;
+  }
 }
