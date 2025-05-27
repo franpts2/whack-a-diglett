@@ -5,29 +5,14 @@
 #include <stdlib.h>
 
 Cursor *cursor_init() {
-  Cursor *cursor = (Cursor *) malloc(sizeof(Cursor));
-  if (cursor == NULL) {
-    printf("Failed to allocate memory for cursor\n");
-    return NULL;
-  }
+  // Center of the screen (800x600 mode)
+  int center_x = 400;
+  int center_y = 300;
 
-  // Initialize cursor at the center of the screen (assuming 1024x768 mode)
-  cursor->x = 512;
-  cursor->y = 384;
-  cursor->is_visible = true;
-
-  // Load the cursor XPM image
-  cursor->pixmap = (uint32_t *) xpm_load((xpm_map_t) cursor_xpm, XPM_8_8_8_8, &cursor->img);
-  if (cursor->pixmap == NULL) {
-    free(cursor);
-    return NULL;
-  }
-
-  return cursor;
+  return sprite_create_from_xpm((xpm_map_t) cursor_xpm, center_x, center_y);
 }
 
 int cursor_draw(Cursor *cursor) {
-  // Use the generic sprite_draw function since Cursor is now a Sprite
   return sprite_draw(cursor);
 }
 
@@ -40,10 +25,6 @@ void cursor_set_position(Cursor *cursor, int x, int y) {
 }
 
 void cursor_destroy(Cursor *cursor) {
-  if (cursor != NULL) {
-    if (cursor->pixmap != NULL) {
-      free(cursor->pixmap);
-    }
-    free(cursor);
-  }
+  // Use the sprite destruction function
+  sprite_destroy(cursor);
 }

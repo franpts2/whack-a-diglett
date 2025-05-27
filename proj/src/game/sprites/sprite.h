@@ -2,6 +2,7 @@
 #define _SPRITE_H_
 
 #include <lcom/lcf.h>
+#include <stdlib.h>
 
 typedef struct {
   int x;              // x position
@@ -11,12 +12,10 @@ typedef struct {
   bool is_visible;    // visibility flag
 } Sprite;
 
-/**
- * @brief Draw a sprite on the screen
- * 
- * @param sprite The sprite to draw
- * @return int 0 on success, non-zero on failure
- */
+Sprite *sprite_create_from_xpm(xpm_map_t xpm_map, int x, int y);
+
 int sprite_draw(Sprite *sprite);
+
+void sprite_destroy(Sprite *sprite);
 
 #endif /* _SPRITE_H_ */
