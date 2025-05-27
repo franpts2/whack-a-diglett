@@ -7,7 +7,7 @@
 typedef struct {
   int x;
   int y;
-  uint8_t *pixmap;
+  uint32_t *pixmap;
   xpm_image_t img;
   bool is_visible; 
 } Cursor;

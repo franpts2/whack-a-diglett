@@ -116,13 +116,13 @@ uint32_t get_rectangle_color (uint8_t row, uint8_t col, uint32_t first, uint8_t 
 int draw_pixmap(xpm_map_t xpm, uint16_t x, uint16_t y){
 
   xpm_image_t img;
-  uint8_t *pixmap = xpm_load(xpm, XPM_INDEXED, &img);
+  uint32_t *pixmap = (uint32_t *)xpm_load(xpm, XPM_8_8_8_8, &img);
   if (!pixmap) return 1;
 
   for (uint16_t row = 0; row < img.height; row++){
     for (uint16_t col = 0; col < img.width; col++){
       uint32_t color = pixmap[row*img.width + col];
-      vg_draw_rectangle(x + col, y + row, 1, 1, color);
+      draw_pixel(x + col, y + row, color);
     }
   }
   return 0;

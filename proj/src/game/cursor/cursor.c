@@ -16,7 +16,7 @@ Cursor *cursor_init() {
   cursor->is_visible = true;
 
   // Load the cursor XPM image
-  cursor->pixmap = xpm_load((xpm_map_t) cursor_xpm, XPM_INDEXED, &cursor->img);
+  cursor->pixmap = (uint32_t *) xpm_load((xpm_map_t) cursor_xpm, XPM_8_8_8_8, &cursor->img);
   if (cursor->pixmap == NULL) {
     free(cursor);
     return NULL;
