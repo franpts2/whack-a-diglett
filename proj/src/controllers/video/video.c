@@ -1,9 +1,8 @@
-#include <lcom/lcf.h>
 #include "video.h"
+#include <lcom/lcf.h>
 #include <lcom/xpm.h>
 
-
-int (set_video_mode)(uint16_t mode){
+int(set_video_mode)(uint16_t mode) {
   reg86_t r;
   memset(&r, 0, sizeof(r));
   r.ah = 0x4F;
@@ -11,7 +10,7 @@ int (set_video_mode)(uint16_t mode){
   r.bx = mode | BIT(14);
   r.intno = 0x10;
 
-  if (sys_int86(&r) != 0){
+  if (sys_int86(&r) != 0) {
     printf("sys_int86 failed!\n");
     return 1;
   }
@@ -19,63 +18,68 @@ int (set_video_mode)(uint16_t mode){
   return 0;
 }
 
-int (map_frame_buffer)(uint16_t mode){
- 
-  //memset(m_info, 0, sizeof(m_info));
+int(map_frame_buffer)(uint16_t mode) {
 
-  if (vbe_get_mode_info(mode, &m_info)) return 1;
+  // memset(m_info, 0, sizeof(m_info));
 
-  // static void *video_mem;         /* frame-buffer VM address (static global variable*/ 
- 
+  if (vbe_get_mode_info(mode, &m_info))
+    return 1;
+
+  // static void *video_mem;         /* frame-buffer VM address (static global variable*/
+
   struct minix_mem_range mr;
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
-  unsigned int vram_base = m_info.PhysBasePtr;  /* VRAM's physical addresss */
+  unsigned int vram_base = m_info.PhysBasePtr;                                        /* VRAM's physical addresss */
   unsigned int vram_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel; /* VRAM'size*/
 
-  int r;				    
+  int r;
 
   /* Allow memory mapping */
 
-  mr.mr_base = (phys_bytes) vram_base;	
-  mr.mr_limit = mr.mr_base + vram_size;  
+  mr.mr_base = (phys_bytes) vram_base;
+  mr.mr_limit = mr.mr_base + vram_size;
 
-  if( OK != (r = sys_privctl(SELF, SYS_PRIV_ADD_MEM, &mr)))
+  if (OK != (r = sys_privctl(SELF, SYS_PRIV_ADD_MEM, &mr)))
     panic("sys_privctl (ADD_MEM) failed: %d\n", r);
 
   /* Map memory */
 
-  video_mem = vm_map_phys(SELF, (void *)mr.mr_base, vram_size);
+  video_mem = vm_map_phys(SELF, (void *) mr.mr_base, vram_size);
 
-  if(video_mem == MAP_FAILED)
+  if (video_mem == MAP_FAILED)
     panic("couldn't map video memory");
-  
+
+  // Initialize triple buffering
+  if (init_buffers() != 0)
+    panic("couldn't initialize triple buffering");
+
   return 0;
 }
 
-
-int (vg_draw_hline)(uint16_t x, uint16_t y, uint16_t len, uint32_t color){
-  if (x + len > m_info.XResolution || y >= m_info.YResolution) return 1;
+int(vg_draw_hline)(uint16_t x, uint16_t y, uint16_t len, uint32_t color) {
+  if (x + len > m_info.XResolution || y >= m_info.YResolution)
+    return 1;
 
   unsigned bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
-  
+
   unsigned int start_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
 
   uint8_t color_buffer[bytes_per_pixel];
 
-  for (unsigned i = 0; i < bytes_per_pixel; i++){
-    color_buffer[i] = (color >> (i*8)) & 0xFF;
+  for (unsigned i = 0; i < bytes_per_pixel; i++) {
+    color_buffer[i] = (color >> (i * 8)) & 0xFF;
   }
 
-  for (uint16_t i = 0; i < len; i++){
+  for (uint16_t i = 0; i < len; i++) {
     unsigned int current_pos = start_pos + (i * bytes_per_pixel);
-    memcpy((uint8_t *)video_mem + current_pos, color_buffer, bytes_per_pixel);
+    memcpy((uint8_t *) back_buffer + current_pos, color_buffer, bytes_per_pixel);
   }
 
   return 0;
 }
 
-int (vg_draw_rectangle)(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color){
-  for (unsigned row = 0; row < height; row++){
+int(vg_draw_rectangle)(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color) {
+  for (unsigned row = 0; row < height; row++) {
     if (vg_draw_hline(x, y + row, width, color) != 0) {
       vg_exit();
       return 1;
@@ -84,9 +88,9 @@ int (vg_draw_rectangle)(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
   return 0;
 }
 
-uint32_t get_rectangle_color (uint8_t row, uint8_t col, uint32_t first, uint8_t step, uint8_t n_rect, bool is_direct){
+uint32_t get_rectangle_color(uint8_t row, uint8_t col, uint32_t first, uint8_t step, uint8_t n_rect, bool is_direct) {
 
-  if (!is_direct){
+  if (!is_direct) {
     // indexed color mode
     return (first + (row * n_rect + col) * step) % (1 << m_info.BitsPerPixel);
   }
@@ -95,7 +99,7 @@ uint32_t get_rectangle_color (uint8_t row, uint8_t col, uint32_t first, uint8_t 
     uint8_t red_mask = m_info.RedMaskSize;
     uint8_t green_mask = m_info.GreenMaskSize;
     uint8_t blue_mask = m_info.BlueMaskSize;
-    
+
     uint8_t red_pos = m_info.RedFieldPosition;
     uint8_t green_pos = m_info.GreenFieldPosition;
     uint8_t blue_pos = m_info.BlueFieldPosition;
@@ -109,30 +113,100 @@ uint32_t get_rectangle_color (uint8_t row, uint8_t col, uint32_t first, uint8_t 
     uint32_t blue = (b_first + (col + row) * step) % (1 << blue_mask);
 
     return (red << red_pos) | (green << green_pos) | (blue << blue_pos);
-
   }
 }
 
-int draw_pixmap(xpm_map_t xpm, uint16_t x, uint16_t y){
+int draw_pixmap(xpm_map_t xpm, uint16_t x, uint16_t y) {
 
   xpm_image_t img;
-  uint32_t *pixmap = (uint32_t *)xpm_load(xpm, XPM_8_8_8_8, &img);
-  if (!pixmap) return 1;
+  uint32_t *pixmap = (uint32_t *) xpm_load(xpm, XPM_8_8_8_8, &img);
+  if (!pixmap)
+    return 1;
 
-  for (uint16_t row = 0; row < img.height; row++){
-    for (uint16_t col = 0; col < img.width; col++){
-      uint32_t color = pixmap[row*img.width + col];
+  for (uint16_t row = 0; row < img.height; row++) {
+    for (uint16_t col = 0; col < img.width; col++) {
+      uint32_t color = pixmap[row * img.width + col];
       draw_pixel(x + col, y + row, color);
     }
   }
   return 0;
-
 }
 
 void draw_pixel(int x, int y, uint32_t color) {
-    vg_draw_rectangle(x, y, 1, 1, color);
+  vg_draw_rectangle(x, y, 1, 1, color);
 }
 
 void draw_pixel_scaled(int x, int y, uint32_t color, int scale) {
-    vg_draw_rectangle(x, y, scale, scale, color);
+  vg_draw_rectangle(x, y, scale, scale, color);
+}
+
+// Triple buffer implementation
+
+int(init_buffers)(void) {
+  // Initialize the buffer index
+  current_buffer = 0;
+
+  // Calculate buffer size
+  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+
+  // Allocate memory for back buffer and middle buffer
+  back_buffer = malloc(buffer_size);
+  middle_buffer = malloc(buffer_size);
+
+  // Check if allocation was successful
+  if (back_buffer == NULL || middle_buffer == NULL) {
+    printf("Failed to allocate memory for buffers\n");
+    if (back_buffer != NULL)
+      free(back_buffer);
+    if (middle_buffer != NULL)
+      free(middle_buffer);
+    return 1;
+  }
+
+  // Clear the buffers initially
+  memset(back_buffer, 0, buffer_size);
+  memset(middle_buffer, 0, buffer_size);
+
+  return 0;
+}
+
+void(clear_buffer)(void) {
+  // Calculate buffer size
+  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+
+  // Clear back buffer
+  memset(back_buffer, 0, buffer_size);
+}
+
+void(swap_buffers)(void) {
+  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+
+  // copy back buffer to video memory (display)
+  memcpy(video_mem, back_buffer, buffer_size);
+
+  // rotate buffers: back buffer -> middle buffer -> (previous)back buffer
+  void *temp = back_buffer;
+  back_buffer = middle_buffer;
+  middle_buffer = temp;
+
+  // clear the new back buffer
+  clear_buffer();
+
+  // increment buffer index
+  current_buffer = (current_buffer + 1) % 3;
+}
+
+void(destroy_buffers)(void) {
+  if (back_buffer != NULL) {
+    free(back_buffer);
+    back_buffer = NULL;
+  }
+
+  if (middle_buffer != NULL) {
+    free(middle_buffer);
+    middle_buffer = NULL;
+  }
 }

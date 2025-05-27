@@ -19,8 +19,11 @@ int(proj_main_loop)(int argc, char *argv[]) {
     return 1;
   }
 
-  // Começar o game loop
+  // Start the game loop
   int ret = game_main_loop();
+
+  // Clean up and return to text mode
+  vg_exit();
 
   return ret;
 }

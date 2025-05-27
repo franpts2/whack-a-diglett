@@ -7,6 +7,8 @@
 
 // Mouse includes and functions
 #include "../controllers/kbdmouse/aux.h"
+// Video buffer functions
+#include "../controllers/video/video.h"
 
 GameMode current_mode = MODE_MENU;
 GameMode prev_mode = -1;
@@ -29,7 +31,6 @@ int game_main_loop(void) {
     return 1;
   }
 
-  // Subscribe to mouse interrupts
   uint8_t mouse_irq;
   if (mouse_subscribe_int(&mouse_irq) != 0) {
     printf("Failed to subscribe mouse interrupt\n");
@@ -38,7 +39,6 @@ int game_main_loop(void) {
     return 1;
   }
 
-  // Enable mouse data reporting
   if (my_mouse_enable_data_reporting() != 0) {
     printf("Failed to enable mouse data reporting\n");
     mouse_unsubscribe_int();
@@ -106,21 +106,34 @@ int game_main_loop(void) {
       }
     }
 
+    // Clear the back buffer before drawing a new frame
+    clear_buffer();
+
+    // First mode change detection
     if (current_mode == MODE_MENU && prev_mode != MODE_MENU) {
-      menu_init();
       prev_mode = MODE_MENU;
       prev_selected = -1;
     }
 
-    extern int selected;
-    if (current_mode == MODE_MENU && selected != prev_selected) {
-      menu_update_selection();
-      prev_selected = selected;
+    // Draw the appropriate UI for the current mode
+    if (current_mode == MODE_MENU) {
+      // Redraw menu background and buttons every frame
+      draw_menu_bg_and_buttons();
+
+      // Update selection if needed
+      extern int selected;
+      if (selected != prev_selected) {
+        prev_selected = selected;
+      }
+      draw_menu_selection(); // Always draw selection
     }
 
+    // Draw the cursor on top of everything else
     if (g_cursor != NULL) {
       cursor_draw(g_cursor);
     }
+
+    swap_buffers();
   }
 
   // Disable mouse data reporting and unsubscribe from mouse interrupts
@@ -128,6 +141,7 @@ int game_main_loop(void) {
   mouse_unsubscribe_int();
   keyboard_unsubscribe_int();
   cursor_destroy(g_cursor);
+  destroy_buffers();
 
   return 0;
 }
