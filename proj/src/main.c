@@ -1,15 +1,15 @@
+#include "controllers/kbdmouse/aux.h"
+#include "controllers/kbdmouse/keyboard.h"
+#include "controllers/timer/timer.h"
+#include "controllers/video/video.h"
+#include "game/game.h"
 #include <lcom/lcf.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "controllers/timer/timer.h"
-#include "controllers/kbdmouse/keyboard.h"
-#include "controllers/kbdmouse/aux.h"
-#include "controllers/video/video.h"
-#include "game/game.h"
 
-int(proj_main_loop)(int argc, char* argv[]) {
+int(proj_main_loop)(int argc, char *argv[]) {
   // Set up do video
-  uint16_t mode = 0x115;  // Changed from 0x105 to 0x115 for 800x600 resolution with 24-bit color (8:8:8)
+  uint16_t mode = 0x115; // Changed from 0x105 to 0x115 for 800x600 resolution with 24-bit color (8:8:8)
   if (map_frame_buffer(mode) != 0) {
     printf("Failed to map frame buffer!\n");
     return 1;
