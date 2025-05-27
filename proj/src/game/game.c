@@ -123,7 +123,9 @@ int game_main_loop(void) {
     if (current_mode != prev_mode) {
       if (current_mode == MODE_MENU) {
         prev_mode = MODE_MENU;
-        prev_selected = -1;
+
+        // reset menu and selection
+        menu_init();
 
         // prepare static background only once
         set_drawing_to_static();
@@ -135,6 +137,9 @@ int game_main_loop(void) {
 
         draw_menu_bg_and_buttons();
         set_drawing_to_back();
+
+        // force a render frame to ensure selection is drawn
+        render_frame = true;
       }
     }
 
@@ -150,6 +155,7 @@ int game_main_loop(void) {
     if (mouse_moving_now) {
       if (current_mode == MODE_MENU) {
         copy_static_to_back();
+        draw_menu_selection();
         if (g_cursor != NULL) {
           cursor_draw(g_cursor);
         }
@@ -163,12 +169,7 @@ int game_main_loop(void) {
       copy_static_to_back();
 
       if (current_mode == MODE_MENU) {
-        // update selection if needed
-        extern int selected;
-        if (selected != prev_selected) {
-          prev_selected = selected;
-        }
-        draw_menu_selection(); // always draw selection (dynamic)
+        draw_menu_selection();
 
         // draw cursor on top of everything
         if (g_cursor != NULL) {
@@ -182,7 +183,7 @@ int game_main_loop(void) {
       // reset mouse movement flag after a few frames to avoid unnecessary rendering
       if (mouse_moved_recently && !mouse_moving_now) {
         static int post_movement_frames = 0;
-        if (++post_movement_frames >= 2) { 
+        if (++post_movement_frames >= 2) {
           mouse_moved_recently = false;
           post_movement_frames = 0;
         }

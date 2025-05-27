@@ -5,15 +5,22 @@
 
 #define MENU_ITEMS 3
 
-int selected = 0; // Botão selecionado. 0 - Start Game, 1 - Instructions, 2 - Exit
-static int prev_selected = 0;
+int selected = 0;              // Botão selecionado. 0 - Start Game, 1 - Instructions, 2 - Exit
+static int prev_selected = -1; // -1 ensures initial drawing
 
-void menu_handle_input(uint8_t scancode) {
-  if (scancode == 0x48) { // Up
+void menu_handle_input(uint8_t scancode) { // only change selection on arrow key presses
+  if (scancode == 0x48) { // Up arrow key
     selected = (selected - 1 + MENU_ITEMS) % MENU_ITEMS;
+
+    // force a selection update in the game loop
+    extern int prev_selected;
+    prev_selected = -1; // forces redraw of selection
   }
-  else if (scancode == 0x50) { // Down
+  else if (scancode == 0x50) { // Down arrow key
     selected = (selected + 1) % MENU_ITEMS;
+
+    extern int prev_selected;
+    prev_selected = -1;
   }
 }
 
@@ -39,10 +46,8 @@ void draw_menu_bg_and_buttons(void) {
 
 // Desenha o retangulo de seleção pq n sei fazer triangulos (skull emoji)
 void draw_menu_selection(void) {
-  // Only redraw if selection has changed
-  if (selected == prev_selected) {
-    return;
-  }
+  // always draw selection indicator, only erase the old selection if we're changing positions
+  bool selection_changed = (selected != prev_selected && prev_selected >= 0 && prev_selected < MENU_ITEMS);
 
   int screen_w = 800;
   int btn_w = 300;
@@ -51,36 +56,39 @@ void draw_menu_selection(void) {
   int arrow_x = btn_x + btn_w + 10;
   int arrow_w = 30, arrow_h = 50;
 
-  // Get direct access to buffer for faster drawing
+  // direct access to buffer for faster drawing
   void *target_buffer = get_current_buffer();
   unsigned bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
 
-  // create color bytes for direct buffer access
-  uint8_t bg_color_bytes[4];  // Background color (0x02)
-  uint8_t sel_color_bytes[4]; // Selection color (0xFF)
+  // color bytes for direct buffer access
+  uint8_t bg_color_bytes[4] = {0};  // Background color (0x02)
+  uint8_t sel_color_bytes[4] = {0}; // Selection color (0x0000FF) - blue
 
-  for (unsigned i = 0; i < bytes_per_pixel; i++) {
-    bg_color_bytes[i] = (0x02 >> (i * 8)) & 0xFF;
-    sel_color_bytes[i] = (0xFF >> (i * 8)) & 0xFF;
-  }
+  // set background color (green)
+  bg_color_bytes[0] = 0x02; // G component in RGB
 
-  // erase previous selection with optimized direct buffer access
-  for (int y = btn_y[prev_selected]; y < btn_y[prev_selected] + arrow_h; y++) {
-    if (y < 0 || y >= m_info.YResolution)
-      continue;
+  // Set selection color (bright blue)
+  sel_color_bytes[0] = 0xFF; // B component in RGB
 
-    for (int x = arrow_x; x < arrow_x + arrow_w; x++) {
-      if (x < 0 || x >= m_info.XResolution)
+  // Only erase previous selection if selection changed
+  if (selection_changed) {
+    for (int y = btn_y[prev_selected]; y < btn_y[prev_selected] + arrow_h; y++) {
+      if (y < 0 || y >= m_info.YResolution)
         continue;
 
-      unsigned int pixel_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
-      for (unsigned i = 0; i < bytes_per_pixel; i++) {
-        *((uint8_t *) target_buffer + pixel_pos + i) = bg_color_bytes[i];
+      for (int x = arrow_x; x < arrow_x + arrow_w; x++) {
+        if (x < 0 || x >= m_info.XResolution)
+          continue;
+
+        unsigned int pixel_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
+        for (unsigned i = 0; i < bytes_per_pixel; i++) {
+          *((uint8_t *) target_buffer + pixel_pos + i) = bg_color_bytes[i];
+        }
       }
     }
   }
 
-  // draw new selection with optimized direct buffer access
+  // Always draw the current selection with optimized direct buffer access
   for (int y = btn_y[selected]; y < btn_y[selected] + arrow_h; y++) {
     if (y < 0 || y >= m_info.YResolution)
       continue;
@@ -101,8 +109,8 @@ void draw_menu_selection(void) {
 
 // Chamado 1 vez quando o menu é loaded
 void menu_init(void) {
-  selected = 0; // Reset selection to first item
-  prev_selected = 0;
+  selected = 0;       // reset selection to first item
+  prev_selected = -1; // force redraw of selection on first display
 }
 
 // Chamado sempre que atualizarmos o selected
