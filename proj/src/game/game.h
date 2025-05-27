@@ -12,7 +12,6 @@ typedef enum {
   MODE_GAMEOVER
 } GameMode;
 
-/** @brief Global cursor object */
 extern Cursor* g_cursor;
 
 int game_main_loop(void);

@@ -18,7 +18,7 @@ void menu_handle_input(uint8_t scancode) {
 
 // Desenha as coisas que não precisam de refresh (botões fundo etc)
 void draw_menu_bg_and_buttons(void) {
-    vg_draw_rectangle(0, 0, 1024, 768, 0x02); // Background EU NAI SEI METER UMA COR DECENTE AQUI IM SO SORRY
+    vg_draw_rectangle(0, 0, 1024, 768, 0x02);
 
     int screen_w = 1024;
     int btn_w = 300, btn_h = 50;
