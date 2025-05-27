@@ -3,6 +3,10 @@
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
 #include "../../game/game.h"
+#include "../sprites/sprite.h"
+#include "../sprites/pixelart/dirt_xpm.h"
+#include "../sprites/animated_sprite.h"
+#include "../sprites/animations/diglett_appear_xpm.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +14,8 @@
 #include <time.h>
 
 // Array to store all digletts
-
+extern xpm_map_t diglett_appear_frames[];
+AnimatedSprite *diglett_sprites[NUM_DIGLETTS] = {0};
 int visible_diglett_count = 0;
 int player_points = 0;
 
@@ -129,8 +134,16 @@ void playing_init(void) {
 
       // Draw empty hole to static buffer
       vg_draw_rectangle(x, y, rect_width, rect_height, BACKGROUND_COLOR);
+
+      // --- Initialize animated sprite for this diglett ---
+      if (diglett_sprites[index]) animated_sprite_destroy(diglett_sprites[index]);
+      diglett_sprites[index] = animated_sprite_create(
+        diglett_appear_frames, DIGLETT_APPEAR_NUM_FRAMES, x, y, 5
+      );
     }
   }
+
+  draw_background();
 
   int counter_width = 200;
   int counter_x = 800 - counter_width - 10;
@@ -232,11 +245,11 @@ void playing_handle_input(uint8_t scancode) {
 // Function to draw just a diglett without copying from static buffer
 void draw_diglett(int index) {
   Diglett *dig = &digletts[index];
-
-  if (dig->visible) {
-    // Draw diglett
-    vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
-
+  if (dig->visible && diglett_sprites[index]) {
+    diglett_sprites[index]->x = dig->x;
+    diglett_sprites[index]->y = dig->y;
+    animated_sprite_update(diglett_sprites[index]);
+    animated_sprite_draw(diglett_sprites[index]);
     char key_label[2] = {0};
     switch (dig->key) {
       case 0x13: key_label[0] = 'r'; break;
@@ -251,7 +264,6 @@ void draw_diglett(int index) {
     }
     draw_text_scaled(key_label, dig->x + dig->width - 14, dig->y + 5, 0xFFFFFF, 1);
   }
-  // If not visible, no need to draw anything as the background is already there
 }
 
 // update game state
@@ -298,12 +310,16 @@ void playing_update(void) {
   // Draw all visible digletts
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (digletts[i].active && digletts[i].visible) {
-      Diglett *dig = &digletts[i];
-      // Draw diglett
-      vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
-
+      // --- Draw animated sprite instead of rectangle ---
+      if (diglett_sprites[i]) {
+        diglett_sprites[i]->x = digletts[i].x;
+        diglett_sprites[i]->y = digletts[i].y;
+        animated_sprite_update(diglett_sprites[i]);
+        animated_sprite_draw(diglett_sprites[i]);
+      }
+      // Draw key label on top
       char key_label[2] = {0};
-      switch (dig->key) {
+      switch (digletts[i].key) {
         case 0x13: key_label[0] = 'r'; break;
         case 0x14: key_label[0] = 't'; break;
         case 0x15: key_label[0] = 'y'; break;
@@ -314,10 +330,52 @@ void playing_update(void) {
         case 0x30: key_label[0] = 'b'; break;
         case 0x31: key_label[0] = 'n'; break;
       }
-      draw_text_scaled(key_label, dig->x + dig->width - 14, dig->y + 5, 0xFFFFFF, 1);
+      draw_text_scaled(key_label, digletts[i].x + digletts[i].width - 14, digletts[i].y + 5, 0xFFFFFF, 1);
     }
   }
 
   // Update points display
   draw_points_counter();
+
+  // Add this to playing_update() for debugging:
+  Sprite *test = sprite_create_from_xpm(diglett_appear_frames[0], 100, 100);
+  if (test) {
+    sprite_draw(test);
+    sprite_destroy(test);
+  }
 }
+
+void draw_background(void) {
+  // Os start positions tão errados achp eu mas não há digletts neste momento 
+  int rect_width = 60;
+  int rect_height = 80;
+  int spacing = 60;
+  int grid_width = 3 * rect_width + 2 * spacing;
+  int start_x = (800 - grid_width) / 2;
+  int start_y = 150;
+
+  for (int row = 0; row < 3; row++) {
+    for (int col = 0; col < 3; col++) {
+      int x = start_x + col * (rect_width + spacing);
+      int y = start_y + row * (rect_height + spacing);
+
+      Sprite *dirt = sprite_create_from_xpm((xpm_map_t)dirt_xpm, x, y);
+      if (dirt) {
+        sprite_draw(dirt);
+        sprite_destroy(dirt);
+      }
+    }
+  }
+}
+
+void playing_destroy(void) {
+  for (int i = 0; i < NUM_DIGLETTS; i++) {
+    if (diglett_sprites[i]) {
+      animated_sprite_destroy(diglett_sprites[i]);
+      diglett_sprites[i] = NULL;
+    }
+  }
+}
+
+
+

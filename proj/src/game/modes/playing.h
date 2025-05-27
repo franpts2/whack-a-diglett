@@ -40,4 +40,6 @@ void draw_diglett(int index);
 
 void draw_points_counter(void);
 
+void draw_background(void);
+
 #endif // PLAYING_H
