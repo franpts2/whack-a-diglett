@@ -39,6 +39,11 @@ void draw_menu_bg_and_buttons(void) {
 
 // Desenha o retangulo de seleção pq n sei fazer triangulos (skull emoji)
 void draw_menu_selection(void) {
+  // Only redraw if selection has changed
+  if (selected == prev_selected) {
+    return;
+  }
+
   int screen_w = 800;
   int btn_w = 300;
   int btn_x = (screen_w - btn_w) / 2;
@@ -46,11 +51,50 @@ void draw_menu_selection(void) {
   int arrow_x = btn_x + btn_w + 10;
   int arrow_w = 30, arrow_h = 50;
 
-  // Isto "apaga" a seleção anterior. Mudar a cor caso se mude o background.
-  vg_draw_rectangle(arrow_x, btn_y[prev_selected], arrow_w, arrow_h, 0x02);
+  // Get direct access to buffer for faster drawing
+  void *target_buffer = get_current_buffer();
+  unsigned bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
 
-  // Nova seleção
-  vg_draw_rectangle(arrow_x, btn_y[selected], arrow_w, arrow_h, 0xFF);
+  // create color bytes for direct buffer access
+  uint8_t bg_color_bytes[4];  // Background color (0x02)
+  uint8_t sel_color_bytes[4]; // Selection color (0xFF)
+
+  for (unsigned i = 0; i < bytes_per_pixel; i++) {
+    bg_color_bytes[i] = (0x02 >> (i * 8)) & 0xFF;
+    sel_color_bytes[i] = (0xFF >> (i * 8)) & 0xFF;
+  }
+
+  // erase previous selection with optimized direct buffer access
+  for (int y = btn_y[prev_selected]; y < btn_y[prev_selected] + arrow_h; y++) {
+    if (y < 0 || y >= m_info.YResolution)
+      continue;
+
+    for (int x = arrow_x; x < arrow_x + arrow_w; x++) {
+      if (x < 0 || x >= m_info.XResolution)
+        continue;
+
+      unsigned int pixel_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
+      for (unsigned i = 0; i < bytes_per_pixel; i++) {
+        *((uint8_t *) target_buffer + pixel_pos + i) = bg_color_bytes[i];
+      }
+    }
+  }
+
+  // draw new selection with optimized direct buffer access
+  for (int y = btn_y[selected]; y < btn_y[selected] + arrow_h; y++) {
+    if (y < 0 || y >= m_info.YResolution)
+      continue;
+
+    for (int x = arrow_x; x < arrow_x + arrow_w; x++) {
+      if (x < 0 || x >= m_info.XResolution)
+        continue;
+
+      unsigned int pixel_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
+      for (unsigned i = 0; i < bytes_per_pixel; i++) {
+        *((uint8_t *) target_buffer + pixel_pos + i) = sel_color_bytes[i];
+      }
+    }
+  }
 
   prev_selected = selected;
 }
@@ -59,7 +103,6 @@ void draw_menu_selection(void) {
 void menu_init(void) {
   selected = 0; // Reset selection to first item
   prev_selected = 0;
-  // No need to draw here since we'll draw every frame
 }
 
 // Chamado sempre que atualizarmos o selected

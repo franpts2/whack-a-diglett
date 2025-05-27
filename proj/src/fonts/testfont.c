@@ -157,11 +157,48 @@ void draw_text(const char *str, int x, int y, uint32_t color) {
 
 void draw_char_scaled(char c, int x, int y, uint32_t color, int scale) {
   unsigned char uc = (unsigned char) c;
+  void *target_buffer = get_current_buffer();
+  unsigned bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+
+  // Pre-calculate color bytes for direct buffer access
+  uint8_t color_bytes[4];
+  for (unsigned i = 0; i < bytes_per_pixel; i++) {
+    color_bytes[i] = (color >> (i * 8)) & 0xFF;
+  }
+
   for (int row = 0; row < 8; ++row) {
     uint8_t bits = font8x8_basic[uc][row];
+    int y_pos = y + row * scale;
+
+    // Skip if out of bounds
+    if (y_pos < 0 || y_pos >= m_info.YResolution)
+      continue;
+
     for (int col = 0; col < 8; ++col) {
       if (bits & (1 << col)) {
-        draw_pixel_scaled(x + col * scale, y + row * scale, color, scale);
+        int x_pos = x + col * scale;
+
+        // Skip if out of bounds
+        if (x_pos < 0 || x_pos >= m_info.XResolution)
+          continue;
+
+        // Direct buffer access for each pixel in the scaled character
+        for (int sy = 0; sy < scale; sy++) {
+          int py = y_pos + sy;
+          if (py >= m_info.YResolution)
+            break;
+
+          for (int sx = 0; sx < scale; sx++) {
+            int px = x_pos + sx;
+            if (px >= m_info.XResolution)
+              break;
+
+            unsigned int pixel_pos = (py * m_info.XResolution + px) * bytes_per_pixel;
+            for (unsigned i = 0; i < bytes_per_pixel; i++) {
+              *((uint8_t *) target_buffer + pixel_pos + i) = color_bytes[i];
+            }
+          }
+        }
       }
     }
   }
@@ -169,8 +206,22 @@ void draw_char_scaled(char c, int x, int y, uint32_t color, int scale) {
 
 void draw_text_scaled(const char *str, int x, int y, uint32_t color, int scale) {
   int i = 0;
+  int char_width = 8 * scale;
+  int str_len = strlen(str);
+
+  // Quick bounds check to avoid unnecessary processing
+  if (y + 8 * scale < 0 || y >= m_info.YResolution ||
+      x + str_len * char_width < 0 || x >= m_info.XResolution) {
+    return;
+  }
+
   while (str[i]) {
-    draw_char_scaled(str[i], x + i * 8 * scale, y, color, scale);
+    int char_x = x + i * char_width;
+
+    // Only draw characters that would be visible
+    if (char_x + char_width >= 0 && char_x < m_info.XResolution) {
+      draw_char_scaled(str[i], char_x, y, color, scale);
+    }
     i++;
   }
 }

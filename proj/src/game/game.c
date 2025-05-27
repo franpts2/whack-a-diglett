@@ -133,7 +133,7 @@ int game_main_loop(void) {
         unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
         memset(static_buffer, 0, buffer_size);
 
-        // draw_menu_bg_and_buttons();
+        draw_menu_bg_and_buttons();
         set_drawing_to_back();
       }
     }
@@ -146,8 +146,21 @@ int game_main_loop(void) {
       mouse_moved_recently = true;
     }
 
-    if (render_frame || mouse_moving_now || mouse_moved_recently) {
-      copy_static_to_back(); // also sets current_drawing_buffer to back_buffer
+    // pioritize rendering on mouse movement for responsiveness
+    if (mouse_moving_now) {
+      if (current_mode == MODE_MENU) {
+        copy_static_to_back();
+        if (g_cursor != NULL) {
+          cursor_draw(g_cursor);
+        }
+        swap_buffers(); // swap immediately for low latency
+      }
+      mouse_moved_recently = true;
+      render_frame = false; // reset frame timer
+    }
+    // regular rendering (not actively moving mouse)
+    else if (render_frame || mouse_moved_recently) {
+      copy_static_to_back();
 
       if (current_mode == MODE_MENU) {
         // update selection if needed
@@ -155,7 +168,7 @@ int game_main_loop(void) {
         if (selected != prev_selected) {
           prev_selected = selected;
         }
-        // draw_menu_selection(); // always draw selection (dynamic)
+        draw_menu_selection(); // always draw selection (dynamic)
 
         // draw cursor on top of everything
         if (g_cursor != NULL) {
@@ -167,9 +180,9 @@ int game_main_loop(void) {
       render_frame = false;
 
       // reset mouse movement flag after a few frames to avoid unnecessary rendering
-      if (render_frame && mouse_moved_recently && !mouse_moving_now) {
+      if (mouse_moved_recently && !mouse_moving_now) {
         static int post_movement_frames = 0;
-        if (++post_movement_frames >= 3) { // continue rendering for 3 frames after movement stops
+        if (++post_movement_frames >= 2) { 
           mouse_moved_recently = false;
           post_movement_frames = 0;
         }

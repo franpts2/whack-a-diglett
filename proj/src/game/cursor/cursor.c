@@ -38,7 +38,12 @@ void cursor_handle_mouse_packet(Cursor *cursor, struct packet *mouse_packet) {
     return;
   }
 
-  float sensitivity = 2;
+  float sensitivity = 2.2;
+
+  // fast path for zero movement - avoid calculations
+  if (mouse_packet->delta_x == 0 && mouse_packet->delta_y == 0) {
+    return;
+  }
 
   // dynamic acceleration based on movement speed
   int dx_abs = abs(mouse_packet->delta_x);
@@ -46,15 +51,15 @@ void cursor_handle_mouse_packet(Cursor *cursor, struct packet *mouse_packet) {
 
   int movement_intensity = (dx_abs > dy_abs) ? dx_abs + (dy_abs / 2) : dy_abs + (dx_abs / 2);
 
-  // more natural, smooth acceleration based on movement intensity
+  // More responsive acceleration curve
   if (movement_intensity > 12) {
-    mouse_accel = 2.0; // hyper fast
+    mouse_accel = 2.2; // hyper fast
   }
   else if (movement_intensity > 8) {
-    mouse_accel = 1.7; // fast
+    mouse_accel = 1.8; // fast
   }
   else if (movement_intensity > 4) {
-    mouse_accel = 1.4; // medium speed
+    mouse_accel = 1.5; // medium speed
   }
   else if (movement_intensity > 2) {
     mouse_accel = 1.2; // slow
@@ -63,28 +68,31 @@ void cursor_handle_mouse_packet(Cursor *cursor, struct packet *mouse_packet) {
     mouse_accel = 1.0; // very slow movement
   }
 
-  // 'fractional' movement tracking for precise movemnts using higher precision (4 extra bits)
-  mouse_x_remainder += mouse_packet->delta_x * 16;
-  mouse_y_remainder += mouse_packet->delta_y * 16;
+  // higher precision for smoother movement (5 extra bits)
+  mouse_x_remainder += mouse_packet->delta_x * 32;
+  mouse_y_remainder += mouse_packet->delta_y * 32;
 
-  int dx_applied = (mouse_x_remainder * sensitivity * mouse_accel) / 16;
-  int dy_applied = (mouse_y_remainder * sensitivity * mouse_accel) / 16;
+  // calculate movement
+  int dx_applied = (mouse_x_remainder * sensitivity * mouse_accel) / 32;
+  int dy_applied = (mouse_y_remainder * sensitivity * mouse_accel) / 32;
 
-  // remove applied movement from remainder
-  mouse_x_remainder -= (dx_applied * 10) / (sensitivity * mouse_accel);
-  mouse_y_remainder -= (dy_applied * 10) / (sensitivity * mouse_accel);
+  // remove applied movement from remainder with better precision
+  mouse_x_remainder -= (dx_applied * 32) / (sensitivity * mouse_accel);
+  mouse_y_remainder -= (dy_applied * 32) / (sensitivity * mouse_accel);
 
+  // actual movement !!
   int new_x = cursor->x + dx_applied;
   int new_y = cursor->y - dy_applied; // y is inverted
 
-  // keep inside screen (800x600)
+  // keep inside screen (800x600) with fast bounds check
   if (new_x < 0)
     new_x = 0;
-  if (new_x > 800 - cursor->width)
+  else if (new_x > 800 - cursor->width)
     new_x = 800 - cursor->width;
+
   if (new_y < 0)
     new_y = 0;
-  if (new_y > 600 - cursor->height)
+  else if (new_y > 600 - cursor->height)
     new_y = 600 - cursor->height;
 
   cursor_set_position(cursor, new_x, new_y);
