@@ -11,7 +11,7 @@ void playing_init(void) {
   vg_draw_rectangle(0, 0, 800, 600, 0x04);
 
   // titulo ?
-  draw_text_scaled("WHACK'A DIGGLET", 400, 50, 0xFF, 3);
+  // draw_text_scaled("WHACK'A DIGGLET", 200, 50, 0xFF, 3);
 
   // um elemento de exemplo
   vg_draw_rectangle(450, 300, 100, 100, 0xFF);

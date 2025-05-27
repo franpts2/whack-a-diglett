@@ -25,6 +25,8 @@ void menu_handle_input(uint8_t scancode) {
 void draw_menu_bg_and_buttons(void) {
   vg_draw_rectangle(0, 0, 800, 600, 0x02); // Background EU NAI SEI METER UMA COR DECENTE AQUI IM SO SORRY
 
+  draw_text_scaled("WHACK'A DIGGLET", 225, 100, 0xFF, 3); // titulo
+
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
   int btn_x = (screen_w - btn_w) / 2; // Centrar
