@@ -3,15 +3,21 @@
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
 #include "../../game/game.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
+
+#define BACKGROUND_COLOR 0x325918 
+#define DIGLETT_COLOR 0x885500   
+
 typedef struct {
-  int x;       // x position of the rectangle
-  int y;       // y position of the rectangle
-  int width;   // width of the rectangle
-  int height;  // height of the rectangle
-  uint8_t key; // keyboard scancode for this diglett
+  int x;        // x position of the rectangle
+  int y;        // y position of the rectangle
+  int width;    // width of the rectangle
+  int height;   // height of the rectangle
+  uint8_t key;  // keyboard scancode for this diglett
+  bool visible; // whether the diglett is currently visible
 } Diglett;
 
 // Array to store all digletts
@@ -28,7 +34,7 @@ const uint8_t diglett_keys[NUM_DIGLETTS] = {
 // initialize the playing screen
 void playing_init(void) {
   // pinta o background
-  vg_draw_rectangle(0, 0, 800, 600, 0x325918);
+  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
 
   // titulo centrado
   int title_scale = 3;
@@ -60,23 +66,10 @@ void playing_init(void) {
       digletts[index].width = rect_width;
       digletts[index].height = rect_height;
       digletts[index].key = diglett_keys[index];
+      digletts[index].visible = true; // inicialmente todos os digletts estao na tela
 
-      vg_draw_rectangle(x, y, rect_width, rect_height, 0x885500); // cor ainda por definir
-
-      // display key for each diglett
-      char key_label[2] = {0};
-      switch (digletts[index].key) {
-        case 0x13: key_label[0] = 'r'; break;
-        case 0x14: key_label[0] = 't'; break;
-        case 0x15: key_label[0] = 'y'; break;
-        case 0x21: key_label[0] = 'f'; break;
-        case 0x22: key_label[0] = 'g'; break;
-        case 0x23: key_label[0] = 'h'; break;
-        case 0x2E: key_label[0] = 'c'; break;
-        case 0x2F: key_label[0] = 'v'; break;
-        case 0x30: key_label[0] = 'b'; break;
-      }
-      draw_text_scaled(key_label, x + rect_width - 14, y + 5, 0xFFFFFF, 1);
+      // desenha os digettts
+      update_diglett_visibility(index);
     }
   }
 }
@@ -95,10 +88,39 @@ void playing_handle_input(uint8_t scancode) {
     if (scancode == digletts[i].key) {
       printf("diglett %d was activated with key 0x%02X\n", i, scancode);
 
-      // TODO: diglett disappearing
+      if (digletts[i].visible) {
+        digletts[i].visible = false;
+        update_diglett_visibility(i);
+      }
 
       break;
     }
+  }
+}
+
+// show or hide DIGLETT
+void update_diglett_visibility(int index) {
+  Diglett *dig = &digletts[index];
+
+  if (dig->visible) {
+    vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
+
+    char key_label[2] = {0};
+    switch (dig->key) {
+      case 0x13: key_label[0] = 'r'; break;
+      case 0x14: key_label[0] = 't'; break;
+      case 0x15: key_label[0] = 'y'; break;
+      case 0x21: key_label[0] = 'f'; break;
+      case 0x22: key_label[0] = 'g'; break;
+      case 0x23: key_label[0] = 'h'; break;
+      case 0x2E: key_label[0] = 'c'; break;
+      case 0x2F: key_label[0] = 'v'; break;
+      case 0x30: key_label[0] = 'b'; break;
+    }
+    draw_text_scaled(key_label, dig->x + dig->width - 14, dig->y + 5, 0xFFFFFF, 1);
+  }
+  else {
+    vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, BACKGROUND_COLOR);
   }
 }
 
@@ -107,3 +129,4 @@ void playing_update(void) {
   // update game objects animations etc
   // will be called each frame in the game loop
 }
+
