@@ -3,7 +3,7 @@
 #include "../controllers/timer/timer.h"
 #include "cursor/cursor.h"
 #include "modes/menu.h"
-#include "modes/playing.h"
+#include "modes/playing_kbd.h"
 #include <lcom/lcf.h>
 #include <stdbool.h> // Make sure bool type is defined
 #include <stdio.h>
