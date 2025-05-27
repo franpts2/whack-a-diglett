@@ -2,7 +2,6 @@
 #include "../../controllers/video/video.h"
 #include <stdio.h>
 
-
 Sprite *sprite_create_from_xpm(xpm_map_t xpm_map, int x, int y) {
   Sprite *sprite = (Sprite *) malloc(sizeof(Sprite));
   if (sprite == NULL) {
@@ -23,18 +22,21 @@ Sprite *sprite_create_from_xpm(xpm_map_t xpm_map, int x, int y) {
     return NULL;
   }
 
+  // Set width and height from the XPM image data
+  sprite->width = sprite->img.width;
+  sprite->height = sprite->img.height;
+
   return sprite;
 }
-
 
 int sprite_draw(Sprite *sprite) {
   if (sprite == NULL || sprite->pixmap == NULL || !sprite->is_visible)
     return 1;
 
   // Draw the sprite pixmap
-  for (uint16_t row = 0; row < sprite->img.height; row++) {
-    for (uint16_t col = 0; col < sprite->img.width; col++) {
-      uint32_t color_index = sprite->pixmap[row * sprite->img.width + col];
+  for (uint16_t row = 0; row < sprite->height; row++) {
+    for (uint16_t col = 0; col < sprite->width; col++) {
+      uint32_t color_index = sprite->pixmap[row * sprite->width + col];
 
       if (color_index == xpm_transparency_color(XPM_8_8_8_8))
         continue;
