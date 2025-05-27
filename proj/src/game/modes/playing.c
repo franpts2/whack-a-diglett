@@ -196,13 +196,41 @@ void playing_handle_input(uint8_t scancode) {
 }
 
 // show or hide DIGLETT
-void update_diglett_visibility(int index) {
-  // Make sure we're drawing to the back buffer
-  set_drawing_to_back();
+// void update_diglett_visibility(int index) {
+//   // Make sure we're drawing to the back buffer
+//   set_drawing_to_back();
 
-  // Get static content before drawing dynamic elements
-  copy_static_to_back();
+//   // Get static content before drawing dynamic elements
+//   copy_static_to_back();
 
+//   Diglett *dig = &digletts[index];
+
+//   if (dig->visible) {
+//     // Draw diglett
+//     vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
+
+//     char key_label[2] = {0};
+//     switch (dig->key) {
+//       case 0x13: key_label[0] = 'r'; break;
+//       case 0x14: key_label[0] = 't'; break;
+//       case 0x15: key_label[0] = 'y'; break;
+//       case 0x21: key_label[0] = 'f'; break;
+//       case 0x22: key_label[0] = 'g'; break;
+//       case 0x23: key_label[0] = 'h'; break;
+//       case 0x2F: key_label[0] = 'v'; break;
+//       case 0x30: key_label[0] = 'b'; break;
+//       case 0x31: key_label[0] = 'n'; break;
+//     }
+//     draw_text_scaled(key_label, dig->x + dig->width - 14, dig->y + 5, 0xFFFFFF, 1);
+//   }
+//   else {
+//     // Just restore background (hole) from static buffer
+//     // This is already done by copy_static_to_back() above
+//   }
+// }
+
+// Function to draw just a diglett without copying from static buffer
+void draw_diglett(int index) {
   Diglett *dig = &digletts[index];
 
   if (dig->visible) {
@@ -223,10 +251,7 @@ void update_diglett_visibility(int index) {
     }
     draw_text_scaled(key_label, dig->x + dig->width - 14, dig->y + 5, 0xFFFFFF, 1);
   }
-  else {
-    // Just restore background (hole) from static buffer
-    // This is already done by copy_static_to_back() above
-  }
+  // If not visible, no need to draw anything as the background is already there
 }
 
 // update game state

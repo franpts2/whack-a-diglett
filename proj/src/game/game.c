@@ -253,29 +253,14 @@ int game_main_loop(void) {
         swap_buffers();
       }
       else if (current_mode == MODE_PLAYING) {
-        // for playing mode, make sure we have the latest static background
+        // For playing mode, make sure we have the latest static background
         copy_static_to_back();
 
-        // draw visible digletts on top of static background
+        // Draw all visible digletts using our new drawing function
         for (int i = 0; i < NUM_DIGLETTS; i++) {
           if (digletts[i].active && digletts[i].visible) {
-            Diglett *dig = &digletts[i];
-            // Draw diglett
-            vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
-
-            char key_label[2] = {0};
-            switch (dig->key) {
-              case 0x13: key_label[0] = 'r'; break;
-              case 0x14: key_label[0] = 't'; break;
-              case 0x15: key_label[0] = 'y'; break;
-              case 0x21: key_label[0] = 'f'; break;
-              case 0x22: key_label[0] = 'g'; break;
-              case 0x23: key_label[0] = 'h'; break;
-              case 0x2F: key_label[0] = 'v'; break;
-              case 0x30: key_label[0] = 'b'; break;
-              case 0x31: key_label[0] = 'n'; break;
-            }
-            draw_text_scaled(key_label, dig->x + dig->width - 14, dig->y + 5, 0xFFFFFF, 1);
+            // This function draws just the diglett without copying from static buffer again
+            draw_diglett(i);
           }
         }
 

@@ -34,7 +34,9 @@ void playing_handle_input(uint8_t scancode);
 
 void playing_update(void);
 
-void update_diglett_visibility(int index);
+// void update_diglett_visibility(int index);
+
+void draw_diglett(int index);
 
 void draw_points_counter(void);
 
