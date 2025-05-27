@@ -3,17 +3,13 @@
 
 #include "playing.h"
 
-
-void playing_init(void);
-
+// keyboard-specific functions
+void playing_kbd_init(void);
+void playing_kbd_update(void);
 void playing_handle_input(uint8_t scancode);
+void draw_kbd_diglett(int index);
 
-void playing_update(void);
-
-// void update_diglett_visibility(int index);
-
-void draw_diglett(int index);
-
-void draw_points_counter(void);
+// external declarations
+extern const uint8_t diglett_keys[NUM_DIGLETTS];
 
 #endif // _PLAYING_KBD_H

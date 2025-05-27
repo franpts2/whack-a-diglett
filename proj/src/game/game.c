@@ -125,7 +125,7 @@ int game_main_loop(void) {
             // Only update playing mode if that's our current mode
             if (current_mode == MODE_PLAYING && prev_mode == MODE_PLAYING) {
               // Only update game state when we're fully in playing mode
-              playing_update(); // process diglett animations/timer updates
+              playing_kbd_update(); // process diglett animations/timer updates
 
               // Force render frame to ensure game updates are displayed
               render_frame = true;
@@ -200,7 +200,7 @@ int game_main_loop(void) {
 
           set_drawing_to_back();
 
-          playing_init();
+          playing_kbd_init();
 
           // force a render frame and swap buffers to show the playing screen
           render_frame = true;
