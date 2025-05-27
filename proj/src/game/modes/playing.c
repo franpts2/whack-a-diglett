@@ -55,14 +55,29 @@ void draw_points_counter() {
   int counter_width = 200;
   int counter_x = 800 - counter_width - 10;
 
-  // clear previous points
-  vg_draw_rectangle(counter_x, 10, counter_width, 30, BACKGROUND_COLOR);
+  // width needed for "Points: " (7 chars * 8 pixels * 2 scale)
+  int points_label_width = 8 * 8 * 2;
 
-  // "Points: XX"
-  char points_str[20];
-  sprintf(points_str, "Points: %d", player_points);
+  // position for the points number
+  int number_area_x = counter_x + 10 + points_label_width;
 
-  draw_text_scaled(points_str, counter_x + 10, 10, 0xFFFFFF, 2);
+  // don't exceed screen boundaries
+  int max_number_width = counter_width - points_label_width - 20;
+
+  // clear the number area
+  vg_draw_rectangle(number_area_x, 10, max_number_width, 30, BACKGROUND_COLOR);
+
+  char points_str[20] = {0};
+
+  int safe_points = player_points;
+  if (safe_points < 0)
+    safe_points = 0;
+  if (safe_points > 999)
+    safe_points = 999;
+
+  sprintf(points_str, "%d", safe_points);
+
+  draw_text_scaled(points_str, number_area_x, 10, 0xFFFFFF, 2);
 }
 
 // initialize the playing screen
@@ -114,6 +129,15 @@ void playing_init(void) {
     }
   }
 
+  int counter_width = 200;
+  int counter_x = 800 - counter_width - 10;
+
+  // clear the entire counter area
+  vg_draw_rectangle(counter_x, 10, counter_width, 30, BACKGROUND_COLOR);
+
+  draw_text_scaled("Points:", counter_x + 10, 10, 0xFFFFFF, 2);
+
+  // draw initial points value (0)
   draw_points_counter();
 }
 
@@ -142,7 +166,9 @@ void playing_handle_input(uint8_t scancode) {
         update_diglett_visibility(i);
 
         // +1 point
-        player_points++;
+        if (player_points < 999) {
+          player_points++;
+        }
         draw_points_counter(); // update
       }
       else {
