@@ -1,3 +1,5 @@
+#include <lcom/lcf.h>
+#include <stdint.h>
 #include "mouse.h"
 
 int(mouse_test_packet)(uint32_t cnt) {

@@ -18,13 +18,11 @@ int cursor_draw(Cursor *cursor) {
 
 void cursor_set_position(Cursor *cursor, int x, int y) {
   if (cursor != NULL) {
-    // Update cursor position
     cursor->x = x;
     cursor->y = y;
   }
 }
 
 void cursor_destroy(Cursor *cursor) {
-  // Use the sprite destruction function
   sprite_destroy(cursor);
 }
