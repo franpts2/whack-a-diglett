@@ -203,3 +203,41 @@ void draw_diglett(int index) {
   }
   // if not visible, no need to draw anything as the background is already there
 }
+
+
+bool whack_diglett(int index) {
+  // is index valid?
+  if (index < 0 || index >= NUM_DIGLETTS) {
+    return false;
+  }
+
+  // is diglett active?
+  if (!digletts[index].active) {
+    return false;
+  }
+
+  // whack logic - visible digletts give points, hidden cost points
+  if (digletts[index].visible) {
+    // digglet visible =  successful whack
+    digletts[index].visible = false;
+    visible_diglett_count--;
+
+    // new timer for diglett to reappear
+    digletts[index].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
+
+    // +1 point
+    if (player_points < 999) {
+      player_points++;
+    }
+
+    return true;
+  }
+  else {    // diglett hidden = unsuccessful whack    
+    // -1 point
+    if (player_points > 0) {
+      player_points--;
+    }
+
+    return false;
+  }
+}

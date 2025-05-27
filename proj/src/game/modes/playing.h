@@ -36,8 +36,10 @@ void playing_init(void);
 void playing_update(void);
 void draw_diglett(int index);
 void draw_points_counter(void);
+bool whack_diglett(int index);
 
 // helper functions
 int get_random_timer(int min, int max);
+
 
 #endif // _PLAYING_H

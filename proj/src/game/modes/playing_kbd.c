@@ -107,26 +107,7 @@ void playing_handle_input(uint8_t scancode) {
 
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (scancode == digletts[i].key) {
-      // Whack logic - visible digletts give points, hidden cost points
-      if (digletts[i].visible) {
-        // diglett foi whacked :P
-        digletts[i].visible = false;
-        visible_diglett_count--;
-
-        // new timer for this diglett to reappear
-        digletts[i].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
-
-        // +1 point
-        if (player_points < 999) {
-          player_points++;
-        }
-      }
-      else {
-        // -1 point
-        if (player_points > 0) {
-          player_points--;
-        }
-      }
+      whack_diglett(i);
 
       // redraw all game elements after state change
       playing_kbd_update();
