@@ -5,10 +5,15 @@
 #include "modes/menu.h"
 #include "modes/playing.h"
 #include <lcom/lcf.h>
+#include <stdbool.h> // Make sure bool type is defined
 #include <stdio.h>
 
 #include "../controllers/kbdmouse/aux.h"
 #include "../controllers/video/video.h"
+#include "../fonts/testfont.h"
+
+unsigned int bytes_per_pixel;
+unsigned int buffer_size;
 
 GameMode current_mode = MODE_MENU;
 GameMode prev_mode = -1;
@@ -88,7 +93,10 @@ int game_main_loop(void) {
             frame_timer++;
 
             if (frame_timer >= TICKS_PER_FRAME) {
-              render_frame = true;
+              // Only set render_frame to true if we're not in a mode transition
+              if (prev_mode == current_mode) {
+                render_frame = true;
+              }
               frame_timer = 0;
             }
           }
@@ -114,10 +122,13 @@ int game_main_loop(void) {
           }
 
           if (msg.m_notify.interrupts & timer_irq) {
-            timer_int_handler(); // update timer counter
-
-            if (current_mode == MODE_PLAYING) {
+            // Only update playing mode if that's our current mode
+            if (current_mode == MODE_PLAYING && prev_mode == MODE_PLAYING) {
+              // Only update game state when we're fully in playing mode
               playing_update(); // process diglett animations/timer updates
+
+              // Force render frame to ensure game updates are displayed
+              render_frame = true;
             }
             if (scancode == 0x81)
               running = 0; // ESC para parar
@@ -157,12 +168,13 @@ int game_main_loop(void) {
       }
     }
 
-    // check for mode changes and initialize
+    // check for mode changes and initialize - only once per mode change
     if (current_mode != prev_mode) {
-      switch (current_mode) {
-        case MODE_MENU:
-          prev_mode = MODE_MENU;
+      // Store the current mode right at the beginning
+      GameMode new_mode = current_mode;
 
+      switch (new_mode) {
+        case MODE_MENU:
           // reset menu and selection
           menu_init();
 
@@ -170,8 +182,8 @@ int game_main_loop(void) {
           set_drawing_to_static();
 
           // clear static buffer and draw static content
-          unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
-          unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+          bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+          buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
           memset(static_buffer, 0, buffer_size);
 
           draw_menu_bg_and_buttons();
@@ -180,8 +192,25 @@ int game_main_loop(void) {
           // force a render frame to ensure selection is drawn
           render_frame = true;
           break;
+
         case MODE_PLAYING:
+          // Clear the display completely
+          bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+          buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+
+          // Reset both buffers to avoid showing previous menu content
+          memset(static_buffer, 0, buffer_size);
+          memset(back_buffer, 0, buffer_size);
+
+          // Switch to direct drawing mode for playing screen
+          set_drawing_to_back();
+
+          // Initialize the playing screen
           playing_init();
+
+          // Force a render frame and swap buffers to show the playing screen
+          render_frame = true;
+          swap_buffers();
           break;
         case MODE_INSTRUCTIONS:
           // instructions_init();
@@ -200,8 +229,9 @@ int game_main_loop(void) {
       mouse_moved_recently = true;
     }
 
-    // pioritize rendering on mouse movement for responsiveness
+    // prioritize rendering on mouse movement for responsiveness
     if (mouse_moving_now) {
+      // Process mouse movement based on current game mode
       if (current_mode == MODE_MENU) {
         copy_static_to_back();
         draw_menu_selection();
@@ -210,23 +240,73 @@ int game_main_loop(void) {
         }
         swap_buffers(); // swap immediately for low latency
       }
+      else if (current_mode == MODE_PLAYING) {
+        // In playing mode, just update cursor position but don't redraw everything
+        // The full scene will be redrawn on the next frame
+        if (g_cursor != NULL) {
+          cursor_draw(g_cursor);
+          swap_buffers();
+        }
+      }
       mouse_moved_recently = true;
       render_frame = false; // reset frame timer
     }
     // regular rendering (not actively moving mouse)
     else if (render_frame || mouse_moved_recently) {
-      copy_static_to_back();
-
+      // Handle rendering based on current game mode
       if (current_mode == MODE_MENU) {
+        // Menu mode uses the static buffer system
+        copy_static_to_back();
         draw_menu_selection();
 
-        // draw cursor on top of everything
+        // draw cursor on top
         if (g_cursor != NULL) {
           cursor_draw(g_cursor);
         }
+
+        // Swap buffers to show menu updates
+        swap_buffers();
+      }
+      else if (current_mode == MODE_PLAYING) {
+        // For playing mode, make sure we have the latest static background
+        copy_static_to_back();
+
+        // Draw visible digletts on top of static background
+        for (int i = 0; i < NUM_DIGLETTS; i++) {
+          if (digletts[i].active && digletts[i].visible) {
+            Diglett *dig = &digletts[i];
+            // Draw diglett
+            vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
+
+            char key_label[2] = {0};
+            switch (dig->key) {
+              case 0x13: key_label[0] = 'r'; break;
+              case 0x14: key_label[0] = 't'; break;
+              case 0x15: key_label[0] = 'y'; break;
+              case 0x21: key_label[0] = 'f'; break;
+              case 0x22: key_label[0] = 'g'; break;
+              case 0x23: key_label[0] = 'h'; break;
+              case 0x2F: key_label[0] = 'v'; break;
+              case 0x30: key_label[0] = 'b'; break;
+              case 0x31: key_label[0] = 'n'; break;
+            }
+            draw_text_scaled(key_label, dig->x + dig->width - 14, dig->y + 5, 0xFFFFFF, 1);
+          }
+        }
+
+        // Update points display
+        draw_points_counter();
+
+        // Draw cursor on top of everything
+        if (g_cursor != NULL) {
+          cursor_draw(g_cursor);
+        }
+
+        // Always swap buffers for playing mode
+        swap_buffers();
       }
 
-      swap_buffers();
+      // Reset flags after rendering
       render_frame = false;
 
       // reset mouse movement flag after a few frames to avoid unnecessary rendering

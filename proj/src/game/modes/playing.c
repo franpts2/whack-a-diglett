@@ -9,30 +9,7 @@
 #include <string.h>
 #include <time.h>
 
-#define BACKGROUND_COLOR 0x325918
-#define DIGLETT_COLOR 0x885500
-
-// Game timing constants
-#define MIN_DIGLETT_SHOW_TIME 120 // min frames a diglett stays visible (2 second at 60Hz)
-#define MAX_DIGLETT_SHOW_TIME 240 // max frames a diglett stays visible (4 seconds at 60Hz)
-#define MIN_DIGLETT_HIDE_TIME 120 // min frames a diglett stays hidden (2 second at 60Hz)
-#define MAX_DIGLETT_HIDE_TIME 180 // max frames a diglett stays hidden (3 seconds at 60Hz)
-#define MAX_VISIBLE_DIGLETTS 5    // max digletts visible at once
-
-typedef struct {
-  int x;        // x position of the rectangle
-  int y;        // y position of the rectangle
-  int width;    // width of the rectangle
-  int height;   // height of the rectangle
-  uint8_t key;  // keyboard scancode for this diglett
-  bool visible; // whether the diglett is currently visible
-  int timer;    // countdown timer for state changes
-  bool active;  // whether the diglett is in play (for game progression)
-} Diglett;
-
 // Array to store all digletts
-#define NUM_DIGLETTS 9
-Diglett digletts[NUM_DIGLETTS];
 
 int visible_diglett_count = 0;
 int player_points = 0;
@@ -88,7 +65,26 @@ void playing_init(void) {
   visible_diglett_count = 0;
   player_points = 0;
 
-  // pinta o background
+  // First, ensure we're completely stopping all rendering related to menu
+  extern GameMode prev_mode;
+  prev_mode = MODE_PLAYING; // Mark transition as complete
+
+  // Reset the screen completely - this is crucial to remove menu artifacts
+  extern void *back_buffer;
+  extern void *static_buffer;
+  extern void *middle_buffer;
+  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+
+  // Clear all buffers first
+  memset(back_buffer, 0, buffer_size);
+  memset(middle_buffer, 0, buffer_size);
+  memset(static_buffer, 0, buffer_size);
+
+  // Set to draw to static buffer for the game background - IMPORTANT
+  set_drawing_to_static();
+
+  // Draw static background elements (these won't change during gameplay)
   vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
 
   // titulo centrado
@@ -109,7 +105,7 @@ void playing_init(void) {
   int start_x = (800 - grid_width) / 2;
   int start_y = 150;
 
-  // 3x3 grid
+  // 3x3 grid - draw holes to static buffer
   for (int row = 0; row < 3; row++) {
     for (int col = 0; col < 3; col++) {
       int index = row * 3 + col;
@@ -125,6 +121,7 @@ void playing_init(void) {
       digletts[index].active = true;
       digletts[index].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
 
+      // Draw empty hole to static buffer
       vg_draw_rectangle(x, y, rect_width, rect_height, BACKGROUND_COLOR);
     }
   }
@@ -135,9 +132,16 @@ void playing_init(void) {
   // clear the entire counter area
   vg_draw_rectangle(counter_x, 10, counter_width, 30, BACKGROUND_COLOR);
 
+  // Draw static "Points:" label
   draw_text_scaled("Points:", counter_x + 10, 10, 0xFFFFFF, 2);
 
-  // draw initial points value (0)
+  // Now switch back to back buffer for dynamic elements
+  set_drawing_to_back();
+
+  // Copy static background to back buffer for initial display
+  copy_static_to_back();
+
+  // draw initial points value (0) directly to back buffer
   draw_points_counter();
 }
 
@@ -151,9 +155,13 @@ void playing_handle_input(uint8_t scancode) {
     return;
   }
 
+  // Make sure we're drawing to back buffer
+  set_drawing_to_back();
+  copy_static_to_back();
+
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (scancode == digletts[i].key) {
-    
+
       if (digletts[i].visible) {
         // diglett foi whacked :P
         digletts[i].visible = false;
@@ -162,22 +170,20 @@ void playing_handle_input(uint8_t scancode) {
         // new timer for this diglett to reappear
         digletts[i].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
 
-        update_diglett_visibility(i);
-
         // +1 point
         if (player_points < 999) {
           player_points++;
         }
-        draw_points_counter(); // update
       }
       else {
         // -1 point
         if (player_points > 0) {
           player_points--;
-          draw_points_counter(); // update
         }
       }
 
+      // Redraw all game elements after state change
+      playing_update();
       break;
     }
   }
@@ -185,9 +191,16 @@ void playing_handle_input(uint8_t scancode) {
 
 // show or hide DIGLETT
 void update_diglett_visibility(int index) {
+  // Make sure we're drawing to the back buffer
+  set_drawing_to_back();
+
+  // Get static content before drawing dynamic elements
+  copy_static_to_back();
+
   Diglett *dig = &digletts[index];
 
   if (dig->visible) {
+    // Draw diglett
     vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
 
     char key_label[2] = {0};
@@ -205,12 +218,20 @@ void update_diglett_visibility(int index) {
     draw_text_scaled(key_label, dig->x + dig->width - 14, dig->y + 5, 0xFFFFFF, 1);
   }
   else {
-    vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, BACKGROUND_COLOR);
+    // Just restore background (hole) from static buffer
+    // This is already done by copy_static_to_back() above
   }
 }
 
 // update game state
 void playing_update(void) {
+  bool needs_update = false;
+
+  // First, copy static background to back buffer
+  set_drawing_to_back();
+  copy_static_to_back();
+
+  // Process all digletts
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (!digletts[i].active)
       continue; // skip inactive digletts
@@ -226,7 +247,7 @@ void playing_update(void) {
 
         // timer for hidden state
         digletts[i].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
-        update_diglett_visibility(i);
+        needs_update = true;
       }
       else if (visible_diglett_count < MAX_VISIBLE_DIGLETTS) {
         digletts[i].visible = true;
@@ -234,7 +255,7 @@ void playing_update(void) {
 
         // timer for visible state
         digletts[i].timer = get_random_timer(MIN_DIGLETT_SHOW_TIME, MAX_DIGLETT_SHOW_TIME);
-        update_diglett_visibility(i);
+        needs_update = true;
       }
       else {
         // at max visible capacity, reset timer and try again later
@@ -242,4 +263,30 @@ void playing_update(void) {
       }
     }
   }
+
+  // Draw all visible digletts
+  for (int i = 0; i < NUM_DIGLETTS; i++) {
+    if (digletts[i].active && digletts[i].visible) {
+      Diglett *dig = &digletts[i];
+      // Draw diglett
+      vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
+
+      char key_label[2] = {0};
+      switch (dig->key) {
+        case 0x13: key_label[0] = 'r'; break;
+        case 0x14: key_label[0] = 't'; break;
+        case 0x15: key_label[0] = 'y'; break;
+        case 0x21: key_label[0] = 'f'; break;
+        case 0x22: key_label[0] = 'g'; break;
+        case 0x23: key_label[0] = 'h'; break;
+        case 0x2F: key_label[0] = 'v'; break;
+        case 0x30: key_label[0] = 'b'; break;
+        case 0x31: key_label[0] = 'n'; break;
+      }
+      draw_text_scaled(key_label, dig->x + dig->width - 14, dig->y + 5, 0xFFFFFF, 1);
+    }
+  }
+
+  // Update points display
+  draw_points_counter();
 }

@@ -9,6 +9,8 @@ extern GameMode current_mode;
 extern GameMode prev_mode;
 extern int running; // Controls main game loop in game.c
 
+unsigned int bytes_per_pixel;
+
 #define MENU_ITEMS 3
 
 int selected = 0;              // Botão selecionado. 0 - Start Game, 1 - Instructions, 2 - Exit
@@ -27,6 +29,7 @@ void menu_handle_input(uint8_t scancode) { // only change selection on arrow key
     prev_selected = -1;
   }
   else if (scancode == 0x1C) { // Enter key
+    // Process the menu selection, which will change the mode
     menu_select_option();
   }
 }
@@ -35,7 +38,7 @@ void menu_handle_input(uint8_t scancode) { // only change selection on arrow key
 void draw_menu_bg_and_buttons(void) {
   vg_draw_rectangle(0, 0, 800, 600, 0x02);
 
-    // titulo centrado
+  // titulo centrado
   int title_scale = 3;
   const char *title = "WHACK'A DIGGLET";
   int title_width = strlen(title) * 8 * title_scale;
@@ -78,7 +81,7 @@ void draw_menu_selection(void) {
 
   // direct access to buffer for faster drawing
   void *target_buffer = get_current_buffer();
-  unsigned bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
 
   // color bytes for direct buffer access
   uint8_t bg_color_bytes[4] = {0};  // Background color (0x02)
@@ -186,12 +189,31 @@ void menu_handle_mouse(int x, int y, bool left_button_clicked) {
 
   // If mouse wasn't over any button, don't change selection
   // This allows the selection to stay where it was last set
+}
+
 // Handles the selection of a menu item
 void menu_select_option(void) {
   extern GameMode current_mode;
+  extern GameMode prev_mode;
+  extern void *back_buffer;
+  extern void *static_buffer;
+  extern void *middle_buffer;
 
   switch (selected) {
     case 0: // Start Game
+      // First force a clean state for all buffers
+      bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+      unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+
+      // Clear all buffers completely to remove any traces of menu
+      memset(back_buffer, 0, buffer_size);
+      memset(static_buffer, 0, buffer_size);
+      memset(middle_buffer, 0, buffer_size);
+
+      // Set to -1 to force reinitialization
+      prev_mode = -1;
+
+      // Now change the mode
       current_mode = MODE_PLAYING;
       break;
     case 1: // Instructions
