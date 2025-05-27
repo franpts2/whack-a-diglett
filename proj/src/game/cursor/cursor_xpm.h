@@ -18,10 +18,10 @@ static const char *const cursor_xpm[] = {
   ".+++++++.       ",
   ".++++++++.      ",
   ".++.......      ",
-  ".+.+.           ",
-  ".. .+.          ",
-  "    .+.         ",
-  "     ..         ",
+  ".+..+.          ",
+  "..  .+.         ",
+  "     .+.        ",
+  "      ..        ",
   "                "};
 
 static const char *const cursor_inverted_xpm[] = {
