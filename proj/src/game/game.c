@@ -12,6 +12,7 @@
 GameMode current_mode = MODE_MENU;
 GameMode prev_mode = -1;
 int prev_selected = -1;
+int running = 1; // Global variable to control main game loop
 
 Cursor *g_cursor = NULL;
 extern int counter; // timer counter
@@ -21,6 +22,9 @@ extern int counter; // timer counter
 #define TICKS_PER_FRAME (sys_hz() / FRAME_RATE)
 uint32_t frame_timer = 0;
 bool render_frame = false;
+
+// Add a static variable to track previous mouse button state
+static bool prev_left_button_state = false;
 
 int game_main_loop(void) {
   // Initialize cursor
@@ -64,7 +68,7 @@ int game_main_loop(void) {
     return 1;
   }
 
-  int running = 1;
+  // running is now a global variable declared at the top of this file
   int ipc_status;
   message msg;
 
@@ -107,6 +111,17 @@ int game_main_loop(void) {
               // Update cursor position using our refactored function
               if (g_cursor != NULL) {
                 cursor_handle_mouse_packet(g_cursor, &mouse_packet);
+
+                // Handle mouse clicks on menu items if we're in menu mode
+                if (current_mode == MODE_MENU) {
+                  bool left_button_pressed = mouse_packet.lb;
+                  bool left_button_clicked = left_button_pressed && !prev_left_button_state;
+
+                  prev_left_button_state = left_button_pressed;
+
+                  // Pass cursor position and click information to menu handler
+                  menu_handle_mouse(g_cursor->x, g_cursor->y, left_button_clicked);
+                }
               }
 
               // Reset byte index for next packet
