@@ -8,7 +8,7 @@
 // initialize the playing screen
 void playing_init(void) {
   // pinta o background
-  vg_draw_rectangle(0, 0, 1024, 768, 0x04);
+  vg_draw_rectangle(0, 0, 800, 600, 0x04);
 
   // titulo ?
   draw_text_scaled("WHACK'A DIGGLET", 400, 50, 0xFF, 3);

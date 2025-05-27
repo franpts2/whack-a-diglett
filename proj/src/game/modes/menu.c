@@ -23,9 +23,9 @@ void menu_handle_input(uint8_t scancode) {
 
 // Desenha as coisas que não precisam de refresh (botões fundo etc)
 void draw_menu_bg_and_buttons(void) {
-  vg_draw_rectangle(0, 0, 1024, 768, 0x02); // Background EU NAI SEI METER UMA COR DECENTE AQUI IM SO SORRY
+  vg_draw_rectangle(0, 0, 800, 600, 0x02); // Background EU NAI SEI METER UMA COR DECENTE AQUI IM SO SORRY
 
-  int screen_w = 1024;
+  int screen_w = 800;
   int btn_w = 300, btn_h = 50;
   int btn_x = (screen_w - btn_w) / 2; // Centrar
   int btn_y[MENU_ITEMS] = {250, 320, 390};
@@ -43,7 +43,7 @@ void draw_menu_bg_and_buttons(void) {
 
 // Desenha o retangulo de seleção pq n sei fazer triangulos (skull emoji)
 void draw_menu_selection(void) {
-  int screen_w = 1024;
+  int screen_w = 800;
   int btn_w = 300;
   int btn_x = (screen_w - btn_w) / 2;
   int btn_y[MENU_ITEMS] = {250, 320, 390};
