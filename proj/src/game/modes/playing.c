@@ -3,6 +3,8 @@
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
 #include "../../game/game.h"
+#include "../sprites/sprite.h"
+#include "../sprites/pixelart/dirt_xpm.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,6 +133,8 @@ void playing_init(void) {
       vg_draw_rectangle(x, y, rect_width, rect_height, BACKGROUND_COLOR);
     }
   }
+
+  draw_background();
 
   int counter_width = 200;
   int counter_x = 800 - counter_width - 10;
@@ -320,4 +324,27 @@ void playing_update(void) {
 
   // Update points display
   draw_points_counter();
+}
+
+void draw_background(void) {
+  // Os start positions tão errados achp eu mas não há digletts neste momento 
+  int rect_width = 60;
+  int rect_height = 80;
+  int spacing = 60;
+  int grid_width = 3 * rect_width + 2 * spacing;
+  int start_x = (800 - grid_width) / 2;
+  int start_y = 150;
+
+  for (int row = 0; row < 3; row++) {
+    for (int col = 0; col < 3; col++) {
+      int x = start_x + col * (rect_width + spacing);
+      int y = start_y + row * (rect_height + spacing);
+
+      Sprite *dirt = sprite_create_from_xpm((xpm_map_t)dirt_xpm, x, y);
+      if (dirt) {
+        sprite_draw(dirt);
+        sprite_destroy(dirt);
+      }
+    }
+  }
 }
