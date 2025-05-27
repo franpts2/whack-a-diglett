@@ -6,7 +6,7 @@
 static const char *const diglett_appear_0[] = {
 "100 100 7 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #71737B",
@@ -119,7 +119,7 @@ static const char *const diglett_appear_1[] = {
 /* columns rows colors chars-per-pixel */
 "100 100 9 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #71737B",
@@ -235,7 +235,7 @@ static const char *const diglett_appear_2[] = {
 /* columns rows colors chars-per-pixel */
 "100 100 10 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #522D13",
@@ -352,7 +352,7 @@ static const char *const diglett_appear_3[] = {
 /* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #522D13",
@@ -474,7 +474,7 @@ static const char *const diglett_appear_4[] = {
 /* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #522D13",
@@ -596,7 +596,7 @@ static const char *const diglett_appear_5[] = {
 /* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #522D13",
@@ -718,7 +718,7 @@ static const char *const diglett_appear_6[] = {
 /* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #522D13",
@@ -840,7 +840,7 @@ static const char *const diglett_appear_7[] = {
 /* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #522D13",
@@ -962,7 +962,7 @@ static const char *const diglett_appear_8[] = {
 /* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #522D13",
@@ -1084,7 +1084,7 @@ static const char *const diglett_appear_9[] = {
 /* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #522D13",
