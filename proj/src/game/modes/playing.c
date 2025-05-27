@@ -153,8 +153,7 @@ void playing_handle_input(uint8_t scancode) {
 
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (scancode == digletts[i].key) {
-      printf("diglett %d was activated with key 0x%02X\n", i, scancode);
-
+    
       if (digletts[i].visible) {
         // diglett foi whacked :P
         digletts[i].visible = false;
