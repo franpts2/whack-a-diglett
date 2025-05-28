@@ -1,7 +1,7 @@
 #include "playing_kbd.h"
-#include "../../controllers/kbdmouse/keyboard.h"
-#include "../../controllers/video/video.h"
-#include "../../fonts/testfont.h"
+#include "../../../controllers/kbdmouse/keyboard.h"
+#include "../../../controllers/video/video.h"
+#include "../../../fonts/testfont.h"
 #include "playing.h"
 #include <stdbool.h>
 #include <stdio.h>

@@ -8,6 +8,7 @@ PROG=proj
 .PATH: ${.CURDIR}/controllers/video
 .PATH: ${.CURDIR}/game
 .PATH: ${.CURDIR}/game/modes
+.PATH: ${.CURDIR}/game/modes/playing-modes
 .PATH: ${.CURDIR}/game/cursor
 .PATH: ${.CURDIR}/game/sprites
 .PATH: ${.CURDIR}/utils

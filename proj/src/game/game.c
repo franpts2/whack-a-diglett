@@ -4,8 +4,8 @@
 #include "cursor/cursor.h"
 #include "modes/choose_mode.h"
 #include "modes/menu.h"
-#include "modes/playing_kbd.h"
-#include "modes/playing_mouse.h"
+#include "modes/playing-modes/playing_kbd.h"
+#include "modes/playing-modes/playing_mouse.h"
 #include <lcom/lcf.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -281,7 +281,7 @@ int game_main_loop(void) {
         if (g_cursor != NULL) {
           cursor_draw(g_cursor);
         }
-        
+
         swap_buffers();
       }
 

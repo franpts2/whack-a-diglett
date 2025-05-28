@@ -1,6 +1,6 @@
 #include "playing.h"
-#include "../../controllers/video/video.h"
-#include "../../fonts/testfont.h"
+#include "../../../controllers/video/video.h"
+#include "../../../fonts/testfont.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

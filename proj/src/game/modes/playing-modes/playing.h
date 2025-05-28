@@ -1,7 +1,7 @@
 #ifndef _PLAYING_H
 #define _PLAYING_H
 
-#include "../game.h"
+#include "../../game.h"
 #include <stdbool.h>
 #include <stdint.h>
 

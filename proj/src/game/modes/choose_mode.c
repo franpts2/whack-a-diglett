@@ -3,8 +3,8 @@
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
 #include "../game.h"
-#include "playing_kbd.h"
-#include "playing_mouse.h"
+#include "playing-modes/playing_kbd.h"
+#include "playing-modes/playing_mouse.h"
 
 extern GameMode current_mode;
 extern GameMode prev_mode;

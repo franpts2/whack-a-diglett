@@ -1,6 +1,6 @@
 #include "playing_mouse.h"
-#include "../../controllers/video/video.h"
-#include "../../fonts/testfont.h"
+#include "../../../controllers/video/video.h"
+#include "../../../fonts/testfont.h"
 #include "playing.h"
 #include <stdbool.h>
 #include <stdio.h>
