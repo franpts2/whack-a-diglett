@@ -14,7 +14,6 @@ int player_points = 0;
 
 static bool using_keyboard_mode = true;
 
-// get a random timer value
 int get_random_timer(int min, int max) {
   return min + (rand() % (max - min + 1));
 }
@@ -49,7 +48,6 @@ void draw_points_counter() {
   draw_text_scaled(points_str, number_area_x, 10, 0xFFFFFF, 2);
 }
 
-// initialize the playing screen
 void playing_init(bool is_kbd) {
   // seed the random number generator
   srand(time(NULL));
@@ -67,7 +65,7 @@ void playing_init(bool is_kbd) {
 
   prev_mode = MODE_PLAYING; // mark transition as complete
 
-  // reset the screen completely - this is crucial to remove menu artifacts
+  // reset the screen completely - crucial to remove menu artifacts
   extern void *back_buffer;
   extern void *static_buffer;
   extern void *middle_buffer;
@@ -81,8 +79,6 @@ void playing_init(bool is_kbd) {
 
   // set to draw to static buffer for the game background - IMPORTANT
   set_drawing_to_static();
-
-  // draw static background elements (these won't change during gameplay)
   vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
 
   // titulo centrado
@@ -117,9 +113,8 @@ void playing_init(bool is_kbd) {
       digletts[index].visible = false; // start with all digletts hidden
       digletts[index].active = true;
 
-      // Make sure a few digletts will appear soon by using shorter timers
-      if (index < 3) {                                    // Make first few digletts appear faster
-        digletts[index].timer = get_random_timer(10, 30); // Shorter initial delay
+      if (index < 3) {
+        digletts[index].timer = get_random_timer(10, 30);
       }
       else {
         digletts[index].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
@@ -160,13 +155,12 @@ void playing_update(bool is_kbd) {
   // process all digletts
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (!digletts[i].active)
-      continue; // skip inactive digletts
+      continue;
 
     digletts[i].timer--;
 
-    // Check if any critical state changes are needed
     if (digletts[i].timer <= 0) {
-      // change state
+
       if (digletts[i].visible) {
         // currently visible diglett should hide
         digletts[i].visible = false;
@@ -195,12 +189,10 @@ void playing_update(bool is_kbd) {
   // Draw all digletts (both visible and hidden)
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (digletts[i].active) {
-      // For visible digletts, draw them with their color
+
       if (digletts[i].visible) {
-        // Explicitly draw the rectangle directly here
         vg_draw_rectangle(digletts[i].x, digletts[i].y, digletts[i].width, digletts[i].height, DIGLETT_COLOR);
 
-        // Then call the regular drawing function for labels
         if (is_kbd) {
           extern void draw_kbd_diglett_label(int index);
           draw_kbd_diglett_label(i);
@@ -212,7 +204,6 @@ void playing_update(bool is_kbd) {
     }
   }
 
-  // Update points display
   draw_points_counter();
 }
 
@@ -221,54 +212,40 @@ void draw_diglett(int index, bool is_kbd) {
   Diglett *dig = &digletts[index];
 
   if (dig->visible) {
-    // Make sure we're drawing to the back buffer
     set_drawing_to_back();
 
-    // Draw the diglett rectangle with a border to make it more visible
     vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
 
-    // Add device-specific labels if needed
     if (is_kbd) {
-      // Call the keyboard-specific function for labels
       extern void draw_kbd_diglett_label(int index);
       draw_kbd_diglett_label(index);
     }
-    // When mouse mode is added, an if(!is_kbd) branch can be added here
   }
   else {
-    // Make sure hidden digletts are properly "erased" by drawing background color
     vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, BACKGROUND_COLOR);
   }
 }
 
-// Generic function to update the visibility state of a diglett
-// This handles the basic drawing without specific device labels
 void update_diglett_visibility(int index) {
   Diglett *dig = &digletts[index];
 
   if (dig->visible) {
-    // Draw the diglett body
     vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
-    // Device-specific drawing (labels etc.) should be handled by device-specific functions
   }
   else {
-    // Hide the diglett by drawing the background color
     vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, BACKGROUND_COLOR);
   }
 }
 
 bool whack_diglett(int index) {
-  // is index valid?
   if (index < 0 || index >= NUM_DIGLETTS) {
     return false;
   }
 
-  // is diglett active?
   if (!digletts[index].active) {
     return false;
   }
 
-  // whack logic - visible digletts give points, hidden cost points
   if (digletts[index].visible) {
     // digglet visible =  successful whack
     digletts[index].visible = false;
@@ -277,7 +254,6 @@ bool whack_diglett(int index) {
     // new timer for diglett to reappear
     digletts[index].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
 
-    // Update diglett visibility
     update_diglett_visibility(index);
 
     // +1 point
@@ -299,18 +275,14 @@ bool whack_diglett(int index) {
 
 // Common input handling function
 void playing_handle_common_input(int index, bool is_kbd) {
-  // Make sure we're drawing to back buffer
   set_drawing_to_back();
   copy_static_to_back();
 
-  // Attempt to whack the diglett at the specified index
   whack_diglett(index);
 
-  // Redraw all game elements after state change
   playing_update(is_kbd);
 }
 
-// Function to set the current input mode
 void set_playing_mode(bool is_keyboard_mode) {
   using_keyboard_mode = is_keyboard_mode;
 }

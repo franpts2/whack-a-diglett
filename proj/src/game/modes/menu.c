@@ -2,26 +2,23 @@
 #include "../../controllers/kbdmouse/keyboard.h"
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
-#include "../game.h" // Includes GameMode definition
+#include "../game.h"
 
-// External variables for game state control
 extern GameMode current_mode;
 extern GameMode prev_mode;
-extern int running; // Controls main game loop in game.c
+extern int running;
 
 unsigned int bytes_per_pixel;
 
 #define MENU_ITEMS 3
 
-int selected = 0;              // Botão selecionado. 0 - Start Game, 1 - Instructions, 2 - Exit
-static int prev_selected = -1; // -1 ensures initial drawing
+int selected = 0;
+static int prev_selected = -1;
 
-void menu_handle_input(uint8_t scancode) { // only change selection on arrow key presses
-  if (scancode == 0x48) {                  // Up arrow key
+void menu_handle_input(uint8_t scancode) {
+  if (scancode == 0x48) {  // Up arrow key
     selected = (selected - 1 + MENU_ITEMS) % MENU_ITEMS;
-
-    // force a selection update in the game loop
-    prev_selected = -1; // forces redraw of selection
+    prev_selected = -1; 
   }
   else if (scancode == 0x50) { // Down arrow key
     selected = (selected + 1) % MENU_ITEMS;
@@ -29,7 +26,6 @@ void menu_handle_input(uint8_t scancode) { // only change selection on arrow key
     prev_selected = -1;
   }
   else if (scancode == 0x1C) { // Enter key
-    // Process the menu selection, which will change the mode
     menu_select_option();
   }
 }
@@ -69,7 +65,6 @@ void draw_menu_bg_and_buttons(void) {
 
 // Desenha o retangulo de seleção pq n sei fazer triangulos (skull emoji)
 void draw_menu_selection(void) {
-  // always draw selection indicator, only erase the old selection if we're changing positions
   bool selection_changed = (selected != prev_selected && prev_selected >= 0 && prev_selected < MENU_ITEMS);
 
   int screen_w = 800;
@@ -79,21 +74,15 @@ void draw_menu_selection(void) {
   int arrow_x = btn_x + btn_w + 10;
   int arrow_w = 30, arrow_h = 50;
 
-  // direct access to buffer for faster drawing
   void *target_buffer = get_current_buffer();
   bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
 
-  // color bytes for direct buffer access
   uint8_t bg_color_bytes[4] = {0};  // Background color (0x02)
   uint8_t sel_color_bytes[4] = {0}; // Selection color (0x0000FF) - blue
 
-  // set background color (green)
-  bg_color_bytes[0] = 0x02; // G component in RGB
+  bg_color_bytes[0] = 0x02;
+  sel_color_bytes[0] = 0xFF;
 
-  // Set selection color (bright blue)
-  sel_color_bytes[0] = 0xFF; // B component in RGB
-
-  // Only erase previous selection if selection changed
   if (selection_changed) {
     for (int y = btn_y[prev_selected]; y < btn_y[prev_selected] + arrow_h; y++) {
       if (y < 0 || y >= m_info.YResolution)
@@ -111,7 +100,6 @@ void draw_menu_selection(void) {
     }
   }
 
-  // Always draw the current selection with optimized direct buffer access
   for (int y = btn_y[selected]; y < btn_y[selected] + arrow_h; y++) {
     if (y < 0 || y >= m_info.YResolution)
       continue;
@@ -132,10 +120,9 @@ void draw_menu_selection(void) {
 
 // Chamado 1 vez quando o menu é loaded
 void menu_init(void) {
-  selected = 0;       // reset selection to first item
-  prev_selected = -1; // force redraw of selection on first display
+  selected = 0;
+  prev_selected = -1;
 
-  // reset cursor position to center of screen when returning to menu
   extern Cursor *g_cursor;
   if (g_cursor != NULL) {
     cursor_set_position(g_cursor, 400, 300);
@@ -147,9 +134,8 @@ void menu_update_selection(void) {
   draw_menu_selection();
 }
 
-// Handles mouse position and clicks for menu buttons
 void menu_handle_mouse(int x, int y, bool left_button_clicked) {
-  // Menu button dimensions
+  // menu button dimensions
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
   int btn_x = (screen_w - btn_w) / 2;
@@ -157,32 +143,25 @@ void menu_handle_mouse(int x, int y, bool left_button_clicked) {
 
   bool mouse_over_any_button = false;
 
-  // Check if mouse is over any button
   for (int i = 0; i < MENU_ITEMS; i++) {
     if (x >= btn_x && x <= btn_x + btn_w &&
         y >= btn_y[i] && y <= btn_y[i] + btn_h) {
-      // Mouse is over this button
       mouse_over_any_button = true;
 
       if (selected != i) {
-        // Update selection if it changed
         selected = i;
-        // Force redraw by setting prev_selected to -1
         prev_selected = -1;
       }
 
-      // If the mouse button was clicked while over a button
       if (left_button_clicked) {
-        // Perform action based on which button was clicked
         switch (i) {
           case 0: // "Start Game" button
-            current_mode = MODE_PLAYING;
+            current_mode = MODE_CHOOSE_MODE;
             break;
           case 1: // "Instructions" button
             current_mode = MODE_INSTRUCTIONS;
             break;
           case 2: // "Exit" button
-            // Signal to exit the game
             running = 0;
             break;
         }
@@ -219,8 +198,8 @@ void menu_select_option(void) {
       // Set to -1 to force reinitialization
       prev_mode = -1;
 
-      // Now change the mode
-      current_mode = MODE_PLAYING;
+      // Now change the mode to choose input mode instead of going directly to playing
+      current_mode = MODE_CHOOSE_MODE;
       break;
     case 1: // Instructions
       current_mode = MODE_INSTRUCTIONS;
