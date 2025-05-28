@@ -185,13 +185,10 @@ void draw_background(void) {
 
 // update game state
 void playing_update(bool is_kbd) {
-  bool needs_update = false;
-
-  // static background to back buffer
-  set_drawing_to_back();
+  // 1. Copy static background to back buffer (full frame redraw)
   copy_static_to_back();
 
-  // process all digletts
+  // 2. Update diglett timers and visibility
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (!digletts[i].active)
       continue;
@@ -199,65 +196,26 @@ void playing_update(bool is_kbd) {
     digletts[i].timer--;
 
     if (digletts[i].timer <= 0) {
-
       if (digletts[i].visible && digletts[i].active) {
-        // currently visible diglett should hide
         digletts[i].visible = false;
         visible_diglett_count--;
-
-        if (diglett_sprites[i]) {
-          diglett_sprites[i]->x = digletts[i].x;
-          diglett_sprites[i]->y = digletts[i].y;
-          animated_sprite_update(diglett_sprites[i]);
-          animated_sprite_draw(diglett_sprites[i]);
-        }
-
-        // timer for hidden state
         digletts[i].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
-        needs_update = true;
       }
       else if (visible_diglett_count < MAX_VISIBLE_DIGLETTS) {
-        // Make the diglett appear
         digletts[i].visible = true;
         visible_diglett_count++;
-
-        // timer for visible state
         digletts[i].timer = get_random_timer(MIN_DIGLETT_SHOW_TIME, MAX_DIGLETT_SHOW_TIME);
-        needs_update = true;
       }
       else {
-        // at max visible capacity, reset timer and try again later
         digletts[i].timer = get_random_timer(10, 30);
       }
     }
   }
 
-  // Draw all digletts (both visible and hidden)
+  // 3. Draw all visible digletts
   for (int i = 0; i < NUM_DIGLETTS; i++) {
-    if (digletts[i].active) {
-
-      if (digletts[i].visible) {
-        // Only draw the background rectangle if we don't have a sprite
-        if (!diglett_sprites[i]) {
-          vg_draw_rectangle(digletts[i].x, digletts[i].y, digletts[i].width, digletts[i].height, DIGLETT_COLOR);
-        }
-        
-        // Draw animated diglett sprite
-        if (diglett_sprites[i]) {
-          diglett_sprites[i]->x = digletts[i].x;
-          diglett_sprites[i]->y = digletts[i].y;
-          animated_sprite_update(diglett_sprites[i]);
-          animated_sprite_draw(diglett_sprites[i]);
-        }
-
-        if (is_kbd) {
-          extern void draw_kbd_diglett_label(int index);
-          draw_kbd_diglett_label(i);
-        }
-      }
-      else {
-        vg_draw_rectangle(digletts[i].x, digletts[i].y, digletts[i].width, digletts[i].height, BACKGROUND_COLOR);
-      }
+    if (digletts[i].active && digletts[i].visible) {
+      draw_diglett(i, is_kbd);
     }
   }
 
@@ -265,33 +223,28 @@ void playing_update(bool is_kbd) {
   draw_timer_bar();
 }
 
-// Function to draw just a diglett without copying from static buffer
+// Function to draw just a diglett (never clear with BACKGROUND_COLOR)
 void draw_diglett(int index, bool is_kbd) {
   Diglett *dig = &digletts[index];
 
-  if (dig->visible) {
-    set_drawing_to_back();
+  set_drawing_to_back();
 
-    // Only draw background rectangle if we don't have a sprite
-    if (!diglett_sprites[index]) {
-      vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
-    }
-
-    // Update and draw the sprite if available
-    if (diglett_sprites[index]) {
-      diglett_sprites[index]->x = dig->x;
-      diglett_sprites[index]->y = dig->y;
-      animated_sprite_update(diglett_sprites[index]);
-      animated_sprite_draw(diglett_sprites[index]);
-    }
-
-    if (is_kbd) {
-      extern void draw_kbd_diglett_label(int index);
-      draw_kbd_diglett_label(index);
-    }
+  // Only draw background rectangle if we don't have a sprite
+  if (!diglett_sprites[index]) {
+    vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
   }
-  else {
-    vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, BACKGROUND_COLOR);
+
+  // Update and draw the sprite if available
+  if (diglett_sprites[index]) {
+    diglett_sprites[index]->x = dig->x;
+    diglett_sprites[index]->y = dig->y;
+    animated_sprite_update(diglett_sprites[index]);
+    animated_sprite_draw(diglett_sprites[index]);
+  }
+
+  if (is_kbd) {
+    extern void draw_kbd_diglett_label(int index);
+    draw_kbd_diglett_label(index);
   }
 }
 
@@ -356,7 +309,6 @@ bool whack_diglett(int index) {
 // Common input handling function
 void playing_handle_common_input(int index, bool is_kbd) {
   set_drawing_to_back();
-  copy_static_to_back();
 
   whack_diglett(index);
 
