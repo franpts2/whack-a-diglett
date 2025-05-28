@@ -6,6 +6,7 @@
 
 typedef enum {
   MODE_MENU,
+  MODE_CHOOSE_MODE, //dsclpem pelo nome repetitivo, n pensem em mais nada :P
   MODE_PLAYING,
   MODE_PAUSED,
   MODE_INSTRUCTIONS,

@@ -1213,6 +1213,7 @@ static xpm_map_t diglett_appear_frames[] = {
     diglett_appear_8,
     diglett_appear_9
 };
+
 #define DIGLETT_APPEAR_NUM_FRAMES (sizeof(diglett_appear_frames)/sizeof(diglett_appear_frames[0]))
 
 #endif
