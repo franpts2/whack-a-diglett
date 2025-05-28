@@ -143,8 +143,9 @@ int game_main_loop(void) {
             if (byte_index == 3) {
               assemble_mouse_packet();
 
-              // update cursor position if in menu or choose mode
-              if (g_cursor != NULL && (current_mode == MODE_MENU || current_mode == MODE_CHOOSE_MODE)) {
+              // update cursor position if in menu, choose mode or mouse playing mode
+              if (g_cursor != NULL && (current_mode == MODE_MENU || current_mode == MODE_CHOOSE_MODE || 
+                  (current_mode == MODE_PLAYING && mode_selected == 1))) {
                 cursor_handle_mouse_packet(g_cursor, &mouse_packet);
 
                 bool left_button_pressed = mouse_packet.lb;
@@ -158,6 +159,9 @@ int game_main_loop(void) {
                 }
                 else if (current_mode == MODE_CHOOSE_MODE) {
                   choose_mode_handle_mouse(g_cursor->x, g_cursor->y, left_button_clicked);
+                }
+                else if (current_mode == MODE_PLAYING && mode_selected == 1) {
+                  playing_handle_mouse_input(g_cursor->x, g_cursor->y, left_button_clicked);
                 }
               }
 
@@ -219,6 +223,15 @@ int game_main_loop(void) {
           memset(static_buffer, 0, buffer_size);
           memset(back_buffer, 0, buffer_size);
 
+          // Initialize the appropriate playing mode
+          if (mode_selected == 0) {
+            // Keyboard mode
+            playing_kbd_init();
+          } else {
+            // Mouse mode
+            playing_mouse_init();
+          }
+
           set_drawing_to_back();
 
           render_frame = true;
@@ -238,7 +251,7 @@ int game_main_loop(void) {
     bool mouse_moving_now = (mouse_packet.delta_x != 0 || mouse_packet.delta_y != 0);
 
     if (mouse_moving_now) {
-      // Process mouse movement in menu or choose mode
+      // Process mouse movement in menu or choose mode or mouse playing mode
       if (current_mode == MODE_MENU) {
         copy_static_to_back();
         draw_menu_selection();
@@ -258,6 +271,16 @@ int game_main_loop(void) {
         swap_buffers();
         mouse_moved_recently = true;
         render_frame = false; 
+      }
+      else if (current_mode == MODE_PLAYING && mode_selected == 1) {
+        copy_static_to_back();
+        playing_mouse_update();
+        if (g_cursor != NULL) {
+          cursor_draw(g_cursor);
+        }
+        swap_buffers();
+        mouse_moved_recently = true;
+        render_frame = false;
       }
     }
     // regular rendering (not actively moving mouse)
@@ -282,6 +305,16 @@ int game_main_loop(void) {
           cursor_draw(g_cursor);
         }
 
+        swap_buffers();
+      }
+      else if (current_mode == MODE_PLAYING && mode_selected == 1) {
+        copy_static_to_back();
+        playing_mouse_update();
+
+        if (g_cursor != NULL) {
+          cursor_draw(g_cursor);
+        }
+        
         swap_buffers();
       }
 
