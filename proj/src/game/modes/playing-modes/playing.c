@@ -380,9 +380,9 @@ void playing_destroy(void) {
 //AINDA VOU ALINHAR ISTO MELHOR
 extern int game_time_left;
 #define TIMER_BAR_TOTAL_SECONDS 60
-#define TIMER_BAR_WIDTH 400
+#define TIMER_BAR_WIDTH 160 
 #define TIMER_BAR_HEIGHT 20
-#define TIMER_BAR_X 200
+#define TIMER_BAR_X 50 
 #define TIMER_BAR_Y 10
 
 void draw_timer_bar() {
@@ -400,5 +400,5 @@ void draw_timer_bar() {
   // countdown
   char buf[16];
   sprintf(buf, "%02d", game_time_left);
-  draw_text_scaled(buf, TIMER_BAR_X + TIMER_BAR_WIDTH + 16, TIMER_BAR_Y - 2, 0xFFFFFF, 2);
+  draw_text_scaled(buf, TIMER_BAR_X + TIMER_BAR_WIDTH + 12, TIMER_BAR_Y - 2, 0xFFFFFF, 2);
 }
