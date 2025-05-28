@@ -96,6 +96,13 @@ int game_main_loop(void) {
               // Only set render_frame to true if we're not in a mode transition
               if (prev_mode == current_mode) {
                 render_frame = true;
+
+                // Update game state for playing mode
+                if (current_mode == MODE_PLAYING) {
+                  playing_kbd_update();
+
+                  swap_buffers();
+                }
               }
               frame_timer = 0;
             }
@@ -121,18 +128,7 @@ int game_main_loop(void) {
               running = 0; // ESC para parar
           }
 
-          if (msg.m_notify.interrupts & timer_irq) {
-            // Only update playing mode if that's our current mode
-            if (current_mode == MODE_PLAYING && prev_mode == MODE_PLAYING) {
-              // Only update game state when we're fully in playing mode
-              playing_kbd_update(); // process diglett animations/timer updates
-
-              // Force render frame to ensure game updates are displayed
-              render_frame = true;
-            }
-            if (scancode == 0x81)
-              running = 0; // ESC para parar
-          }
+          // Note: We already handled timer interrupts above, so this duplicated block is removed
 
           // handle mouse ints
           if (msg.m_notify.interrupts & mouse_irq) {
@@ -250,22 +246,6 @@ int game_main_loop(void) {
         }
 
         // swap buffers to show menu updates
-        swap_buffers();
-      }
-      else if (current_mode == MODE_PLAYING) {
-        // For playing mode, make sure we have the latest static background
-        copy_static_to_back();
-
-        // Draw all visible digletts using our new drawing function
-        for (int i = 0; i < NUM_DIGLETTS; i++) {
-          if (digletts[i].active && digletts[i].visible) {
-            // This function draws just the diglett without copying from static buffer again
-            draw_diglett(i);
-          }
-        }
-
-        draw_points_counter();
-
         swap_buffers();
       }
 
