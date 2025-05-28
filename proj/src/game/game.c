@@ -34,6 +34,10 @@ bool render_frame = false;
 // Add a static variable to track previous mouse button state
 static bool prev_left_button_state = false;
 
+#define GAME_TIME_SECONDS 60
+int game_time_left = GAME_TIME_SECONDS;
+static unsigned int game_timer_counter = 0;
+
 int game_main_loop(void) {
   g_cursor = cursor_init();
   if (g_cursor == NULL) {
@@ -98,6 +102,16 @@ int game_main_loop(void) {
                 render_frame = true;
 
                 if (current_mode == MODE_PLAYING) {
+                  // update the timer
+                  game_timer_counter++;
+                  if (game_timer_counter >= sys_hz()) {
+                    if (game_time_left > 0) game_time_left--;
+                    game_timer_counter = 0;
+                    if (game_time_left == 0) {
+                      current_mode = MODE_GAMEOVER;
+                    }
+                  }
+
                   if (mode_selected == 0) { // Keyboard mode
                     playing_kbd_update();
                   }
@@ -220,6 +234,10 @@ int game_main_loop(void) {
           memset(back_buffer, 0, buffer_size);
 
           set_drawing_to_back();
+
+          // reset the game timer
+          game_time_left = GAME_TIME_SECONDS;
+          game_timer_counter = 0;
 
           render_frame = true;
           swap_buffers();

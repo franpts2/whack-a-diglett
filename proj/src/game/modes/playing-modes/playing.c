@@ -262,6 +262,7 @@ void playing_update(bool is_kbd) {
   }
 
   draw_points_counter();
+  draw_timer_bar();
 }
 
 // Function to draw just a diglett without copying from static buffer
@@ -373,4 +374,31 @@ void playing_destroy(void) {
       diglett_sprites[i] = NULL;
     }
   }
+}
+
+
+//AINDA VOU ALINHAR ISTO MELHOR
+extern int game_time_left;
+#define TIMER_BAR_TOTAL_SECONDS 60
+#define TIMER_BAR_WIDTH 400
+#define TIMER_BAR_HEIGHT 20
+#define TIMER_BAR_X 200
+#define TIMER_BAR_Y 10
+
+void draw_timer_bar() {
+  // border
+  vg_draw_rectangle(TIMER_BAR_X - 2, TIMER_BAR_Y - 2, TIMER_BAR_WIDTH + 4, TIMER_BAR_HEIGHT + 4, 0xFFFFFF);
+
+  // barra vazia
+  vg_draw_rectangle(TIMER_BAR_X, TIMER_BAR_Y, TIMER_BAR_WIDTH, TIMER_BAR_HEIGHT, 0x222222);
+
+  // calcula e desenha tempo restante
+  int fill_width = (game_time_left * TIMER_BAR_WIDTH) / TIMER_BAR_TOTAL_SECONDS;
+  if (fill_width < 0) fill_width = 0;
+  vg_draw_rectangle(TIMER_BAR_X, TIMER_BAR_Y, fill_width, TIMER_BAR_HEIGHT, 0xFF3333);
+
+  // countdown
+  char buf[16];
+  sprintf(buf, "%02d", game_time_left);
+  draw_text_scaled(buf, TIMER_BAR_X + TIMER_BAR_WIDTH + 16, TIMER_BAR_Y - 2, 0xFFFFFF, 2);
 }

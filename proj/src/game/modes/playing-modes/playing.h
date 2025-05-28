@@ -45,4 +45,6 @@ int get_random_timer(int min, int max);
 // Mode setting helper
 void set_playing_mode(bool is_keyboard_mode);
 
+void draw_timer_bar(void);
+
 #endif // _PLAYING_H
