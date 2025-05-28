@@ -48,8 +48,8 @@ void draw_menu_bg_and_buttons(void) {
   const char *btn_labels[MENU_ITEMS] = {"Start Game", "Instructions", "Exit"};
 
   for (int i = 0; i < MENU_ITEMS; ++i) {
-    // Use a lighter color for the currently selected button
-    uint32_t btn_color = (i == selected) ? 0xCCCCCC : 0xAAAAAA;
+    // Use the same color for all buttons
+    uint32_t btn_color = 0xAAAAAA;
     vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, btn_color);
 
     int scale = 2;
@@ -57,8 +57,7 @@ void draw_menu_bg_and_buttons(void) {
     int text_x = btn_x + (btn_w - text_width) / 2;
     int text_y = btn_y[i] + (btn_h - 8 * scale) / 2;
 
-    // Use a different text color for selected items
-    uint32_t text_color = (i == selected) ? 0x0000AA : 0x02; // Darker blue for selected text
+    uint32_t text_color = 0x02;
     draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
   }
 }

@@ -63,7 +63,7 @@ void draw_choose_mode_bg_and_buttons(void) {
   const char *btn_labels[CHOOSE_MODE_ITEMS] = {"Keyboard", "Mouse"};
 
   for (int i = 0; i < CHOOSE_MODE_ITEMS; ++i) {
-    uint32_t btn_color = (i == mode_selected) ? 0xCCCCCC : 0xAAAAAA;
+    uint32_t btn_color = 0xAAAAAA;
     vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, btn_color);
 
     int scale = 2;
@@ -71,11 +71,11 @@ void draw_choose_mode_bg_and_buttons(void) {
     int text_x = btn_x + (btn_w - text_width) / 2;
     int text_y = btn_y[i] + (btn_h - 8 * scale) / 2;
 
-    uint32_t text_color = (i == mode_selected) ? 0x0000AA : 0x04;
+    uint32_t text_color = 0x04;
     draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
   }
 
-  const char *back_msg = "Press ESC to go back";
+  const char *back_msg = "Press Q to go back";
   int back_scale = 1;
   int back_width = strlen(back_msg) * 8 * back_scale;
   int back_x = (800 - back_width) / 2;

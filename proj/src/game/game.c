@@ -7,7 +7,7 @@
 #include "modes/playing_kbd.h"
 #include "modes/playing_mouse.h"
 #include <lcom/lcf.h>
-#include <stdbool.h> // Make sure bool type is defined
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "../controllers/kbdmouse/aux.h"
@@ -20,7 +20,7 @@ unsigned int buffer_size;
 GameMode current_mode = MODE_MENU;
 GameMode prev_mode = -1;
 int prev_selected = -1;
-int running = 1; // Global variable to control main game loop
+int running = 1;
 
 Cursor *g_cursor = NULL;
 extern int counter; // timer counter
@@ -35,7 +35,6 @@ bool render_frame = false;
 static bool prev_left_button_state = false;
 
 int game_main_loop(void) {
-  // Initialize cursor
   g_cursor = cursor_init();
   if (g_cursor == NULL) {
     printf("Failed to initialize cursor\n");
@@ -65,7 +64,6 @@ int game_main_loop(void) {
     return 1;
   }
 
-  // timer interrupts for consistent frame rate
   uint8_t timer_irq;
   if (timer_subscribe_int(&timer_irq) != 0) {
     printf("Failed to subscribe timer interrupt\n");
@@ -76,7 +74,7 @@ int game_main_loop(void) {
     return 1;
   }
 
-  // Set timer frequency to 60Hz (for smoother animations)
+  // timer frequency to 60Hz (for smoother animations)
   timer_set_frequency(0, 60);
 
   int ipc_status;
@@ -99,10 +97,7 @@ int game_main_loop(void) {
               if (prev_mode == current_mode) {
                 render_frame = true;
 
-                // Update game state for playing mode
                 if (current_mode == MODE_PLAYING) {
-                  // The specific update function (kbd or mouse) will be called
-                  // based on what was initialized in choose_mode_select_option()
                   if (mode_selected == 0) { // Keyboard mode
                     playing_kbd_update();
                   }
@@ -140,8 +135,6 @@ int game_main_loop(void) {
               running = 0; // ESC para parar
           }
 
-          // Note: We already handled timer interrupts above, so this duplicated block is removed
-
           // handle mouse ints
           if (msg.m_notify.interrupts & mouse_irq) {
             mouse_ih();
@@ -168,7 +161,7 @@ int game_main_loop(void) {
                 }
               }
 
-              // Reset byte index for next packet
+              // reset byte index for next packet
               byte_index = 0;
             }
           }
@@ -188,7 +181,6 @@ int game_main_loop(void) {
           // reset menu and selection
           menu_init();
 
-          // prepare static background only once
           set_drawing_to_static();
 
           // clear static buffer and draw static content
@@ -204,13 +196,10 @@ int game_main_loop(void) {
           break;
 
         case MODE_CHOOSE_MODE:
-          // Initialize the choose mode screen
           choose_mode_init();
 
-          // Prepare static background only once
           set_drawing_to_static();
 
-          // Clear static buffer and draw static content
           bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
           buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
           memset(static_buffer, 0, buffer_size);
@@ -218,7 +207,6 @@ int game_main_loop(void) {
           draw_choose_mode_bg_and_buttons();
           set_drawing_to_back();
 
-          // Force a render frame to ensure selection is drawn
           render_frame = true;
           break;
 
@@ -233,10 +221,6 @@ int game_main_loop(void) {
 
           set_drawing_to_back();
 
-          // Note: The initialization of either playing_kbd_init() or playing_mouse_init()
-          // is now handled in choose_mode_select_option() based on user selection
-
-          // force a render frame and swap buffers to show the playing screen
           render_frame = true;
           swap_buffers();
           break;
@@ -253,11 +237,6 @@ int game_main_loop(void) {
     static bool mouse_moved_recently = false;
     bool mouse_moving_now = (mouse_packet.delta_x != 0 || mouse_packet.delta_y != 0);
 
-    if (mouse_moving_now) {
-      mouse_moved_recently = true;
-    }
-
-    // prioritize rendering on mouse movement for responsiveness
     if (mouse_moving_now) {
       // Process mouse movement in menu or choose mode
       if (current_mode == MODE_MENU) {
@@ -276,15 +255,14 @@ int game_main_loop(void) {
         if (g_cursor != NULL) {
           cursor_draw(g_cursor);
         }
-        swap_buffers(); // swap immediately for low latency
+        swap_buffers();
         mouse_moved_recently = true;
-        render_frame = false; // reset frame timer
+        render_frame = false; 
       }
     }
     // regular rendering (not actively moving mouse)
     else if (render_frame || mouse_moved_recently) {
       if (current_mode == MODE_MENU) {
-        // Menu mode uses the static buffer system
         copy_static_to_back();
         draw_menu_selection();
 
@@ -293,11 +271,9 @@ int game_main_loop(void) {
           cursor_draw(g_cursor);
         }
 
-        // swap buffers to show menu updates
         swap_buffers();
       }
       else if (current_mode == MODE_CHOOSE_MODE) {
-        // Choose mode also uses the static buffer system
         copy_static_to_back();
         choose_mode_update_selection();
 
@@ -305,8 +281,7 @@ int game_main_loop(void) {
         if (g_cursor != NULL) {
           cursor_draw(g_cursor);
         }
-
-        // swap buffers to show updates
+        
         swap_buffers();
       }
 
