@@ -31,8 +31,9 @@ extern int counter; // timer counter
 uint32_t frame_timer = 0;
 bool render_frame = false;
 
-// Add a static variable to track previous mouse button state
+// Add static variables for mouse state tracking
 static bool prev_left_button_state = false;
+static bool mouse_moved_recently = false;
 
 int game_main_loop(void) {
   g_cursor = cursor_init();
@@ -93,19 +94,23 @@ int game_main_loop(void) {
             frame_timer++;
 
             if (frame_timer >= TICKS_PER_FRAME) {
-              // Only set render_frame to true if we're not in a mode transition
               if (prev_mode == current_mode) {
                 render_frame = true;
 
                 if (current_mode == MODE_PLAYING) {
-                  if (mode_selected == 0) { // Keyboard mode
-                    playing_kbd_update();
+                  if (mode_selected == 0 || !mouse_moved_recently) {
+                    if (mode_selected == 0) { // Keyboard mode
+                      playing_kbd_update();
+                    }
+                    else { // Mouse mode
+                      copy_static_to_back();
+                      playing_mouse_update();
+                      if (g_cursor != NULL) {
+                        cursor_draw(g_cursor);
+                      }
+                    }
+                    swap_buffers();
                   }
-                  else { // Mouse mode
-                    playing_mouse_update();
-                  }
-
-                  swap_buffers();
                 }
               }
               frame_timer = 0;
@@ -246,8 +251,6 @@ int game_main_loop(void) {
       prev_mode = current_mode;
     }
 
-    // render on mouse movement for responsiveness, use timer for animations, track recent movement for smoothness
-    static bool mouse_moved_recently = false;
     bool mouse_moving_now = (mouse_packet.delta_x != 0 || mouse_packet.delta_y != 0);
 
     if (mouse_moving_now) {
