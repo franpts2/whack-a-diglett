@@ -127,7 +127,7 @@ void playing_init(bool is_kbd) {
     int grid_width = 3 * rect_width + 2 * spacing;
 
     // calculate starting position to center the grid
-    int start_x = (800 - grid_width) / 2;
+    int start_x = (800 - grid_width) / 2 - spacing/2;
     int start_y = 150;
 
     // 3x3 grid - draw holes to static buffer
@@ -195,12 +195,11 @@ void playing_init(bool is_kbd) {
 }
 
 void draw_background(void) {
-  // Os start positions tão errados achp eu mas não há digletts neste momento 
   int rect_width = 60;
   int rect_height = 80;
   int spacing = 60;
   int grid_width = 3 * rect_width + 2 * spacing;
-  int start_x = (800 - grid_width) / 2;
+  int start_x = (800 - grid_width) / 2 - spacing/2;
   int start_y = 150;
 
   for (int row = 0; row < 3; row++) {
@@ -409,7 +408,6 @@ void draw_timer_bar() {
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   
-  // Calculate elapsed time considering paused time
   double elapsed = (now.tv_sec - game_start_time.tv_sec) +
                    (now.tv_nsec - game_start_time.tv_nsec) / 1e9 - total_paused_time;
   
@@ -423,10 +421,20 @@ void draw_timer_bar() {
   // barra vazia
   vg_draw_rectangle(TIMER_BAR_X, TIMER_BAR_Y, TIMER_BAR_WIDTH, TIMER_BAR_HEIGHT, 0x222222);
 
+  // cor diferente dependendo do tempo que falta. talvez adicione cores intermédias?
+  uint32_t bar_color;
+  if (game_time_left > (2 * TIMER_BAR_TOTAL_SECONDS) / 3) {
+    bar_color = 0x00FF33; // green
+  } else if (game_time_left > (TIMER_BAR_TOTAL_SECONDS) / 3) {
+    bar_color = 0xFFFF00; // yellow
+  } else {
+    bar_color = 0xFF3333; // red
+  }
+
   // calcula e desenha tempo restante
   int fill_width = (game_time_left * TIMER_BAR_WIDTH) / TIMER_BAR_TOTAL_SECONDS;
   if (fill_width < 0) fill_width = 0;
-  vg_draw_rectangle(TIMER_BAR_X, TIMER_BAR_Y, fill_width, TIMER_BAR_HEIGHT, 0xFF3333);
+  vg_draw_rectangle(TIMER_BAR_X, TIMER_BAR_Y, fill_width, TIMER_BAR_HEIGHT, bar_color);
 
   // countdown
   char buf[16];
