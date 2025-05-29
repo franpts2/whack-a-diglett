@@ -11,6 +11,8 @@
 #include <game/sprites/pixelart/dirt_xpm.h>
 #include <time.h>
 
+static struct timespec game_start_time = {0, 0};
+extern int game_time_left;
 static struct timespec last_update_time = {0, 0};
 
 // Forward declarations
@@ -157,6 +159,9 @@ void playing_init(bool is_kbd) {
   draw_points_counter();
 
   clock_gettime(CLOCK_MONOTONIC, &last_update_time);
+
+  clock_gettime(CLOCK_MONOTONIC, &game_start_time);
+  game_time_left = TIMER_BAR_TOTAL_SECONDS;
 }
 
 void draw_background(void) {
@@ -327,16 +332,15 @@ void playing_destroy(void) {
   }
 }
 
-
-//AINDA VOU ALINHAR ISTO MELHOR
-extern int game_time_left;
-#define TIMER_BAR_TOTAL_SECONDS 60
-#define TIMER_BAR_WIDTH 160 
-#define TIMER_BAR_HEIGHT 20
-#define TIMER_BAR_X 50 
-#define TIMER_BAR_Y 10
-
 void draw_timer_bar() {
+  struct timespec now;
+  clock_gettime(CLOCK_MONOTONIC, &now);
+  double elapsed = (now.tv_sec - game_start_time.tv_sec) +
+                   (now.tv_nsec - game_start_time.tv_nsec) / 1e9;
+  int time_left = TIMER_BAR_TOTAL_SECONDS - (int)elapsed;
+  if (time_left < 0) time_left = 0;
+  game_time_left = time_left;
+
   // border
   vg_draw_rectangle(TIMER_BAR_X - 2, TIMER_BAR_Y - 2, TIMER_BAR_WIDTH + 4, TIMER_BAR_HEIGHT + 4, 0xFFFFFF);
 
@@ -352,20 +356,10 @@ void draw_timer_bar() {
   char buf[16];
   sprintf(buf, "%02d", game_time_left);
   draw_text_scaled(buf, TIMER_BAR_X + TIMER_BAR_WIDTH + 12, TIMER_BAR_Y - 2, 0xFFFFFF, 2);
-}
 
-void playing_update_timer() {
-  struct timespec now;
-  clock_gettime(CLOCK_MONOTONIC, &now);
-  double elapsed = (now.tv_sec - last_update_time.tv_sec) +
-                   (now.tv_nsec - last_update_time.tv_nsec) / 1e9;
-
-  if (elapsed >= 1.0) { // 1 second has passed
-    if (game_time_left > 0) game_time_left--;
-    last_update_time = now;
-    if (game_time_left == 0) {
-      extern GameMode current_mode;
-      current_mode = MODE_GAMEOVER;
-    }
+  // gameover
+  if (game_time_left == 0) {
+    extern GameMode current_mode;
+    current_mode = MODE_GAMEOVER;
   }
 }
