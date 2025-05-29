@@ -49,7 +49,7 @@ void draw_menu_bg_and_buttons(void) {
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
   int btn_x = (screen_w - btn_w) / 2; // Centrar
-  int btn_y[MENU_ITEMS] = {250, 320, 390};
+  int btn_y[MENU_ITEMS] = {300, 370, 440};
   const char *btn_labels[MENU_ITEMS] = {"Start Game", "Instructions", "Exit"};
 
   for (int i = 0; i < MENU_ITEMS; ++i) {
@@ -74,7 +74,7 @@ void draw_menu_selection(void) {
   int screen_w = 800;
   int btn_w = 300;
   int btn_x = (screen_w - btn_w) / 2;
-  int btn_y[MENU_ITEMS] = {250, 320, 390};
+  int btn_y[MENU_ITEMS] = {300, 370, 440};
   int arrow_x = btn_x + btn_w + 10;
   int arrow_w = 30, arrow_h = 50;
 
@@ -143,7 +143,7 @@ void menu_handle_mouse(int x, int y, bool left_button_clicked) {
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
   int btn_x = (screen_w - btn_w) / 2;
-  int btn_y[MENU_ITEMS] = {250, 320, 390};
+  int btn_y[MENU_ITEMS] = {300, 370, 440};
 
   bool mouse_over_any_button = false;
 

@@ -25,7 +25,7 @@ int title_init() {
     x_pos = 0; // ensure it's not off-screen
   title_sprite->x = x_pos;
 
-  title_sprite->y = 25;
+  title_sprite->y = 10;
 
   return 0;
 }
