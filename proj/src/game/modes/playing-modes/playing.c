@@ -76,6 +76,11 @@ void playing_init(bool is_kbd) {
   extern GameMode prev_mode;
   extern Cursor *g_cursor;
 
+  // Reset timer variables - ensure we start with a fresh 60 seconds
+  clock_gettime(CLOCK_MONOTONIC, &game_start_time);
+  total_paused_time = 0.0; // Reset pause time accumulator
+  game_time_left = TIMER_BAR_TOTAL_SECONDS;
+
   // hide cursor in kbd playing mode by moving it off-screen (it won't be rendered anyway)
   if (g_cursor != NULL) {
     cursor_set_position(g_cursor, -100, -100);
