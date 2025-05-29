@@ -69,8 +69,8 @@ void playing_mouse_update(void) {
       else {
         digletts[i].timer = get_random_timer(10, 30);
       }
-      draw_mouse_diglett(i);
     }
+    draw_mouse_diglett(i);
   }
   
   draw_points_counter();
