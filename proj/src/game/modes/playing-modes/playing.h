@@ -31,6 +31,8 @@ typedef struct {
   bool visible; // whether the diglett is currently visible
   int timer;    // countdown timer for state changes
   bool active;  // whether the diglett is in play (for game progression)
+  bool boinking;  
+  int boink_timer;  
 } Diglett;
 
 #define NUM_DIGLETTS 9

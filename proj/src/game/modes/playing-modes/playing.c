@@ -8,6 +8,7 @@
 #include <time.h>
 #include <game/sprites/animated_sprite.h>
 #include <game/sprites/animations/diglett_appear_xpm.h>
+#include <game/sprites/animations/diglett_boink_xpm.h> 
 #include <game/sprites/pixelart/dirt_xpm.h>
 #include <time.h>
 
@@ -25,7 +26,12 @@ int visible_diglett_count = 0;
 int player_points = 0;
 
 extern xpm_map_t diglett_appear_frames[];
+extern xpm_map_t diglett_boink_frames[]; 
+
 AnimatedSprite *diglett_sprites[NUM_DIGLETTS] = {0};
+AnimatedSprite *diglett_boink_sprites[NUM_DIGLETTS] = {0}; 
+
+bool diglett_appear_anim_done[NUM_DIGLETTS] = {0};
 
 static bool using_keyboard_mode = true;
 static bool static_buffer_initialized = false;
@@ -124,6 +130,8 @@ void playing_init(bool is_kbd) {
         digletts[index].key = 0;         // device-specific
         digletts[index].visible = false; // start with all digletts hidden
         digletts[index].active = true;
+        digletts[index].boinking = false; // <-- initialize boinking state
+        digletts[index].boink_timer = 0;  // <-- initialize boink timer
 
         if (index < 3) {
           digletts[index].timer = get_random_timer(10, 30);
@@ -139,6 +147,11 @@ void playing_init(bool is_kbd) {
         int frame_delay = (sys_hz() / 60 < 1) ? 1 : sys_hz() / 60;
         diglett_sprites[index] = animated_sprite_create(
           diglett_appear_frames, DIGLETT_APPEAR_NUM_FRAMES, x, y, frame_delay
+        );
+        // create boink sprite for each diglett
+        if (diglett_boink_sprites[index]) animated_sprite_destroy(diglett_boink_sprites[index]);
+        diglett_boink_sprites[index] = animated_sprite_create(
+          diglett_boink_frames, DIGLETT_BOINK_NUM_FRAMES, x, y, frame_delay
         );
       }
     }
@@ -197,6 +210,19 @@ void playing_update(bool is_kbd) {
     if (!digletts[i].active)
       continue;
 
+    // Handle boink animation
+    if (digletts[i].boinking) {
+      digletts[i].boink_timer--;
+      if (digletts[i].boink_timer <= 0) {
+        digletts[i].boinking = false;
+        digletts[i].visible = false;
+        visible_diglett_count--;
+        digletts[i].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
+        diglett_appear_anim_done[i] = false;
+      }
+      continue; // skip normal timer/visibility logic while boinking
+    }
+
     digletts[i].timer--;
 
     if (digletts[i].timer <= 0) {
@@ -204,11 +230,14 @@ void playing_update(bool is_kbd) {
         digletts[i].visible = false;
         visible_diglett_count--;
         digletts[i].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
+        diglett_appear_anim_done[i] = false;
       }
       else if (visible_diglett_count < MAX_VISIBLE_DIGLETTS) {
         digletts[i].visible = true;
         visible_diglett_count++;
         digletts[i].timer = get_random_timer(MIN_DIGLETT_SHOW_TIME, MAX_DIGLETT_SHOW_TIME);
+        diglett_appear_anim_done[i] = false; // reset flag when appearing
+        if (diglett_sprites[i]) diglett_sprites[i]->current_frame = 0; // restart animation
       }
       else {
         digletts[i].timer = get_random_timer(10, 30);
@@ -216,9 +245,9 @@ void playing_update(bool is_kbd) {
     }
   }
 
-  // 3. Draw all visible digletts
+  // 3. Draw all visible digletts or boinking digletts
   for (int i = 0; i < NUM_DIGLETTS; i++) {
-    if (digletts[i].active && digletts[i].visible) {
+    if (digletts[i].active && (digletts[i].visible || digletts[i].boinking)) {
       draw_diglett(i, is_kbd);
     }
   }
@@ -233,17 +262,34 @@ void draw_diglett(int index, bool is_kbd) {
 
   set_drawing_to_back();
 
-  // Only draw background rectangle if we don't have a sprite
+  if (dig->boinking && diglett_boink_sprites[index]) {
+    diglett_boink_sprites[index]->x = dig->x;
+    diglett_boink_sprites[index]->y = dig->y;
+    animated_sprite_update(diglett_boink_sprites[index]);
+    animated_sprite_draw(diglett_boink_sprites[index]);
+    return;
+  }
+
   if (!diglett_sprites[index]) {
     vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
   }
 
-  // Update and draw the sprite if available
   if (diglett_sprites[index]) {
     diglett_sprites[index]->x = dig->x;
     diglett_sprites[index]->y = dig->y;
-    animated_sprite_update(diglett_sprites[index]);
-    animated_sprite_draw(diglett_sprites[index]);
+
+    if (!diglett_appear_anim_done[index]) {
+      animated_sprite_update(diglett_sprites[index]);
+      animated_sprite_draw(diglett_sprites[index]);
+
+      if (diglett_sprites[index]->current_frame >= (int)(DIGLETT_APPEAR_NUM_FRAMES - 1)) {
+        diglett_appear_anim_done[index] = true;
+      }
+    } else {
+      // última frame
+      diglett_sprites[index]->current_frame = DIGLETT_APPEAR_NUM_FRAMES - 1;
+      animated_sprite_draw(diglett_sprites[index]);
+    }
   }
 
   if (is_kbd) {
@@ -265,12 +311,21 @@ void update_diglett_visibility(int index) {
     if (diglett_sprites[index]) {
       diglett_sprites[index]->x = dig->x;
       diglett_sprites[index]->y = dig->y;
-      animated_sprite_update(diglett_sprites[index]);
-      animated_sprite_draw(diglett_sprites[index]);
+      if (!diglett_appear_anim_done[index]) {
+        animated_sprite_update(diglett_sprites[index]);
+        animated_sprite_draw(diglett_sprites[index]);
+        if (diglett_sprites[index]->current_frame >= (int)(DIGLETT_APPEAR_NUM_FRAMES - 1)) {
+          diglett_appear_anim_done[index] = true;
+        }
+      } else {
+        diglett_sprites[index]->current_frame = DIGLETT_APPEAR_NUM_FRAMES - 1;
+        animated_sprite_draw(diglett_sprites[index]);
+      }
     }
   }
   else {
     vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, BACKGROUND_COLOR);
+    diglett_appear_anim_done[index] = false; 
   }
 }
 
@@ -283,15 +338,12 @@ bool whack_diglett(int index) {
     return false;
   }
 
-  if (digletts[index].visible) {
-    // digglet visible =  successful whack
-    digletts[index].visible = false;
-    visible_diglett_count--;
-
-    // new timer for diglett to reappear
-    digletts[index].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
-
-    update_diglett_visibility(index);
+  if (digletts[index].visible && !digletts[index].boinking) {
+    // diglett visible = successful whack
+    // Instead of hiding, start boink animation
+    digletts[index].boinking = true;
+    digletts[index].boink_timer = DIGLETT_BOINK_NUM_FRAMES; // or adjust for frame delay
+    if (diglett_boink_sprites[index]) diglett_boink_sprites[index]->current_frame = 0;
 
     // +1 point
     if (player_points < 999) {
@@ -300,7 +352,7 @@ bool whack_diglett(int index) {
 
     return true;
   }
-  else { // diglett hidden = unsuccessful whack
+  else { // diglett hidden or already boinking = unsuccessful whack
     // -1 point
     if (player_points > 0) {
       player_points--;
@@ -328,6 +380,10 @@ void playing_destroy(void) {
     if (diglett_sprites[i]) {
       animated_sprite_destroy(diglett_sprites[i]);
       diglett_sprites[i] = NULL;
+    }
+    if (diglett_boink_sprites[i]) { // destroy boink sprites
+      animated_sprite_destroy(diglett_boink_sprites[i]);
+      diglett_boink_sprites[i] = NULL;
     }
   }
 }
