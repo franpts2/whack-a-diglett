@@ -134,50 +134,6 @@ void gameover_handle_input(uint8_t scancode) {
     }
 }
 
-// Check if mouse is over a button
-bool gameover_check_button_hover(int x, int y, int button_index) {
-    if (button_index < 0 || button_index >= NUM_BUTTONS) {
-        return false;
-    }
-    
-    GameOverButton *btn = &buttons[button_index];
-    return (x >= btn->x && x < btn->x + btn->width &&
-            y >= btn->y && y < btn->y + btn->height);
-}
 
-// Handle mouse actions
-void gameover_handle_mouse(int x, int y, bool left_button_pressed) {
-    bool redraw_needed = false;
-    
-    // Check if mouse is over any button
-    for (int i = 0; i < NUM_BUTTONS; i++) {
-        if (x >= buttons[i].x && x <= buttons[i].x + buttons[i].width &&
-            y >= buttons[i].y && y <= buttons[i].y + buttons[i].height) {
-            
-            if (selected != i) {
-                selected = i;
-                redraw_needed = true;
-            }
-            
-            // If button is clicked
-            if (left_button_pressed) {
-                if (i == 0) { // Play Again
-                    current_mode = MODE_CHOOSE_MODE;
-                }
-                else if (i == 1) { // Return to Menu
-                    current_mode = MODE_MENU;
-                }
-            }
-            
-            // Exit after finding the right button
-            break;
-        }
-    }
-    
-    // Redraw if hover states changed
-    if (redraw_needed) {
-        gameover_draw();
-    }
-}
 
 
