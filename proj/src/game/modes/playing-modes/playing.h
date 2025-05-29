@@ -15,6 +15,13 @@
 #define MAX_DIGLETT_HIDE_TIME 120 // max frames a diglett stays hidden (2 seconds at 60Hz)
 #define MAX_VISIBLE_DIGLETTS 5    // max digletts visible at once
 
+// Definições para a barrinha de tempo
+#define TIMER_BAR_TOTAL_SECONDS 60
+#define TIMER_BAR_WIDTH 160 
+#define TIMER_BAR_HEIGHT 20
+#define TIMER_BAR_X 50 
+#define TIMER_BAR_Y 10
+
 typedef struct {
   int x;        // x position of the rectangle
   int y;        // y position of the rectangle
@@ -44,5 +51,7 @@ int get_random_timer(int min, int max);
 
 // Mode setting helper
 void set_playing_mode(bool is_keyboard_mode);
+
+void draw_timer_bar(void);
 
 #endif // _PLAYING_H
