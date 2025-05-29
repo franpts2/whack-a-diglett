@@ -91,6 +91,9 @@ void playing_init(bool is_kbd) {
   memset(static_buffer, 0, buffer_size);
   memset(back_buffer, 0, buffer_size);
   
+  // Reset static_buffer_initialized to ensure all elements get redrawn when restarting game
+  static_buffer_initialized = false;
+  
   // Always draw the background to static buffer
   set_drawing_to_static();
   vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
