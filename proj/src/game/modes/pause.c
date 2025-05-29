@@ -4,11 +4,16 @@
 #include "../modes/playing-modes/playing.h" // Added to access BACKGROUND_COLOR
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 
 extern GameMode current_mode;
 extern GameMode prev_mode;
 extern int game_time_left;
 static GameMode previous_game_mode;
+
+// Add access to pause timing variables from playing.c
+extern struct timespec pause_start_time;
+extern double total_paused_time;
 
 // Add declaration of the draw_background function from playing.c
 extern void draw_background(void);
@@ -26,6 +31,9 @@ void draw_game_title(void) {
 void pause_init(void) {
   // Store the previous mode to return to it when unpausing
   previous_game_mode = prev_mode;
+  
+  // Store the time when the pause started
+  clock_gettime(CLOCK_MONOTONIC, &pause_start_time);
   
   // Draw pause screen
   draw_pause_screen();
@@ -79,6 +87,13 @@ void pause_handle_input(uint8_t scancode) {
 }
 
 void pause_resume_game(void) {
+  // Calculate the time spent in pause mode and add it to total_paused_time
+  struct timespec now;
+  clock_gettime(CLOCK_MONOTONIC, &now);
+  double pause_duration = (now.tv_sec - pause_start_time.tv_sec) + 
+                        (now.tv_nsec - pause_start_time.tv_nsec) / 1e9;
+  total_paused_time += pause_duration;
+
   // Get access to all relevant buffers
   extern void *back_buffer;
   extern void *static_buffer;

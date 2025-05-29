@@ -11,9 +11,11 @@
 #include <game/sprites/pixelart/dirt_xpm.h>
 #include <time.h>
 
-static struct timespec game_start_time = {0, 0};
+struct timespec game_start_time = {0, 0};
 extern int game_time_left;
-static struct timespec last_update_time = {0, 0};
+struct timespec last_update_time = {0, 0};
+struct timespec pause_start_time = {0, 0}; // Time when game was paused
+double total_paused_time = 0.0; // Total time spent in pause mode
 
 // Forward declarations
 void draw_background(void);
@@ -345,8 +347,11 @@ void playing_destroy(void) {
 void draw_timer_bar() {
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
+  
+  // Calculate elapsed time considering paused time
   double elapsed = (now.tv_sec - game_start_time.tv_sec) +
-                   (now.tv_nsec - game_start_time.tv_nsec) / 1e9;
+                   (now.tv_nsec - game_start_time.tv_nsec) / 1e9 - total_paused_time;
+  
   int time_left = TIMER_BAR_TOTAL_SECONDS - (int)elapsed;
   if (time_left < 0) time_left = 0;
   game_time_left = time_left;
