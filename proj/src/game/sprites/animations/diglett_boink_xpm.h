@@ -1,5 +1,5 @@
-#ifndef _DIGLETT_APPEAR_XPM_H_
-#define _DIGLETT_APPEAR_XPM_H_
+#ifndef _DIGLETT_BOINK_XPM_H_
+#define _DIGLETT_BOINK_XPM_H_
 
 #include <lcom/xpm.h>
 
@@ -938,6 +938,19 @@ static const char *const diglett_boink_7[] = {
 "      ..OOOOOOooOOOOooOOOOOOOOOOOOOOOOooOOOOOOOOOOooOOooOOOOOOOOOOOOooOOOOOOOOOOOO++++++oo..        ",
 "      ..OOOOOOooOOOOooOOOOOOOOOOOOOOOOooOOOOOOOOOOooOOooOOOOOOOOOOOOooOOOOOOOOOOOO++++++oo..        "
 };
+
+static xpm_map_t diglett_boink_frames[] = {
+    diglett_boink_0,
+    diglett_boink_1,
+    diglett_boink_2,
+    diglett_boink_3,
+    diglett_boink_4,
+    diglett_boink_5,
+    diglett_boink_6,
+    diglett_boink_7
+};
+
+#define DIGLETT_BOINK_NUM_FRAMES (sizeof(diglett_boink_frames)/sizeof(diglett_boink_frames[0]))
 
 
 #endif
