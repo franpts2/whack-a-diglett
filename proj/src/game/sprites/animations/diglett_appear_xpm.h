@@ -114,9 +114,7 @@ static const char *const diglett_appear_0[] = {
 "      ..OOOOOOooOOOOooOOOOOOOOOOOOOOOOooOOOOOOOOOOooOOooOOOOOOOOOOOOooOOOOOOOOOOOO++++++oo..        "
 };
 
-/* XPM */
 static const char *const diglett_appear_1[] = {
-/* columns rows colors chars-per-pixel */
 "100 100 9 1 ",
 "  c None",
 ". c #050505",
@@ -127,7 +125,6 @@ static const char *const diglett_appear_1[] = {
 "@ c #838488",
 "# c #A9AAB3",
 "$ c #FFFFFF",
-/* pixels */
 "                                                                                                    ",
 "                                                                                                    ",
 "                                                                                                    ",
@@ -230,9 +227,7 @@ static const char *const diglett_appear_1[] = {
 "      ..OOOOOOooOOOOooOOOOOOOOOOOOOOOOooOOOOOOOOOOooOOooOOOOOOOOOOOOooOOOOOOOOOOOO@@@@@@oo..        "
 };
 
-/* XPM */
 static const char *const diglett_appear_2[] = {
-/* columns rows colors chars-per-pixel */
 "100 100 10 1 ",
 "  c None",
 ". c #050505",
@@ -244,7 +239,6 @@ static const char *const diglett_appear_2[] = {
 "# c #838488",
 "$ c #A9AAB3",
 "% c #FFFFFF",
-/* pixels */
 "                                                                                                    ",
 "                                                                                                    ",
 "                                                                                                    ",
@@ -347,9 +341,7 @@ static const char *const diglett_appear_2[] = {
 "      ..++++++oo++++oo++++++++++++++++oo++++++++++oo++oo++++++++++++oo++++++++++++######oo..        "
 };
 
-/* XPM */
 static const char *const diglett_appear_3[] = {
-/* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
 ". c #050505",
@@ -366,7 +358,6 @@ static const char *const diglett_appear_3[] = {
 "= c #E085C1",
 "- c #FFA9E8",
 "; c #FFFFFF",
-/* pixels */
 "                                                                                                    ",
 "                                                                                                    ",
 "                                                                                                    ",
@@ -469,9 +460,7 @@ static const char *const diglett_appear_3[] = {
 "      ..@@@@@@oo@@@@oo@@@@@@@@@@@@@@@@oo@@@@@@@@@@oo@@oo@@@@@@@@@@@@oo@@@@@@@@@@@@&&&&&&oo..        "
 };
 
-/* XPM */
 static const char *const diglett_appear_4[] = {
-/* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
 ". c #050505",
@@ -488,7 +477,6 @@ static const char *const diglett_appear_4[] = {
 "= c #E085C1",
 "- c #FFA9E8",
 "; c #FFFFFF",
-/* pixels */
 "                                                                                                    ",
 "                                                                                                    ",
 "                                                                                                    ",
@@ -591,9 +579,7 @@ static const char *const diglett_appear_4[] = {
 "      ..@@@@@@oo@@@@oo@@@@@@@@@@@@@@@@oo@@@@@@@@@@oo@@oo@@@@@@@@@@@@oo@@@@@@@@@@@@&&&&&&oo..        "
 };
 
-/* XPM */
 static const char *const diglett_appear_5[] = {
-/* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
 ". c #050505",
@@ -610,7 +596,6 @@ static const char *const diglett_appear_5[] = {
 "= c #E085C1",
 "- c #FFA9E8",
 "; c #FFFFFF",
-/* pixels */
 "                                                                                                    ",
 "                                                                                                    ",
 "                                                                                                    ",
@@ -713,9 +698,7 @@ static const char *const diglett_appear_5[] = {
 "      ..@@@@@@oo@@@@oo@@@@@@@@@@@@@@@@oo@@@@@@@@@@oo@@oo@@@@@@@@@@@@oo@@@@@@@@@@@@&&&&&&oo..        "
 };
 
-/* XPM */
 static const char *const diglett_appear_6[] = {
-/* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
 ". c #050505",
@@ -732,7 +715,6 @@ static const char *const diglett_appear_6[] = {
 "= c #E085C1",
 "- c #FFA9E8",
 "; c #FFFFFF",
-/* pixels */
 "                                                                                                    ",
 "                                                                                                    ",
 "                                                                                                    ",
@@ -835,9 +817,7 @@ static const char *const diglett_appear_6[] = {
 "      ..@@@@@@oo@@@@oo@@@@@@@@@@@@@@@@oo@@@@@@@@@@oo@@oo@@@@@@@@@@@@oo@@@@@@@@@@@@&&&&&&oo..        "
 };
 
-/* XPM */
 static const char *const diglett_appear_7[] = {
-/* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
 ". c #050505",
@@ -854,7 +834,6 @@ static const char *const diglett_appear_7[] = {
 "= c #E085C1",
 "- c #FFA9E8",
 "; c #FFFFFF",
-/* pixels */
 "                                                                                                    ",
 "                                                                                                    ",
 "                                                                                                    ",
@@ -957,9 +936,7 @@ static const char *const diglett_appear_7[] = {
 "      ..@@@@@@oo@@@@oo@@@@@@@@@@@@@@@@oo@@@@@@@@@@oo@@oo@@@@@@@@@@@@oo@@@@@@@@@@@@&&&&&&oo..        "
 };
 
-/* XPM */
 static const char *const diglett_appear_8[] = {
-/* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
 ". c #050505",
@@ -976,7 +953,6 @@ static const char *const diglett_appear_8[] = {
 "= c #E085C1",
 "- c #FFA9E8",
 "; c #FFFFFF",
-/* pixels */
 "                                                                                                    ",
 "                                                                                                    ",
 "                                                                                                    ",
@@ -1079,9 +1055,7 @@ static const char *const diglett_appear_8[] = {
 "      ..@@@@@@oo@@@@oo@@@@@@@@@@@@@@@@oo@@@@@@@@@@oo@@oo@@@@@@@@@@@@oo@@@@@@@@@@@@&&&&&&oo..        "
 };
 
-/* XPM */
 static const char *const diglett_appear_9[] = {
-/* columns rows colors chars-per-pixel */
 "100 100 15 1 ",
 "  c None",
 ". c #050505",
@@ -1098,7 +1072,6 @@ static const char *const diglett_appear_9[] = {
 "= c #E085C1",
 "- c #FFA9E8",
 "; c #FFFFFF",
-/* pixels */
 "                                                                                                    ",
 "                                                                                                    ",
 "                                                                                                    ",
