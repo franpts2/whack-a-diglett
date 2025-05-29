@@ -12,9 +12,11 @@
 #include <game/sprites/pixelart/dirt_xpm.h>
 #include <time.h>
 
-static struct timespec game_start_time = {0, 0};
+struct timespec game_start_time = {0, 0};
 extern int game_time_left;
-static struct timespec last_update_time = {0, 0};
+struct timespec last_update_time = {0, 0};
+struct timespec pause_start_time = {0, 0}; // Time when game was paused
+double total_paused_time = 0.0; // Total time spent in pause mode
 
 // Forward declarations
 void draw_background(void);
@@ -80,6 +82,11 @@ void playing_init(bool is_kbd) {
   extern GameMode prev_mode;
   extern Cursor *g_cursor;
 
+  // Reset timer variables - ensure we start with a fresh 60 seconds
+  clock_gettime(CLOCK_MONOTONIC, &game_start_time);
+  total_paused_time = 0.0; // Reset pause time accumulator
+  game_time_left = TIMER_BAR_TOTAL_SECONDS;
+
   // hide cursor in kbd playing mode by moving it off-screen (it won't be rendered anyway)
   if (g_cursor != NULL) {
     cursor_set_position(g_cursor, -100, -100);
@@ -93,12 +100,19 @@ void playing_init(bool is_kbd) {
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
 
-  // Only clear and redraw static buffer if not already done
-  if (!static_buffer_initialized) {
-    memset(static_buffer, 0, buffer_size);
-    set_drawing_to_static();
-    vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
+  // Always clear both buffers to ensure proper background color
+  memset(static_buffer, 0, buffer_size);
+  memset(back_buffer, 0, buffer_size);
+  
+  // Reset static_buffer_initialized to ensure all elements get redrawn when restarting game
+  static_buffer_initialized = false;
+  
+  // Always draw the background to static buffer
+  set_drawing_to_static();
+  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
 
+  // Only draw the static elements if not already done
+  if (!static_buffer_initialized) {
     // titulo centrado
     int title_scale = 3;
     const char *title = "WHACK'A DIGLETT";
@@ -164,6 +178,9 @@ void playing_init(bool is_kbd) {
 
   // switch back to back buffer for dynamic elements
   set_drawing_to_back();
+
+  // Draw background (green) to back buffer
+  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
 
   // static background to back buffer for initial display
   copy_static_to_back();
@@ -391,8 +408,11 @@ void playing_destroy(void) {
 void draw_timer_bar() {
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
+  
+  // Calculate elapsed time considering paused time
   double elapsed = (now.tv_sec - game_start_time.tv_sec) +
-                   (now.tv_nsec - game_start_time.tv_nsec) / 1e9;
+                   (now.tv_nsec - game_start_time.tv_nsec) / 1e9 - total_paused_time;
+  
   int time_left = TIMER_BAR_TOTAL_SECONDS - (int)elapsed;
   if (time_left < 0) time_left = 0;
   game_time_left = time_left;
