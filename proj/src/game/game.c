@@ -255,6 +255,15 @@ int game_main_loop(void) {
           memset(static_buffer, 0, buffer_size);
           memset(back_buffer, 0, buffer_size);
 
+          if (prev_mode == MODE_GAMEOVER) {
+            if (mode_selected == 0) { // Keyboard mode
+              playing_kbd_init();
+            }
+            else { // Mouse mode
+              playing_mouse_init();
+            }
+          }
+
           set_drawing_to_back();
 
           // reset the game timer

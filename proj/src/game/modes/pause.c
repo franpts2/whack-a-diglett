@@ -10,6 +10,9 @@ extern GameMode prev_mode;
 extern int game_time_left;
 static GameMode previous_game_mode;
 
+// Add declaration of the draw_background function from playing.c
+extern void draw_background(void);
+
 void pause_init(void) {
   // Store the previous mode to return to it when unpausing
   previous_game_mode = prev_mode;
@@ -86,8 +89,8 @@ void pause_resume_game(void) {
   // Draw the green background to static buffer
   vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
   
-  // Draw any other static elements of the game
-  // (We'll let the game loop handle this when it redraws the game)
+  // Call the function to draw all Diglett holes (dirt spots)
+  draw_background();
   
   // Now prepare the back buffer
   set_drawing_to_back();

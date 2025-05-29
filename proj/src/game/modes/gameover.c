@@ -39,7 +39,7 @@ extern GameMode prev_mode;
 void gameover_init(void) {
     // Setup the buttons
     int screen_center_x = 800 / 2;
-    int start_y = 350;
+    int start_y = 300;
     
     // Play Again button
     buttons[0].width = BUTTON_WIDTH;
