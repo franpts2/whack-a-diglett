@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define BACKGROUND_COLOR 0x325918
+#define BACKGROUND_COLOR 0x8DC740
 #define DIGLETT_COLOR 0x885500
 
 // Game timing constants
