@@ -6,12 +6,74 @@
 #include <stdio.h>
 
 void draw_mouse_diglett(int index) {
-  draw_diglett(index, false);
+  Diglett *dig = &digletts[index];
+  
+  if (!dig->active) return;
+
+  // Get direct buffer access
+  void *target_buffer = get_current_buffer();
+  unsigned bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  
+  uint32_t color = dig->visible ? DIGLETT_COLOR : BACKGROUND_COLOR;
+  uint8_t color_bytes[4];
+  
+  // Pre-calculate color bytes
+  for (unsigned i = 0; i < bytes_per_pixel; i++) {
+    color_bytes[i] = (color >> (i * 8)) & 0xFF;
+  }
+
+  // Draw directly to buffer
+  for (int row = 0; row < dig->height; row++) {
+    int y_pos = dig->y + row;
+    if (y_pos < 0 || y_pos >= m_info.YResolution) continue;
+    
+    unsigned int start_pos = (y_pos * m_info.XResolution + dig->x) * bytes_per_pixel;
+    
+    for (int col = 0; col < dig->width; col++) {
+      int x_pos = dig->x + col;
+      if (x_pos < 0 || x_pos >= m_info.XResolution) continue;
+      
+      unsigned int current_pos = start_pos + (col * bytes_per_pixel);
+      memcpy((uint8_t *)target_buffer + current_pos, color_bytes, bytes_per_pixel);
+    }
+  }
 }
 
 void playing_mouse_update(void) {
-  set_drawing_to_back();
-  playing_update(false);
+  static int update_count = 0;
+  update_count++;
+  
+  // Only copy static background every few frames to reduce memory operations
+  if (update_count % 3 == 0) {
+    set_drawing_to_back();
+    copy_static_to_back();
+  }
+  
+  // Update game state and draw digletts
+  for (int i = 0; i < NUM_DIGLETTS; i++) {
+    if (!digletts[i].active) continue;
+    
+    digletts[i].timer--;
+    
+    if (digletts[i].timer <= 0) {
+      if (digletts[i].visible) {
+        digletts[i].visible = false;
+        visible_diglett_count--;
+        digletts[i].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
+      }
+      else if (visible_diglett_count < MAX_VISIBLE_DIGLETTS) {
+        digletts[i].visible = true;
+        visible_diglett_count++;
+        digletts[i].timer = get_random_timer(MIN_DIGLETT_SHOW_TIME, MAX_DIGLETT_SHOW_TIME);
+      }
+      else {
+        digletts[i].timer = get_random_timer(10, 30);
+      }
+      draw_mouse_diglett(i);
+    }
+  }
+  
+  draw_points_counter();
 }
 
 // Initialize the mouse playing mode
