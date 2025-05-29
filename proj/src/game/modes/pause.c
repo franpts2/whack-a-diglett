@@ -13,6 +13,16 @@ static GameMode previous_game_mode;
 // Add declaration of the draw_background function from playing.c
 extern void draw_background(void);
 
+// Add declaration for drawing title
+void draw_game_title(void) {
+  // Draw title centered at the top
+  int title_scale = 3;
+  const char *title = "WHACK'A DIGLETT";
+  int title_width = strlen(title) * 8 * title_scale;
+  int title_x = (800 - title_width) / 2;
+  draw_text_scaled(title, title_x, 50, 0xFFFFFF, title_scale);
+}
+
 void pause_init(void) {
   // Store the previous mode to return to it when unpausing
   previous_game_mode = prev_mode;
@@ -88,6 +98,9 @@ void pause_resume_game(void) {
   
   // Draw the green background to static buffer
   vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
+  
+  // Draw the game title
+  draw_game_title();
   
   // Call the function to draw all Diglett holes (dirt spots)
   draw_background();
