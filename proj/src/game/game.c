@@ -34,6 +34,13 @@ bool render_frame = false;
 // Add a static variable to track previous mouse button state
 static bool prev_left_button_state = false;
 
+#define GAME_TIME_SECONDS 60
+int game_time_left = GAME_TIME_SECONDS;
+static unsigned int game_timer_counter = 0;
+
+static unsigned int frame_count = 0;
+static time_t last_fps_time = 0;
+
 int game_main_loop(void) {
   g_cursor = cursor_init();
   if (g_cursor == NULL) {
@@ -77,6 +84,8 @@ int game_main_loop(void) {
   // timer frequency to 60Hz (for smoother animations)
   timer_set_frequency(0, 60);
 
+  last_fps_time = time(NULL);
+
   int ipc_status;
   message msg;
 
@@ -93,11 +102,29 @@ int game_main_loop(void) {
             frame_timer++;
 
             if (frame_timer >= TICKS_PER_FRAME) {
-              // Only set render_frame to true if we're not in a mode transition
               if (prev_mode == current_mode) {
                 render_frame = true;
 
+                // para ver como estão as fps
+                frame_count++;
+                time_t now = time(NULL);
+                if (now != last_fps_time) {
+                  printf("FPS: %u\n", frame_count);
+                  frame_count = 0;
+                  last_fps_time = now;
+                }
+
                 if (current_mode == MODE_PLAYING) {
+                  // update the timer
+                  game_timer_counter++;
+                  if (game_timer_counter >= sys_hz()) {
+                    if (game_time_left > 0) game_time_left--;
+                    game_timer_counter = 0;
+                    if (game_time_left == 0) {
+                      current_mode = MODE_GAMEOVER;
+                    }
+                  }
+
                   if (mode_selected == 0) { // Keyboard mode
                     playing_kbd_update();
                   }
@@ -220,6 +247,10 @@ int game_main_loop(void) {
           memset(back_buffer, 0, buffer_size);
 
           set_drawing_to_back();
+
+          // reset the game timer
+          game_time_left = GAME_TIME_SECONDS;
+          game_timer_counter = 0;
 
           render_frame = true;
           swap_buffers();
