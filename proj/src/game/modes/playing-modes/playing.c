@@ -27,6 +27,8 @@ int player_points = 0;
 extern xpm_map_t diglett_appear_frames[];
 AnimatedSprite *diglett_sprites[NUM_DIGLETTS] = {0};
 
+bool diglett_appear_anim_done[NUM_DIGLETTS] = {0};
+
 static bool using_keyboard_mode = true;
 static bool static_buffer_initialized = false;
 
@@ -204,11 +206,14 @@ void playing_update(bool is_kbd) {
         digletts[i].visible = false;
         visible_diglett_count--;
         digletts[i].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
+        diglett_appear_anim_done[i] = false;
       }
       else if (visible_diglett_count < MAX_VISIBLE_DIGLETTS) {
         digletts[i].visible = true;
         visible_diglett_count++;
         digletts[i].timer = get_random_timer(MIN_DIGLETT_SHOW_TIME, MAX_DIGLETT_SHOW_TIME);
+        diglett_appear_anim_done[i] = false; // reset flag when appearing
+        if (diglett_sprites[i]) diglett_sprites[i]->current_frame = 0; // restart animation
       }
       else {
         digletts[i].timer = get_random_timer(10, 30);
@@ -233,17 +238,26 @@ void draw_diglett(int index, bool is_kbd) {
 
   set_drawing_to_back();
 
-  // Only draw background rectangle if we don't have a sprite
   if (!diglett_sprites[index]) {
     vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
   }
 
-  // Update and draw the sprite if available
   if (diglett_sprites[index]) {
     diglett_sprites[index]->x = dig->x;
     diglett_sprites[index]->y = dig->y;
-    animated_sprite_update(diglett_sprites[index]);
-    animated_sprite_draw(diglett_sprites[index]);
+
+    if (!diglett_appear_anim_done[index]) {
+      animated_sprite_update(diglett_sprites[index]);
+      animated_sprite_draw(diglett_sprites[index]);
+
+      if (diglett_sprites[index]->current_frame >= (int)(DIGLETT_APPEAR_NUM_FRAMES - 1)) {
+        diglett_appear_anim_done[index] = true;
+      }
+    } else {
+      // última frame
+      diglett_sprites[index]->current_frame = DIGLETT_APPEAR_NUM_FRAMES - 1;
+      animated_sprite_draw(diglett_sprites[index]);
+    }
   }
 
   if (is_kbd) {
@@ -265,12 +279,21 @@ void update_diglett_visibility(int index) {
     if (diglett_sprites[index]) {
       diglett_sprites[index]->x = dig->x;
       diglett_sprites[index]->y = dig->y;
-      animated_sprite_update(diglett_sprites[index]);
-      animated_sprite_draw(diglett_sprites[index]);
+      if (!diglett_appear_anim_done[index]) {
+        animated_sprite_update(diglett_sprites[index]);
+        animated_sprite_draw(diglett_sprites[index]);
+        if (diglett_sprites[index]->current_frame >= (int)(DIGLETT_APPEAR_NUM_FRAMES - 1)) {
+          diglett_appear_anim_done[index] = true;
+        }
+      } else {
+        diglett_sprites[index]->current_frame = DIGLETT_APPEAR_NUM_FRAMES - 1;
+        animated_sprite_draw(diglett_sprites[index]);
+      }
     }
   }
   else {
     vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, BACKGROUND_COLOR);
+    diglett_appear_anim_done[index] = false; 
   }
 }
 
