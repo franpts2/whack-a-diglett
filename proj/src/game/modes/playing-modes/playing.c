@@ -199,13 +199,12 @@ void playing_update(bool is_kbd) {
     digletts[i].timer--;
 
     if (digletts[i].timer <= 0) {
-
       if (digletts[i].visible && digletts[i].active) {
         // currently visible diglett should hide
         digletts[i].visible = false;
         visible_diglett_count--;
 
-        if (diglett_sprites[i]) {
+        if (is_kbd && diglett_sprites[i]) {
           diglett_sprites[i]->x = digletts[i].x;
           diglett_sprites[i]->y = digletts[i].y;
           animated_sprite_update(diglett_sprites[i]);
@@ -235,24 +234,22 @@ void playing_update(bool is_kbd) {
   // Draw all digletts (both visible and hidden)
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (digletts[i].active) {
-
       if (digletts[i].visible) {
-        // Only draw the background rectangle if we don't have a sprite
-        if (!diglett_sprites[i]) {
-          vg_draw_rectangle(digletts[i].x, digletts[i].y, digletts[i].width, digletts[i].height, DIGLETT_COLOR);
-        }
-        
-        // Draw animated diglett sprite
-        if (diglett_sprites[i]) {
-          diglett_sprites[i]->x = digletts[i].x;
-          diglett_sprites[i]->y = digletts[i].y;
-          animated_sprite_update(diglett_sprites[i]);
-          animated_sprite_draw(diglett_sprites[i]);
-        }
-
         if (is_kbd) {
+          // Use animations in keyboard mode
+          if (diglett_sprites[i]) {
+            diglett_sprites[i]->x = digletts[i].x;
+            diglett_sprites[i]->y = digletts[i].y;
+            animated_sprite_update(diglett_sprites[i]);
+            animated_sprite_draw(diglett_sprites[i]);
+          } else {
+            vg_draw_rectangle(digletts[i].x, digletts[i].y, digletts[i].width, digletts[i].height, DIGLETT_COLOR);
+          }
           extern void draw_kbd_diglett_label(int index);
           draw_kbd_diglett_label(i);
+        } else {
+          // simple rectangle for mouse mode
+          vg_draw_rectangle(digletts[i].x, digletts[i].y, digletts[i].width, digletts[i].height, DIGLETT_COLOR);
         }
       }
       else {
@@ -271,22 +268,22 @@ void draw_diglett(int index, bool is_kbd) {
   if (dig->visible) {
     set_drawing_to_back();
 
-    // Only draw background rectangle if we don't have a sprite
-    if (!diglett_sprites[index]) {
-      vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
-    }
-
-    // Update and draw the sprite if available
-    if (diglett_sprites[index]) {
-      diglett_sprites[index]->x = dig->x;
-      diglett_sprites[index]->y = dig->y;
-      animated_sprite_update(diglett_sprites[index]);
-      animated_sprite_draw(diglett_sprites[index]);
-    }
-
     if (is_kbd) {
+      // Use animations in keyboard mode
+      if (diglett_sprites[index]) {
+        diglett_sprites[index]->x = dig->x;
+        diglett_sprites[index]->y = dig->y;
+        animated_sprite_update(diglett_sprites[index]);
+        animated_sprite_draw(diglett_sprites[index]);
+      } else {
+        vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
+      }
+
       extern void draw_kbd_diglett_label(int index);
       draw_kbd_diglett_label(index);
+    } else {
+      // Simple rectangle for mouse mode
+      vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
     }
   }
   else {
@@ -298,17 +295,19 @@ void update_diglett_visibility(int index) {
   Diglett *dig = &digletts[index];
 
   if (dig->visible) {
-    // Only draw background rectangle if we don't have a sprite
-    if (!diglett_sprites[index]) {
+    if (using_keyboard_mode) {
+      // Use animations in keyboard mode
+      if (diglett_sprites[index]) {
+        diglett_sprites[index]->x = dig->x;
+        diglett_sprites[index]->y = dig->y;
+        animated_sprite_update(diglett_sprites[index]);
+        animated_sprite_draw(diglett_sprites[index]);
+      } else {
+        vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
+      }
+    } else {
+      // Simple rectangle for mouse mode
       vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
-    }
-    
-    // Draw animated sprite
-    if (diglett_sprites[index]) {
-      diglett_sprites[index]->x = dig->x;
-      diglett_sprites[index]->y = dig->y;
-      animated_sprite_update(diglett_sprites[index]);
-      animated_sprite_draw(diglett_sprites[index]);
     }
   }
   else {
