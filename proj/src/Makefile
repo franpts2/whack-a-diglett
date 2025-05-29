@@ -15,7 +15,7 @@ PROG=proj
 .PATH: ${.CURDIR}/fonts
 
 # List all your source files (just the filenames, not the paths)
-SRCS = main.c timer.c keyboard.c kbc.c aux.c utils.c video.c game.c menu.c testfont.c cursor.c sprite.c playing.c playing_kbd.c playing_mouse.c choose_mode.c animated_sprite.c pause.c
+SRCS = main.c timer.c keyboard.c kbc.c aux.c utils.c video.c game.c menu.c testfont.c cursor.c sprite.c playing.c playing_kbd.c playing_mouse.c choose_mode.c animated_sprite.c pause.c gameover.c
 
 # additional compilation flags
 # "-Wall -Wextra -Werror -I . -std=c11 -Wno-unused-parameter" are already set

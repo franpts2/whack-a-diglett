@@ -7,6 +7,7 @@
 #include "modes/pause.h"
 #include "modes/playing-modes/playing_kbd.h"
 #include "modes/playing-modes/playing_mouse.h"
+#include "modes/gameover.h"
 #include <lcom/lcf.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -159,6 +160,9 @@ int game_main_loop(void) {
                 case MODE_PAUSED:
                   pause_handle_input(scancode);
                   break;
+                case MODE_GAMEOVER:
+                  gameover_handle_input(scancode);
+                  break;
                 default:
                   break;
               }
@@ -176,7 +180,7 @@ int game_main_loop(void) {
               assemble_mouse_packet();
 
               // update cursor position if in menu or choose mode
-              if (g_cursor != NULL && (current_mode == MODE_MENU || current_mode == MODE_CHOOSE_MODE)) {
+              if (g_cursor != NULL && (current_mode == MODE_MENU || current_mode == MODE_CHOOSE_MODE || current_mode == MODE_GAMEOVER)) {
                 cursor_handle_mouse_packet(g_cursor, &mouse_packet);
 
                 bool left_button_pressed = mouse_packet.lb;
@@ -266,6 +270,11 @@ int game_main_loop(void) {
           render_frame = true;
           break;
 
+        case MODE_GAMEOVER:
+          gameover_init();
+          render_frame = true;
+          break;
+
         case MODE_INSTRUCTIONS:
           // instructions_init();
           break;
@@ -325,6 +334,14 @@ int game_main_loop(void) {
           cursor_draw(g_cursor);
         }
 
+        swap_buffers();
+      }
+      else if (current_mode == MODE_GAMEOVER) {
+        // Redraw game over screen with cursor
+        gameover_draw();
+        if (g_cursor != NULL) {
+          cursor_draw(g_cursor);
+        }
         swap_buffers();
       }
 
