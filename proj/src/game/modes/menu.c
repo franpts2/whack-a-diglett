@@ -4,6 +4,9 @@
 #include "../../fonts/testfont.h"
 #include "../background.h"
 #include "../game.h"
+#include "../title.h"
+
+extern Sprite *title_sprite;
 
 extern GameMode current_mode;
 extern GameMode prev_mode;
@@ -33,15 +36,15 @@ void menu_handle_input(uint8_t scancode) {
 
 // Desenha as coisas que não precisam de refresh (botões fundo etc)
 void draw_menu_bg_and_buttons(void) {
-  // background primeiro
+  // First draw the background
   background_draw();
 
-  // titulo centrado
-  int title_scale = 3;
-  const char *title = "WHACK'A DIGGLET";
-  int title_width = strlen(title) * 8 * title_scale;
-  int title_x = (800 - title_width) / 2;
-  draw_text_scaled(title, title_x, 100, 0xFF, title_scale);
+  if (title_sprite != NULL) {
+    title_draw();
+  }
+  else {
+    printf("ERROR: Title sprite is NULL\n");
+  }
 
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;

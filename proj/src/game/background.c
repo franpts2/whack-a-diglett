@@ -6,11 +6,7 @@
 // Global background sprite
 static Sprite *background_sprite = NULL;
 
-/**
- * @brief Initialize the background
- *
- * @return int 0 if successful, 1 otherwise
- */
+
 int background_init() {
   if (background_sprite != NULL) {
     sprite_destroy(background_sprite);
@@ -27,11 +23,6 @@ int background_init() {
   return 0;
 }
 
-/**
- * @brief Draw the background to the current buffer
- *
- * @return int 0 if successful, 1 otherwise
- */
 int background_draw() {
   if (background_sprite == NULL) {
     if (background_init() != 0) {
@@ -42,9 +33,6 @@ int background_draw() {
   return sprite_draw(background_sprite);
 }
 
-/**
- * @brief Clean up the background resources
- */
 void background_destroy() {
   if (background_sprite != NULL) {
     sprite_destroy(background_sprite);

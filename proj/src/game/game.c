@@ -7,6 +7,7 @@
 #include "modes/menu.h"
 #include "modes/playing-modes/playing_kbd.h"
 #include "modes/playing-modes/playing_mouse.h"
+#include "title.h"
 #include <lcom/lcf.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -41,9 +42,16 @@ int game_main_loop(void) {
     return 1;
   }
 
+  if (title_init() != 0) {
+    printf("Failed to initialize title image\n");
+    background_destroy();
+    return 1;
+  }
+
   g_cursor = cursor_init();
   if (g_cursor == NULL) {
     printf("Failed to initialize cursor\n");
+    title_destroy();
     background_destroy();
     return 1;
   }
@@ -52,6 +60,7 @@ int game_main_loop(void) {
   if (keyboard_subscribe_int(&kbd_irq) != 0) {
     printf("Failed to subscribe keyboard interrupt\n");
     cursor_destroy(g_cursor);
+    title_destroy();
     background_destroy();
     return 1;
   }
@@ -61,6 +70,7 @@ int game_main_loop(void) {
     printf("Failed to subscribe mouse interrupt\n");
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
+    title_destroy();
     background_destroy();
     return 1;
   }
@@ -70,6 +80,7 @@ int game_main_loop(void) {
     mouse_unsubscribe_int();
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
+    title_destroy();
     background_destroy();
     return 1;
   }
@@ -81,6 +92,7 @@ int game_main_loop(void) {
     mouse_unsubscribe_int();
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
+    title_destroy();
     background_destroy();
     return 1;
   }
@@ -314,6 +326,7 @@ int game_main_loop(void) {
   mouse_unsubscribe_int();
   keyboard_unsubscribe_int();
   timer_unsubscribe_int();
+  title_destroy();
   background_destroy();
   cursor_destroy(g_cursor);
   destroy_buffers();
