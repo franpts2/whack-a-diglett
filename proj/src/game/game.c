@@ -4,6 +4,7 @@
 #include "cursor/cursor.h"
 #include "modes/choose_mode.h"
 #include "modes/menu.h"
+#include "modes/pause.h"
 #include "modes/playing-modes/playing_kbd.h"
 #include "modes/playing-modes/playing_mouse.h"
 #include <lcom/lcf.h>
@@ -114,6 +115,7 @@ int game_main_loop(void) {
                   last_fps_time = now;
                 }
 
+                // Only update game timer if not in paused state
                 if (current_mode == MODE_PLAYING) {
                   // update the timer
                   game_timer_counter++;
@@ -153,6 +155,9 @@ int game_main_loop(void) {
                   break;
                 case MODE_PLAYING:
                   playing_handle_input(scancode);
+                  break;
+                case MODE_PAUSED:
+                  pause_handle_input(scancode);
                   break;
                 default:
                   break;
@@ -255,9 +260,16 @@ int game_main_loop(void) {
           render_frame = true;
           swap_buffers();
           break;
+
+        case MODE_PAUSED:
+          pause_init();
+          render_frame = true;
+          break;
+
         case MODE_INSTRUCTIONS:
           // instructions_init();
           break;
+
         default:
           break;
       }

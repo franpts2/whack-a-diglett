@@ -2,6 +2,7 @@
 #include "../../../controllers/kbdmouse/keyboard.h"
 #include "../../../controllers/video/video.h"
 #include "../../../fonts/testfont.h"
+#include "../pause.h"
 #include "playing.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -47,6 +48,12 @@ void playing_handle_input(uint8_t scancode) {
   // q key to return to menu
   if (scancode == 0x10) {
     current_mode = MODE_MENU;
+    return;
+  }
+  // p key to pause/unpause the game
+  else if (scancode == 0x19) {
+    current_mode = MODE_PAUSED;
+    pause_init();
     return;
   }
 
