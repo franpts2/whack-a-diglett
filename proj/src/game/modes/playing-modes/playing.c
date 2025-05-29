@@ -87,12 +87,16 @@ void playing_init(bool is_kbd) {
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
 
-  // Only clear and redraw static buffer if not already done
-  if (!static_buffer_initialized) {
-    memset(static_buffer, 0, buffer_size);
-    set_drawing_to_static();
-    vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
+  // Always clear both buffers to ensure proper background color
+  memset(static_buffer, 0, buffer_size);
+  memset(back_buffer, 0, buffer_size);
+  
+  // Always draw the background to static buffer
+  set_drawing_to_static();
+  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
 
+  // Only draw the static elements if not already done
+  if (!static_buffer_initialized) {
     // titulo centrado
     int title_scale = 3;
     const char *title = "WHACK'A DIGLETT";
@@ -151,6 +155,9 @@ void playing_init(bool is_kbd) {
 
   // switch back to back buffer for dynamic elements
   set_drawing_to_back();
+
+  // Draw background (green) to back buffer
+  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
 
   // static background to back buffer for initial display
   copy_static_to_back();

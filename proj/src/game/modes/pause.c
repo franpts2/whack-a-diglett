@@ -1,6 +1,7 @@
 #include "pause.h"
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
+#include "../modes/playing-modes/playing.h" // Added to access BACKGROUND_COLOR
 #include <stdbool.h>
 #include <string.h>
 
@@ -65,6 +66,42 @@ void pause_handle_input(uint8_t scancode) {
 }
 
 void pause_resume_game(void) {
-  // Return to the previous game mode (should be MODE_PLAYING)
-  current_mode = previous_game_mode;
+  // Get access to all relevant buffers
+  extern void *back_buffer;
+  extern void *static_buffer;
+  extern void *middle_buffer;
+  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+  
+  // Clear ALL buffers to ensure no remnants of the pause screen remain
+  memset(back_buffer, 0, buffer_size);
+  memset(static_buffer, 0, buffer_size);
+  if (middle_buffer) {
+    memset(middle_buffer, 0, buffer_size);
+  }
+  
+  // Set to drawing to static buffer first to redraw the permanent game elements
+  set_drawing_to_static();
+  
+  // Draw the green background to static buffer
+  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
+  
+  // Draw any other static elements of the game
+  // (We'll let the game loop handle this when it redraws the game)
+  
+  // Now prepare the back buffer
+  set_drawing_to_back();
+  
+  // Draw the green background to back buffer too
+  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
+  
+  // Copy static buffer to back buffer
+  copy_static_to_back();
+  
+  // Return to the previous game mode
+  current_mode = MODE_PLAYING;
+  prev_mode = MODE_PLAYING; // Ensure prev_mode is also set correctly
+  
+  // Force a buffer swap to make the changes immediately visible
+  swap_buffers();
 }
