@@ -4,7 +4,7 @@
 static const char *const dirt_xpm[] = {
 "100 100 7 1 ",
 "  c None",
-". c #000000",
+". c #050505",
 "X c #222329",
 "o c #35373F",
 "O c #71737B",
