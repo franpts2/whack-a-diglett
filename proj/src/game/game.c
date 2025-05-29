@@ -1,6 +1,7 @@
 #include "game.h"
 #include "../controllers/kbdmouse/keyboard.h"
 #include "../controllers/timer/timer.h"
+#include "background.h"
 #include "cursor/cursor.h"
 #include "modes/choose_mode.h"
 #include "modes/menu.h"
@@ -35,9 +36,15 @@ bool render_frame = false;
 static bool prev_left_button_state = false;
 
 int game_main_loop(void) {
+  if (background_init() != 0) {
+    printf("Failed to initialize background\n");
+    return 1;
+  }
+
   g_cursor = cursor_init();
   if (g_cursor == NULL) {
     printf("Failed to initialize cursor\n");
+    background_destroy();
     return 1;
   }
 
@@ -45,6 +52,7 @@ int game_main_loop(void) {
   if (keyboard_subscribe_int(&kbd_irq) != 0) {
     printf("Failed to subscribe keyboard interrupt\n");
     cursor_destroy(g_cursor);
+    background_destroy();
     return 1;
   }
 
@@ -53,6 +61,7 @@ int game_main_loop(void) {
     printf("Failed to subscribe mouse interrupt\n");
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
+    background_destroy();
     return 1;
   }
 
@@ -61,6 +70,7 @@ int game_main_loop(void) {
     mouse_unsubscribe_int();
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
+    background_destroy();
     return 1;
   }
 
@@ -71,6 +81,7 @@ int game_main_loop(void) {
     mouse_unsubscribe_int();
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
+    background_destroy();
     return 1;
   }
 
@@ -257,7 +268,7 @@ int game_main_loop(void) {
         }
         swap_buffers();
         mouse_moved_recently = true;
-        render_frame = false; 
+        render_frame = false;
       }
     }
     // regular rendering (not actively moving mouse)
@@ -303,6 +314,7 @@ int game_main_loop(void) {
   mouse_unsubscribe_int();
   keyboard_unsubscribe_int();
   timer_unsubscribe_int();
+  background_destroy();
   cursor_destroy(g_cursor);
   destroy_buffers();
 

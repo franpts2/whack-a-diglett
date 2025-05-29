@@ -2,6 +2,7 @@
 #include "../../controllers/kbdmouse/keyboard.h"
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
+#include "../background.h"
 #include "../game.h"
 
 extern GameMode current_mode;
@@ -16,9 +17,9 @@ int selected = 0;
 static int prev_selected = -1;
 
 void menu_handle_input(uint8_t scancode) {
-  if (scancode == 0x48) {  // Up arrow key
+  if (scancode == 0x48) { // Up arrow key
     selected = (selected - 1 + MENU_ITEMS) % MENU_ITEMS;
-    prev_selected = -1; 
+    prev_selected = -1;
   }
   else if (scancode == 0x50) { // Down arrow key
     selected = (selected + 1) % MENU_ITEMS;
@@ -32,7 +33,8 @@ void menu_handle_input(uint8_t scancode) {
 
 // Desenha as coisas que não precisam de refresh (botões fundo etc)
 void draw_menu_bg_and_buttons(void) {
-  vg_draw_rectangle(0, 0, 800, 600, 0x02);
+  // background primeiro
+  background_draw();
 
   // titulo centrado
   int title_scale = 3;

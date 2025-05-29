@@ -1,14 +1,15 @@
 #include "playing.h"
 #include "../../../controllers/video/video.h"
 #include "../../../fonts/testfont.h"
+#include <game/background.h>
+#include <game/sprites/animated_sprite.h>
+#include <game/sprites/animations/diglett_appear_xpm.h>
+#include <game/sprites/pixelart/dirt_xpm.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <game/sprites/animated_sprite.h>
-#include <game/sprites/animations/diglett_appear_xpm.h>
-#include <game/sprites/pixelart/dirt_xpm.h>
 
 // Forward declarations
 void draw_background(void);
@@ -89,7 +90,7 @@ void playing_init(bool is_kbd) {
 
   // set to draw to static buffer for the game background - IMPORTANT
   set_drawing_to_static();
-  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
+  background_init(); // Initialize the background
 
   // titulo centrado
   int title_scale = 3;
@@ -133,10 +134,10 @@ void playing_init(bool is_kbd) {
       // draw empty hole to static buffer
       vg_draw_rectangle(x, y, rect_width, rect_height, BACKGROUND_COLOR);
 
-      if (diglett_sprites[index]) animated_sprite_destroy(diglett_sprites[index]);
+      if (diglett_sprites[index])
+        animated_sprite_destroy(diglett_sprites[index]);
       diglett_sprites[index] = animated_sprite_create(
-        diglett_appear_frames, DIGLETT_APPEAR_NUM_FRAMES, x, y, 5
-      );
+        diglett_appear_frames, DIGLETT_APPEAR_NUM_FRAMES, x, y, 5);
     }
   }
   draw_background();
@@ -161,7 +162,8 @@ void playing_init(bool is_kbd) {
 }
 
 void draw_background(void) {
-  // Os start positions tão errados achp eu mas não há digletts neste momento 
+  background_draw();
+
   int rect_width = 60;
   int rect_height = 80;
   int spacing = 60;
@@ -174,7 +176,7 @@ void draw_background(void) {
       int x = start_x + col * (rect_width + spacing);
       int y = start_y + row * (rect_height + spacing);
 
-      Sprite *dirt = sprite_create_from_xpm((xpm_map_t)dirt_xpm, x, y);
+      Sprite *dirt = sprite_create_from_xpm((xpm_map_t) dirt_xpm, x, y);
       if (dirt) {
         sprite_draw(dirt);
         sprite_destroy(dirt);
@@ -241,7 +243,7 @@ void playing_update(bool is_kbd) {
         if (!diglett_sprites[i]) {
           vg_draw_rectangle(digletts[i].x, digletts[i].y, digletts[i].width, digletts[i].height, DIGLETT_COLOR);
         }
-        
+
         // Draw animated diglett sprite
         if (diglett_sprites[i]) {
           diglett_sprites[i]->x = digletts[i].x;
@@ -302,7 +304,7 @@ void update_diglett_visibility(int index) {
     if (!diglett_sprites[index]) {
       vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
     }
-    
+
     // Draw animated sprite
     if (diglett_sprites[index]) {
       diglett_sprites[index]->x = dig->x;
