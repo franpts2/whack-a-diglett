@@ -4,8 +4,10 @@
 #include "cursor/cursor.h"
 #include "modes/choose_mode.h"
 #include "modes/menu.h"
+#include "modes/pause.h"
 #include "modes/playing-modes/playing_kbd.h"
 #include "modes/playing-modes/playing_mouse.h"
+#include "modes/gameover.h"
 #include <lcom/lcf.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -114,6 +116,7 @@ int game_main_loop(void) {
                   last_fps_time = now;
                 }
 
+                // Only update game timer if not in paused state
                 if (current_mode == MODE_PLAYING) {
                   // update the timer
                   game_timer_counter++;
@@ -154,6 +157,12 @@ int game_main_loop(void) {
                 case MODE_PLAYING:
                   playing_handle_input(scancode);
                   break;
+                case MODE_PAUSED:
+                  pause_handle_input(scancode);
+                  break;
+                case MODE_GAMEOVER:
+                  gameover_handle_input(scancode);
+                  break;
                 default:
                   break;
               }
@@ -171,7 +180,7 @@ int game_main_loop(void) {
               assemble_mouse_packet();
 
               // update cursor position if in menu or choose mode
-              if (g_cursor != NULL && (current_mode == MODE_MENU || current_mode == MODE_CHOOSE_MODE)) {
+              if (g_cursor != NULL && (current_mode == MODE_MENU || current_mode == MODE_CHOOSE_MODE || current_mode == MODE_GAMEOVER)) {
                 cursor_handle_mouse_packet(g_cursor, &mouse_packet);
 
                 bool left_button_pressed = mouse_packet.lb;
@@ -246,6 +255,15 @@ int game_main_loop(void) {
           memset(static_buffer, 0, buffer_size);
           memset(back_buffer, 0, buffer_size);
 
+          if (prev_mode == MODE_GAMEOVER) {
+            if (mode_selected == 0) { // Keyboard mode
+              playing_kbd_init();
+            }
+            else { // Mouse mode
+              playing_mouse_init();
+            }
+          }
+
           set_drawing_to_back();
 
           // reset the game timer
@@ -255,9 +273,21 @@ int game_main_loop(void) {
           render_frame = true;
           swap_buffers();
           break;
+
+        case MODE_PAUSED:
+          pause_init();
+          render_frame = true;
+          break;
+
+        case MODE_GAMEOVER:
+          gameover_init();
+          render_frame = true;
+          break;
+
         case MODE_INSTRUCTIONS:
           // instructions_init();
           break;
+
         default:
           break;
       }
@@ -313,6 +343,14 @@ int game_main_loop(void) {
           cursor_draw(g_cursor);
         }
 
+        swap_buffers();
+      }
+      else if (current_mode == MODE_GAMEOVER) {
+        // Redraw game over screen with cursor
+        gameover_draw();
+        if (g_cursor != NULL) {
+          cursor_draw(g_cursor);
+        }
         swap_buffers();
       }
 
