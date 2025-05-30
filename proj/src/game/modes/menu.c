@@ -36,7 +36,14 @@ void draw_menu_bg_and_buttons(void) {
   background_draw();
 
   if (title != NULL) {
-    title_draw();
+    int x_pos = (800 - title->width) / 2;
+    if (x_pos < 0) x_pos = 0;
+
+    uint8_t *current_buffer = (uint8_t *)get_current_buffer();
+    
+    if (sprite_draw(title, x_pos, 10, current_buffer) != 0) {
+      printf("Failed to draw title sprite\n");
+    }
   }
   else {
     printf("ERROR: Title sprite is NULL\n");

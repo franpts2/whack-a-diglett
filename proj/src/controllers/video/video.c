@@ -242,18 +242,32 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
 int (draw_pixel)(uint16_t x, uint16_t y, uint32_t color, uint8_t *buffer) {
   if (x >= m_info.XResolution || y >= m_info.YResolution) return 1;
 
-  // If buffer is NULL, use the current drawing buffer or back_buffer as fallback
-  uint8_t *target_buffer = buffer;
-  if (target_buffer == NULL) {
-    target_buffer = current_drawing_buffer != NULL ? 
-                    (uint8_t *)current_drawing_buffer : 
-                    (uint8_t *)back_buffer;
+  // Determine which buffer to use
+  uint8_t *target_buffer;
+  if (buffer != NULL) {
+    // Use the provided buffer
+    target_buffer = buffer;
+  } else {
+    // Use the current drawing buffer or fall back to back_buffer
+    target_buffer = (uint8_t *)(current_drawing_buffer != NULL ? 
+                               current_drawing_buffer : back_buffer);
   }
 
+  // Calculate pixel position
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int index = (x + m_info.XResolution * y) * bytes_per_pixel;
 
-  if (memcpy(&target_buffer[index], &color, bytes_per_pixel) == NULL) return 1;
+  // Copy the color value to the buffer - safer approach
+  static int debug_count = 0;
+  if (debug_count < 10) {
+    printf("Drawing pixel at (%d,%d) color=%08x to buffer %p index=%d\n", 
+           x, y, color, target_buffer, index);
+    debug_count++;
+  }
+  
+  for (unsigned int i = 0; i < bytes_per_pixel; i++) {
+    target_buffer[index + i] = (color >> (i * 8)) & 0xFF;
+  }
 
   return 0;
 }
@@ -267,10 +281,14 @@ void draw_pixel_scaled(int x, int y, uint32_t color, int scale) {
 int(init_buffers)(void) {
   current_buffer = 0;
 
-  // buffer size
+  // Calculate buffer size
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+  
+  printf("Initializing buffers: %d x %d with %d bytes per pixel (total: %d bytes)\n", 
+         m_info.XResolution, m_info.YResolution, bytes_per_pixel, buffer_size);
 
+  // Allocate memory for each buffer
   back_buffer = malloc(buffer_size);
   middle_buffer = malloc(buffer_size);
   static_buffer = malloc(buffer_size);
@@ -286,13 +304,15 @@ int(init_buffers)(void) {
     return 1;
   }
 
-  // clear buffers initially
+  // Clear buffers initially
   memset(back_buffer, 0, buffer_size);
   memset(middle_buffer, 0, buffer_size);
   memset(static_buffer, 0, buffer_size);
 
-  // initial drawing buffer to back buffer
+  // Set initial drawing buffer to back buffer
   current_drawing_buffer = back_buffer;
+  
+  printf("Buffers initialized successfully\n");
 
   return 0;
 }
@@ -311,14 +331,21 @@ void(swap_buffers)(void) {
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
 
-  // back buffer to video memory (display)
-  memcpy(video_mem, back_buffer, buffer_size);
+  // Copy back buffer to video memory (display)
+  if (video_mem && back_buffer) {
+    memcpy(video_mem, back_buffer, buffer_size);
+  } else {
+    printf("ERROR: Null video_mem or back_buffer in swap_buffers!\n");
+    return;
+  }
 
+  // Triple buffer rotation
   void *temp = back_buffer;
   back_buffer = middle_buffer;
   middle_buffer = static_buffer;
   static_buffer = temp;
 
+  // Update current drawing buffer to the new back buffer
   current_drawing_buffer = back_buffer;
   current_buffer = (current_buffer + 1) % 3;
 }

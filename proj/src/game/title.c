@@ -4,13 +4,9 @@
 #include "sprites/sprite.h"
 
 int title_init() {
-  if (title != NULL) {
-    sprite_destroy(title);
-  }
-
-
+  
   if (title == NULL) {
-    printf("Failed to create title sprite.\n");
+    printf("Error: Title sprite is not initialized. Make sure load_sprites() was called.\n");
     return 1;
   }
 

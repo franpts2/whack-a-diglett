@@ -53,11 +53,16 @@ int game_main_loop(void) {
     return 1;
   }
 
-  if (title_init() != 0) {
-    printf("Failed to initialize title image\n");
+  // Don't call title_init() here, as the sprite is already created in load_sprites()
+  if (title == NULL) {
+    printf("Error: Title sprite is NULL. Please check if load_sprites() was called.\n");
     background_destroy();
     return 1;
   }
+  
+  // Print info about loaded sprites
+  printf("Loaded sprites: background=%p, title=%p (size: %dx%d)\n",
+         background, title, title ? title->width : 0, title ? title->height : 0);
 
   g_cursor = cursor_init();
   if (g_cursor == NULL) {
@@ -253,10 +258,19 @@ int game_main_loop(void) {
           // clear static buffer and draw static content
           bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
           buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+          
+          printf("Clearing static buffer for menu (buffer=%p, size=%d)\n", 
+                 static_buffer, buffer_size);
           memset(static_buffer, 0, buffer_size);
 
+          printf("Drawing menu background and buttons\n");
           draw_menu_bg_and_buttons();
+          
           set_drawing_to_back();
+          
+          // Copy static buffer to back buffer
+          printf("Copying static buffer to back buffer\n");
+          copy_static_to_back();
 
           // force a render frame to ensure selection is drawn
           render_frame = true;

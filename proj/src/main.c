@@ -18,7 +18,11 @@ int(proj_main_loop)(int argc, char *argv[]) {
     printf("Failed to set video mode!\n");
     return 1;
   }
-  if (load_sprites() != 0) return 1;
+  
+  if (load_sprites() != 0) {
+    printf("Failed to load sprites!\n");
+    return 1;
+  }
   // Start the game loop
   int ret = game_main_loop();
 

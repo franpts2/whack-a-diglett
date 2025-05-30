@@ -27,17 +27,29 @@ Sprite *sprite_create_from_xpm(xpm_map_t xpm_map) {
 }
 
 int sprite_draw(Sprite *sprite, uint16_t x, uint16_t y, uint8_t *buffer) {
+  if (sprite == NULL || sprite->pixmap == NULL) {
+    printf("Error: Attempt to draw null sprite or null pixmap\n");
+    return 1;
+  }
 
   int height = sprite->height;
   int width = sprite->width;
 
-  uint32_t color;
+  uint8_t *target_buffer = buffer;
+  if (target_buffer == NULL) {
+    target_buffer = (uint8_t *)get_current_buffer();
+    if (target_buffer == NULL) {
+      printf("Error: Failed to get a valid buffer for drawing\n");
+      return 1;
+    }
+  }
 
-  for (int row = 0; row < height; row++){
-    for (int col = 0; col < width; col++){
+  uint32_t color;
+  for (int row = 0; row < height; row++) {
+    for (int col = 0; col < width; col++) {
       color = sprite->pixmap[row * sprite->width + col];
       if (color == xpm_transparency_color(XPM_8_8_8_8)) continue;
-      if (draw_pixel(x + col, y + row, color, buffer) != 0) return 1;
+      if (draw_pixel(x + col, y + row, color, target_buffer) != 0) return 1;
     }
   }
 
@@ -56,10 +68,20 @@ void sprite_destroy(Sprite *sprite) {
 
 int load_sprites(){
   background = sprite_create_from_xpm((xpm_map_t) background_xpm);
+  if (background == NULL) printf("Failed to create background sprite\n");
+  
   title = sprite_create_from_xpm((xpm_map_t) title_xpm);
+  if (title == NULL) printf("Failed to create title sprite\n");
+  else printf("Title sprite loaded successfully: %dx%d\n", title->width, title->height);
+  
   instructions = sprite_create_from_xpm((xpm_map_t) instructions_xpm);
+  if (instructions == NULL) printf("Failed to create instructions sprite\n");
+  
   dirt = sprite_create_from_xpm((xpm_map_t) dirt_xpm);
+  if (dirt == NULL) printf("Failed to create dirt sprite\n");
+  
   cursor = sprite_create_from_xpm((xpm_map_t) cursor_xpm);
+  if (cursor == NULL) printf("Failed to create cursor sprite\n");
   diglett_appear0 = sprite_create_from_xpm((xpm_map_t) diglett_appear_0);
   diglett_appear1 = sprite_create_from_xpm((xpm_map_t) diglett_appear_1);
   diglett_appear2 = sprite_create_from_xpm((xpm_map_t) diglett_appear_2);
