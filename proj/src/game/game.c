@@ -238,17 +238,13 @@ int game_main_loop(void) {
       switch (new_mode) {
         case MODE_MENU:
           // reset menu and selection
-          menu_init();
+          menu_init(); 
+          
 
-          set_drawing_to_static();
+          copy_static_to_back();
+          
 
-          // clear static buffer and draw static content
-          bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
-          buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
-          memset(static_buffer, 0, buffer_size);
-
-          draw_menu_bg_and_buttons();
-          set_drawing_to_back();
+          draw_menu_selection();
 
           // force a render frame to ensure selection is drawn
           render_frame = true;
@@ -324,8 +320,9 @@ int game_main_loop(void) {
     if (mouse_moving_now) {
       // Process mouse movement in menu or choose mode
       if (current_mode == MODE_MENU) {
-        copy_static_to_back();
-        draw_menu_selection();
+       
+        draw_menu_selection(); 
+        
         if (g_cursor != NULL) {
           cursor_draw(g_cursor);
         }
@@ -347,7 +344,7 @@ int game_main_loop(void) {
     // regular rendering (not actively moving mouse)
     else if (render_frame || mouse_moved_recently) {
       if (current_mode == MODE_MENU) {
-        copy_static_to_back();
+      
         draw_menu_selection();
 
         // draw cursor on top

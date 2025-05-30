@@ -18,22 +18,40 @@ unsigned int bytes_per_pixel;
 
 int selected = 0;
 static int prev_selected = -1;
+static bool static_content_initialized = false;
 
 void menu_handle_input(uint8_t scancode) {
+  int old_selected = selected;
+  
   if (scancode == 0x48) { // Up arrow key
     selected = (selected - 1 + MENU_ITEMS) % MENU_ITEMS;
   }
   else if (scancode == 0x50) { // Down arrow key
     selected = (selected + 1) % MENU_ITEMS;
-
   }
   else if (scancode == 0x1C) { // Enter key
     menu_select_option();
+    return;
+  }
+  
+  if (old_selected != selected) {
+    menu_update_selection();
   }
 }
 
-// Desenha as coisas que não precisam de refresh (botões fundo etc)
-void draw_menu_bg_and_buttons(void) {
+// Initialize the static content (background and title) in memory
+void init_menu_static_content(void) {
+  if (static_content_initialized) {
+    return;
+  }
+  
+  set_drawing_to_static();
+  
+  // clear the static buffer first
+  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+  memset(static_buffer, 0, buffer_size);
+  
   background_draw();
 
   if (title_sprite != NULL) {
@@ -42,6 +60,21 @@ void draw_menu_bg_and_buttons(void) {
   else {
     printf("ERROR: Title sprite is NULL\n");
   }
+  
+  set_drawing_to_back();
+  
+  static_content_initialized = true;
+  
+  printf("Menu static content initialized successfully\n");
+}
+
+// Desenha as coisas que não precisam de refresh (botões fundo etc)
+void draw_menu_bg_and_buttons(void) {
+  if (!static_content_initialized) {
+    init_menu_static_content();
+  }
+  
+  copy_static_to_back();
 
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
@@ -66,7 +99,10 @@ void draw_menu_bg_and_buttons(void) {
 }
 
 void draw_menu_selection(void) {
-
+  if (!static_content_initialized) {
+    init_menu_static_content();
+  }
+  
   draw_menu_bg_and_buttons();
   prev_selected = selected;
 }
@@ -75,6 +111,8 @@ void draw_menu_selection(void) {
 void menu_init(void) {
   selected = 0;
   prev_selected = -1;
+  
+  init_menu_static_content();
 
   extern Cursor *g_cursor;
   if (g_cursor != NULL) {
@@ -103,6 +141,8 @@ void menu_handle_mouse(int x, int y, bool left_button_clicked) {
 
       if (selected != i) {
         selected = i;
+
+        menu_update_selection();
       }
 
       if (left_button_clicked) {
@@ -143,6 +183,8 @@ void menu_select_option(void) {
       memset(back_buffer, 0, buffer_size);
       memset(static_buffer, 0, buffer_size);
       memset(middle_buffer, 0, buffer_size);
+
+      static_content_initialized = false;
 
       // Set to -1 to force reinitialization
       prev_mode = -1;
