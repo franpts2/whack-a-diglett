@@ -142,16 +142,6 @@ int game_main_loop(void) {
 
                 // Only update game timer if not in paused state
                 if (current_mode == MODE_PLAYING) {
-                  // update the timer
-                  game_timer_counter++;
-                  if (game_timer_counter >= sys_hz()) {
-                    if (game_time_left > 0) game_time_left--;
-                    game_timer_counter = 0;
-                    if (game_time_left == 0) {
-                      current_mode = MODE_GAMEOVER;
-                    }
-                  }
-
                   if (mode_selected == 0) { // Keyboard mode
                     playing_kbd_update();
                   }
@@ -164,6 +154,7 @@ int game_main_loop(void) {
               }
               frame_timer = 0;
             }
+            
           }
 
           if (msg.m_notify.interrupts & kbd_irq) {
@@ -396,6 +387,12 @@ int game_main_loop(void) {
           post_movement_frames = 0;
         }
       }
+    }
+
+    // After rendering (in the main loop), check for game over:
+    if (current_mode == MODE_PLAYING && game_time_left == 0) {
+      current_mode = MODE_GAMEOVER;
+      render_frame = true;
     }
   }
 

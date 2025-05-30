@@ -485,10 +485,4 @@ void draw_timer_bar() {
   char buf[16];
   sprintf(buf, "%02d", game_time_left);
   draw_text_scaled(buf, TIMER_BAR_X + TIMER_BAR_WIDTH + 12, TIMER_BAR_Y - 2, 0xFFFFFF, 2);
-
-  // gameover
-  if (game_time_left == 0) {
-    extern GameMode current_mode;
-    current_mode = MODE_GAMEOVER;
-  }
 }
