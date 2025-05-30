@@ -26,38 +26,18 @@ Sprite *sprite_create_from_xpm(xpm_map_t xpm_map) {
   return sprite;
 }
 
-int sprite_draw(Sprite *sprite) {
-  if (sprite == NULL || sprite->pixmap == NULL || !sprite->is_visible)
-    return 1;
+int sprite_draw(Sprite *sprite, uint16_t x, uint16_t y, uint8_t *buffer) {
 
-  // get current buffer to draw directly using the accessor function
-  void *target_buffer = get_current_buffer();
-  unsigned bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  int height = sprite->height;
+  int width = sprite->width;
 
-  // draw the sprite pixmap with optimized direct buffer access 
-  // (faster than calling draw_pixel)
-  for (uint16_t row = 0; row < sprite->height; row++) {
-    // y position with bounds checking
-    int y_pos = sprite->y + row;
-    if (y_pos < 0 || y_pos >= m_info.YResolution)
-      continue;
+  uint32_t color;
 
-    for (uint16_t col = 0; col < sprite->width; col++) {
-      // x position with bounds checking
-      int x_pos = sprite->x + col;
-      if (x_pos < 0 || x_pos >= m_info.XResolution)
-        continue;
-
-      uint32_t color_index = sprite->pixmap[row * sprite->width + col];
-
-      // skip transparent pixels
-      if (color_index == xpm_transparency_color(XPM_8_8_8_8) || color_index == 0)
-        continue;
-
-      unsigned int pixel_pos = (y_pos * m_info.XResolution + x_pos) * bytes_per_pixel;
-      for (unsigned i = 0; i < bytes_per_pixel; i++) {
-        *((uint8_t *) target_buffer + pixel_pos + i) = (color_index >> (i * 8)) & 0xFF;
-      }
+  for (int row = 0; row < height; row++){
+    for (int col = 0; col < width; col++){
+      color = sprite->pixmap[row * sprite->width + col];
+      if (color == xpm_transparency_color(XPM_8_8_8_8)) continue;
+      if (draw_pixel(x + col, y + row, color, buffer) != 0) return 1;
     }
   }
 

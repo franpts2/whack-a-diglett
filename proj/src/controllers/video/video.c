@@ -236,8 +236,15 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
   return 0;
 }
 
-void draw_pixel(int x, int y, uint32_t color) {
-  vg_draw_rectangle(x, y, 1, 1, color);
+void draw_pixel(int x, int y, uint32_t color, uint8_t *buffer) {
+  if (x >= m_info.XResolution || y >= m_info.YResolution) return 1;
+
+  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  unsigned int index = (x+ m_info.XResolution * y) * bytes_per_pixel;
+
+  if (memcpy(&buffer[index], &color, bytes_per_pixel) == NULL) return 1;
+
+  return 0;
 }
 
 void draw_pixel_scaled(int x, int y, uint32_t color, int scale) {

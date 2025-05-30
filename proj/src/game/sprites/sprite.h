@@ -11,6 +11,7 @@
 #include "animations/diglett_appear_xpm.h"
 #include "animations/diglett_boink_xpm.h"
 #include "../cursor/cursor_xpm.h"
+#include "../../controllers/video/video.h"
 
 typedef struct {
   int x;            // x position
@@ -48,7 +49,7 @@ Sprite *diglett_boink7;
 
 Sprite *sprite_create_from_xpm(xpm_map_t xpm_map, int x, int y);
 
-int sprite_draw(Sprite *sprite);
+int sprite_draw(Sprite *sprite, uint16_t x, uint16_t y, uint8_t *buffer);
 
 void sprite_destroy(Sprite *sprite);
 
