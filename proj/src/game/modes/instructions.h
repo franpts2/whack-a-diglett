@@ -8,6 +8,7 @@
 void instructions_init(void);
 void instructions_handle_input(uint8_t scancode);
 void draw_instructions(void);
+void instructions_destroy(void);
 
 #endif // _INSTRUCTIONS_H
 

@@ -407,6 +407,11 @@ int game_main_loop(void) {
   title_destroy();
   background_destroy();
   cursor_destroy(g_cursor);
+  
+  if (current_mode == MODE_INSTRUCTIONS) {
+    instructions_destroy();
+  }
+  
   destroy_buffers();
 
   return 0;
