@@ -5,8 +5,7 @@
 #include "cursor/cursor.h"
 #include "modes/menu.h"
 #include "modes/pause.h"
-#include "modes/playing-modes/playing_kbd.h"
-#include "modes/playing-modes/playing_mouse.h"
+#include "modes/playing/playing_kbd.h"
 #include "modes/gameover.h"
 #include "modes/instructions.h"
 #include <lcom/lcf.h>

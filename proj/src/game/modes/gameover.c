@@ -4,7 +4,9 @@
 #include "../game.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include "playing-modes/playing_kbd.h"
+#include "playing/playing_kbd.h"
+#include "../sprites/pixelart/triangle_xpm.h"
+#include "../sprites/sprite.h"
 
 // Constants for button positions and sizes
 #define BUTTON_WIDTH 300
@@ -104,10 +106,21 @@ void gameover_draw(void) {
         draw_text_scaled(buttons[i].text, text_x, text_y, TEXT_COLOR, text_scale);
     }
     
-    // Draw selection indicator (similar to menu)
+    // Draw selection indicator using triangle sprite
     int arrow_x = buttons[selected].x + buttons[selected].width + 10;
-    int arrow_w = 30, arrow_h = 50;
-    vg_draw_rectangle(arrow_x, buttons[selected].y, arrow_w, arrow_h, SELECTION_COLOR);
+    static Sprite *triangle = NULL;
+    
+    // Only create the sprite once
+    if (triangle == NULL) {
+        triangle = sprite_create_from_xpm((xpm_map_t)triangle_xpm, arrow_x, buttons[selected].y);
+    }
+    
+    // Position the triangle at the currently selected button
+    if (triangle != NULL) {
+        triangle->x = arrow_x;
+        triangle->y = buttons[selected].y;
+        sprite_draw(triangle);
+    }
     
     prev_selected = selected;
 }
