@@ -9,6 +9,7 @@
 #include <game/sprites/animated_sprite.h>
 #include <game/sprites/animations/diglett_appear_xpm.h>
 #include <game/sprites/animations/diglett_boink_xpm.h> 
+#include <game/sprites/animations/diglett_timeout_xpm.h> 
 #include <game/sprites/pixelart/dirt_xpm.h>
 #include <time.h>
 
@@ -28,10 +29,12 @@ int visible_diglett_count = 0;
 int player_points = 0;
 
 extern xpm_map_t diglett_appear_frames[];
-extern xpm_map_t diglett_boink_frames[]; 
+extern xpm_map_t diglett_boink_frames[];
+extern xpm_map_t diglett_timeout_frames[]; 
 
 AnimatedSprite *diglett_sprites[NUM_DIGLETTS] = {0};
-AnimatedSprite *diglett_boink_sprites[NUM_DIGLETTS] = {0}; 
+AnimatedSprite *diglett_boink_sprites[NUM_DIGLETTS] = {0};
+AnimatedSprite *diglett_timeout_sprites[NUM_DIGLETTS] = {0}; 
 
 bool diglett_appear_anim_done[NUM_DIGLETTS] = {0};
 
@@ -100,11 +103,10 @@ void playing_init(bool is_kbd) {
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
 
-  // Always clear both buffers to ensure proper background color
+  // clear both buffers to ensure proper background color
   memset(static_buffer, 0, buffer_size);
   memset(back_buffer, 0, buffer_size);
   
-  // Reset static_buffer_initialized to ensure all elements get redrawn when restarting game
   static_buffer_initialized = false;
   
   // Always draw the background to static buffer
@@ -144,8 +146,10 @@ void playing_init(bool is_kbd) {
         digletts[index].key = 0;         // device-specific
         digletts[index].visible = false; // start with all digletts hidden
         digletts[index].active = true;
-        digletts[index].boinking = false; // <-- initialize boinking state
-        digletts[index].boink_timer = 0;  // <-- initialize boink timer
+        digletts[index].boinking = false; // initialize boinking state
+        digletts[index].boink_timer = 0;  // initialize boink timer
+        digletts[index].timing_out = false;
+        digletts[index].timeout_timer = 0;  
 
         if (index < 3) {
           digletts[index].timer = get_random_timer(10, 30);
@@ -166,6 +170,11 @@ void playing_init(bool is_kbd) {
         if (diglett_boink_sprites[index]) animated_sprite_destroy(diglett_boink_sprites[index]);
         diglett_boink_sprites[index] = animated_sprite_create(
           diglett_boink_frames, DIGLETT_BOINK_NUM_FRAMES, x, y, frame_delay
+        );
+        // create timeout sprite for each diglett
+        if (diglett_timeout_sprites[index]) animated_sprite_destroy(diglett_timeout_sprites[index]);
+        diglett_timeout_sprites[index] = animated_sprite_create(
+          diglett_timeout_frames, DIGLETT_TIMEOUT_NUM_FRAMES, x, y, frame_delay
         );
       }
     }
@@ -239,14 +248,29 @@ void playing_update(bool is_kbd) {
       continue; // skip normal timer/visibility logic while boinking
     }
 
-    digletts[i].timer--;
-
-    if (digletts[i].timer <= 0) {
-      if (digletts[i].visible && digletts[i].active) {
+    // timeout animation
+    if (digletts[i].timing_out) {
+      if (digletts[i].timeout_timer > 0) {
+        digletts[i].timeout_timer--;
+      }
+      if (digletts[i].timeout_timer == 0) {
+        digletts[i].timing_out = false;
         digletts[i].visible = false;
         visible_diglett_count--;
         digletts[i].timer = get_random_timer(MIN_DIGLETT_HIDE_TIME, MAX_DIGLETT_HIDE_TIME);
         diglett_appear_anim_done[i] = false;
+        continue;
+      }
+      continue;
+    }
+
+    digletts[i].timer--;
+
+    if (digletts[i].timer <= 0) {
+      if (digletts[i].visible && digletts[i].active) {
+        digletts[i].timing_out = true;
+        digletts[i].timeout_timer = DIGLETT_TIMEOUT_NUM_FRAMES;
+        if (diglett_timeout_sprites[i]) diglett_timeout_sprites[i]->current_frame = 0;
       }
       else if (visible_diglett_count < MAX_VISIBLE_DIGLETTS) {
         digletts[i].visible = true;
@@ -263,7 +287,7 @@ void playing_update(bool is_kbd) {
 
   // 3. Draw all visible digletts or boinking digletts
   for (int i = 0; i < NUM_DIGLETTS; i++) {
-    if (digletts[i].active && (digletts[i].visible || digletts[i].boinking)) {
+    if (digletts[i].active && (digletts[i].visible || digletts[i].boinking || digletts[i].timing_out)) {
       draw_diglett(i, is_kbd);
     }
   }
@@ -283,6 +307,17 @@ void draw_diglett(int index, bool is_kbd) {
     diglett_boink_sprites[index]->y = dig->y;
     animated_sprite_update(diglett_boink_sprites[index]);
     animated_sprite_draw(diglett_boink_sprites[index]);
+    return;
+  }
+
+  // draw timeout animation if timing out
+  if (dig->timing_out && diglett_timeout_sprites[index]) {
+    diglett_timeout_sprites[index]->x = dig->x;
+    diglett_timeout_sprites[index]->y = dig->y;
+    if (dig->timeout_timer > 1) {
+      animated_sprite_update(diglett_timeout_sprites[index]);
+    }
+    animated_sprite_draw(diglett_timeout_sprites[index]);
     return;
   }
 
@@ -400,6 +435,10 @@ void playing_destroy(void) {
     if (diglett_boink_sprites[i]) { // destroy boink sprites
       animated_sprite_destroy(diglett_boink_sprites[i]);
       diglett_boink_sprites[i] = NULL;
+    }
+    if (diglett_timeout_sprites[i]) { // destroy timeout sprites
+      animated_sprite_destroy(diglett_timeout_sprites[i]);
+      diglett_timeout_sprites[i] = NULL;
     }
   }
 }

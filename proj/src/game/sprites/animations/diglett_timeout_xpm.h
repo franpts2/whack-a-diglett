@@ -1,5 +1,5 @@
 #ifndef _DIGLETT_TIMEOUT_XPM_H_
-#define _DIGLETT_TIMOUT_XPM_H_
+#define _DIGLETT_TIMEOUT_XPM_H_
 
 #include <lcom/xpm.h>
 
@@ -706,5 +706,8 @@ static xpm_map_t diglett_timeout_frames[] = {
     diglett_timeout_4,
     diglett_timeout_5
 };
+
+
+#define DIGLETT_TIMEOUT_NUM_FRAMES (sizeof(diglett_timeout_frames)/sizeof(diglett_timeout_frames[0]))
 
 #endif
