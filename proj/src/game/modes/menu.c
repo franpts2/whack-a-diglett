@@ -49,24 +49,12 @@ void draw_menu_bg_and_buttons(void) {
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
   int btn_x = (screen_w - btn_w) / 2; // Centrar
-  int btn_y[MENU_ITEMS] = {300, 370, 440};
+  int btn_y[MENU_ITEMS] = {250, 320, 390};
   const char *btn_labels[MENU_ITEMS] = {"Start Game", "Instructions", "Exit"};
 
   for (int i = 0; i < MENU_ITEMS; ++i) {
 
-    uint32_t btn_color = 0xAAAAAA;
-    vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, btn_color);
-
-    int scale = 2;
-    int text_width = strlen(btn_labels[i]) * 8 * scale;
-    int text_x = btn_x + (btn_w - text_width) / 2;
-    int text_y = btn_y[i] + (btn_h - 8 * scale) / 2;
-
-    uint32_t text_color = 0x04;
-    draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
-
-    // // change button color based on selection status
-    // uint32_t btn_color = (i == selected) ? 0xe27a3f : 0xffd789; // orange when selected, beige otherwise
+    // uint32_t btn_color = 0xAAAAAA;
     // vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, btn_color);
 
     // int scale = 2;
@@ -74,9 +62,21 @@ void draw_menu_bg_and_buttons(void) {
     // int text_x = btn_x + (btn_w - text_width) / 2;
     // int text_y = btn_y[i] + (btn_h - 8 * scale) / 2;
 
-    // // change text color based on selection status
-    // uint32_t text_color = (i == selected) ? 0xffd789 : 0xe27a3f; // beige when selected, orange otherwise
+    // uint32_t text_color = 0x04;
     // draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
+
+    // change button color based on selection status
+    uint32_t btn_color = (i == selected) ? 0xe27a3f : 0xffd789; // orange when selected, beige otherwise
+    vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, btn_color);
+
+    int scale = 2;
+    int text_width = strlen(btn_labels[i]) * 8 * scale;
+    int text_x = btn_x + (btn_w - text_width) / 2;
+    int text_y = btn_y[i] + (btn_h - 8 * scale) / 2;
+
+    // change text color based on selection status
+    uint32_t text_color = (i == selected) ? 0xffd789 : 0xe27a3f; // beige when selected, orange otherwise
+    draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
   }
 }
 
@@ -92,7 +92,7 @@ void draw_menu_selection(void) {
   int screen_w = 800;
   int btn_w = 300;
   int btn_x = (screen_w - btn_w) / 2;
-  int btn_y[MENU_ITEMS] = {250, 320};
+  int btn_y[MENU_ITEMS] = {250, 320, 390};
   int arrow_x = btn_x + btn_w + 10;
   int arrow_w = 30, arrow_h = 50;
 
