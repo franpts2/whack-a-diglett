@@ -1,6 +1,10 @@
 #include "playing.h"
 #include "../../../controllers/video/video.h"
 #include "../../../fonts/testfont.h"
+#include <game/background.h>
+#include <game/sprites/animated_sprite.h>
+#include <game/sprites/animations/diglett_appear_xpm.h>
+#include <game/sprites/pixelart/dirt_xpm.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,7 +113,7 @@ void playing_init(bool is_kbd) {
   
   // Always draw the background to static buffer
   set_drawing_to_static();
-  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
+  background_init(); // Initialize the background
 
   // Only draw the static elements if not already done
   if (!static_buffer_initialized) {
@@ -195,6 +199,8 @@ void playing_init(bool is_kbd) {
 }
 
 void draw_background(void) {
+  background_draw();
+
   int rect_width = 60;
   int rect_height = 80;
   int spacing = 60;
@@ -207,7 +213,7 @@ void draw_background(void) {
       int x = start_x + col * (rect_width + spacing);
       int y = start_y + row * (rect_height + spacing);
 
-      Sprite *dirt = sprite_create_from_xpm((xpm_map_t)dirt_xpm, x, y);
+      Sprite *dirt = sprite_create_from_xpm((xpm_map_t) dirt_xpm, x, y);
       if (dirt) {
         sprite_draw(dirt);
         sprite_destroy(dirt);
@@ -322,7 +328,7 @@ void update_diglett_visibility(int index) {
     if (!diglett_sprites[index]) {
       vg_draw_rectangle(dig->x, dig->y, dig->width, dig->height, DIGLETT_COLOR);
     }
-    
+
     // Draw animated sprite
     if (diglett_sprites[index]) {
       diglett_sprites[index]->x = dig->x;
