@@ -1,7 +1,6 @@
 #include "instructions.h"
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
-#include "../background.h"
 #include "../game.h"
 #include "../sprites/sprite.h"
 #include "../sprites/pixelart/instructions_xpm.h"
@@ -34,7 +33,7 @@ void instructions_init(void) {
   set_drawing_to_static();
   
   // Draw the background
-  background_draw();
+  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
   
   // create and draw the instructions sprite
   if (instructions_sprite == NULL) {

@@ -4,6 +4,7 @@
 #include "../game.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "playing-modes/playing.h"
 
 void instructions_init(void);
 void instructions_handle_input(uint8_t scancode);

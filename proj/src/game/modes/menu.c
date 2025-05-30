@@ -2,9 +2,9 @@
 #include "../../controllers/kbdmouse/keyboard.h"
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
-#include "../background.h"
 #include "../game.h"
 #include "../title.h"
+#include "playing-modes/playing.h"
 
 extern Sprite *title_sprite;
 
@@ -34,7 +34,7 @@ void menu_handle_input(uint8_t scancode) {
 
 // Desenha as coisas que não precisam de refresh (botões fundo etc)
 void draw_menu_bg_and_buttons(void) {
-  background_draw();
+  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
 
   if (title_sprite != NULL) {
     title_draw();

@@ -1,7 +1,6 @@
 #include "playing.h"
 #include "../../../controllers/video/video.h"
 #include "../../../fonts/testfont.h"
-#include <game/background.h>
 #include <game/sprites/animated_sprite.h>
 #include <game/sprites/animations/diglett_appear_xpm.h>
 #include <game/sprites/pixelart/dirt_xpm.h>
@@ -115,7 +114,6 @@ void playing_init(bool is_kbd) {
   
   // Always draw the background to static buffer
   set_drawing_to_static();
-  background_init(); // Initialize the background
 
   // Only draw the static elements if not already done
   if (!static_buffer_initialized) {
@@ -208,7 +206,7 @@ void playing_init(bool is_kbd) {
 }
 
 void draw_background(void) {
-  background_draw();
+  vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
 
   int rect_width = 60;
   int rect_height = 80;

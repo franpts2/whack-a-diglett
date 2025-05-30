@@ -1,7 +1,6 @@
 #include "game.h"
 #include "../controllers/kbdmouse/keyboard.h"
 #include "../controllers/timer/timer.h"
-#include "background.h"
 #include "cursor/cursor.h"
 #include "modes/choose_mode.h"
 #include "modes/menu.h"
@@ -47,14 +46,9 @@ static unsigned int frame_count = 0;
 static time_t last_fps_time = 0;
 
 int game_main_loop(void) {
-  if (background_init() != 0) {
-    printf("Failed to initialize background\n");
-    return 1;
-  }
 
   if (title_init() != 0) {
     printf("Failed to initialize title image\n");
-    background_destroy();
     return 1;
   }
 
@@ -62,7 +56,6 @@ int game_main_loop(void) {
   if (g_cursor == NULL) {
     printf("Failed to initialize cursor\n");
     title_destroy();
-    background_destroy();
     return 1;
   }
 
@@ -71,7 +64,6 @@ int game_main_loop(void) {
     printf("Failed to subscribe keyboard interrupt\n");
     cursor_destroy(g_cursor);
     title_destroy();
-    background_destroy();
     return 1;
   }
 
@@ -81,7 +73,6 @@ int game_main_loop(void) {
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
     title_destroy();
-    background_destroy();
     return 1;
   }
 
@@ -91,7 +82,6 @@ int game_main_loop(void) {
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
     title_destroy();
-    background_destroy();
     return 1;
   }
 
@@ -103,7 +93,6 @@ int game_main_loop(void) {
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
     title_destroy();
-    background_destroy();
     return 1;
   }
 
@@ -405,7 +394,6 @@ int game_main_loop(void) {
   keyboard_unsubscribe_int();
   timer_unsubscribe_int();
   title_destroy();
-  background_destroy();
   cursor_destroy(g_cursor);
   
   if (current_mode == MODE_INSTRUCTIONS) {
