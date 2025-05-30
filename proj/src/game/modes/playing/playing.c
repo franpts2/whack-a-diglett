@@ -23,11 +23,9 @@ struct timespec last_update_time = {0, 0};
 struct timespec pause_start_time = {0, 0}; // Time when game was paused
 double total_paused_time = 0.0; // Total time spent in pause mode
 
-// Forward declarations
 void draw_background(void);
 void playing_destroy(void);
 
-// common game variables
 Diglett digletts[NUM_DIGLETTS];
 int visible_diglett_count = 0;
 int player_points = 0;
@@ -50,20 +48,15 @@ int get_random_timer(int min, int max) {
 }
 
 void draw_points_counter() {
-  // caclcular posição pro counter de pontos nao sair da tela
   int counter_width = 200;
   int counter_x = 800 - counter_width - 10;
 
-  // width needed for "Points: " (7 chars * 8 pixels * 2 scale)
   int points_label_width = 8 * 8 * 2;
 
-  // position for the points number
   int number_area_x = counter_x + 10 + points_label_width;
 
-  // don't exceed screen boundaries
   int max_number_width = counter_width - points_label_width - 20;
 
-  // clear the number area
   vg_draw_rectangle(number_area_x, 10, max_number_width, 30, BACKGROUND_COLOR);
 
   draw_text_scaled("Points:", counter_x + 10, 15, 0xFFFFFF, 2);
@@ -101,7 +94,7 @@ void playing_init(bool is_kbd) {
     cursor_set_position(g_cursor, -100, -100);
   }
 
-  prev_mode = MODE_PLAYING; // mark transition as complete
+  prev_mode = MODE_PLAYING; 
 
   extern void *back_buffer;
   extern void *static_buffer;
@@ -109,7 +102,6 @@ void playing_init(bool is_kbd) {
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
   unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
 
-  // clear both buffers to ensure proper background color
   memset(static_buffer, 0, buffer_size);
   memset(back_buffer, 0, buffer_size);
   
@@ -117,11 +109,10 @@ void playing_init(bool is_kbd) {
   
   // Always draw the background to static buffer
   set_drawing_to_static();
-  background_init(); // Initialize the background
+  background_init(); 
 
   // Only draw the static elements if not already done
   if (!static_buffer_initialized) {
-    // titulo centrado
     int title_scale = 3;
     const char *title = "WHACK'A DIGLETT";
     int title_width = strlen(title) * 8 * title_scale;
@@ -134,7 +125,6 @@ void playing_init(bool is_kbd) {
 
     int grid_width = 3 * rect_width + 2 * spacing;
 
-    // calculate starting position to center the grid
     int start_x = (800 - grid_width) / 2 - spacing/2;
     int start_y = 120;
 
@@ -172,12 +162,10 @@ void playing_init(bool is_kbd) {
         diglett_sprites[index] = animated_sprite_create(
           diglett_appear_frames, DIGLETT_APPEAR_NUM_FRAMES, x, y, frame_delay
         );
-        // create boink sprite for each diglett
         if (diglett_boink_sprites[index]) animated_sprite_destroy(diglett_boink_sprites[index]);
         diglett_boink_sprites[index] = animated_sprite_create(
           diglett_boink_frames, DIGLETT_BOINK_NUM_FRAMES, x, y, frame_delay
         );
-        // create timeout sprite for each diglett
         if (diglett_timeout_sprites[index]) animated_sprite_destroy(diglett_timeout_sprites[index]);
         diglett_timeout_sprites[index] = animated_sprite_create(
           diglett_timeout_frames, DIGLETT_TIMEOUT_NUM_FRAMES, x, y, frame_delay
@@ -188,19 +176,14 @@ void playing_init(bool is_kbd) {
     static_buffer_initialized = true;
   }
 
-  // Always clear back buffer for new frame
   memset(back_buffer, 0, buffer_size);
 
-  // switch back to back buffer for dynamic elements
   set_drawing_to_back();
 
-  // Draw background (green) to back buffer
   vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
 
-  // static background to back buffer for initial display
   copy_static_to_back();
 
-  // draw initial points value (0) directly to back buffer
   draw_points_counter();
 
   clock_gettime(CLOCK_MONOTONIC, &last_update_time);
@@ -233,12 +216,10 @@ void draw_background(void) {
   }
 }
 
-// update game state
 void playing_update(bool is_kbd) {
-  // 1. Copy static background to back buffer (full frame redraw)
   copy_static_to_back();
 
-  // 2. Update diglett timers and visibility
+  // Update diglett timers and visibility
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (!digletts[i].active)
       continue;
@@ -293,7 +274,7 @@ void playing_update(bool is_kbd) {
     }
   }
 
-  // 3. Draw all visible digletts or boinking digletts
+  // Draw all visible digletts or boinking digletts
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (digletts[i].active && (digletts[i].visible || digletts[i].boinking || digletts[i].timing_out)) {
       draw_diglett(i, is_kbd);
@@ -304,7 +285,6 @@ void playing_update(bool is_kbd) {
   draw_timer_bar();
 }
 
-// Function to draw just a diglett (never clear with BACKGROUND_COLOR)
 void draw_diglett(int index, bool is_kbd) {
   Diglett *dig = &digletts[index];
 
@@ -318,7 +298,6 @@ void draw_diglett(int index, bool is_kbd) {
     return;
   }
 
-  // draw timeout animation if timing out
   if (dig->timing_out && diglett_timeout_sprites[index]) {
     diglett_timeout_sprites[index]->x = dig->x;
     diglett_timeout_sprites[index]->y = dig->y;
@@ -345,7 +324,6 @@ void draw_diglett(int index, bool is_kbd) {
         diglett_appear_anim_done[index] = true;
       }
     } else {
-      // última frame
       diglett_sprites[index]->current_frame = DIGLETT_APPEAR_NUM_FRAMES - 1;
       animated_sprite_draw(diglett_sprites[index]);
     }
@@ -421,7 +399,6 @@ bool whack_diglett(int index) {
   }
 }
 
-// Common input handling function
 void playing_handle_common_input(int index, bool is_kbd) {
   set_drawing_to_back();
 
@@ -462,13 +439,10 @@ void draw_timer_bar() {
   if (time_left < 0) time_left = 0;
   game_time_left = time_left;
 
-  // border
   vg_draw_rectangle(TIMER_BAR_X - 2, TIMER_BAR_Y - 2, TIMER_BAR_WIDTH + 4, TIMER_BAR_HEIGHT + 4, 0xFFFFFF);
 
-  // barra vazia
   vg_draw_rectangle(TIMER_BAR_X, TIMER_BAR_Y, TIMER_BAR_WIDTH, TIMER_BAR_HEIGHT, 0x222222);
 
-  // cor diferente dependendo do tempo que falta. talvez adicione cores intermédias?
   uint32_t bar_color;
   if (game_time_left > (2 * TIMER_BAR_TOTAL_SECONDS) / 3) {
     bar_color = 0x00FF33; // green
@@ -478,7 +452,6 @@ void draw_timer_bar() {
     bar_color = 0xFF3333; // red
   }
 
-  // calcula e desenha tempo restante
   int fill_width = (game_time_left * TIMER_BAR_WIDTH) / TIMER_BAR_TOTAL_SECONDS;
   if (fill_width < 0) fill_width = 0;
   vg_draw_rectangle(TIMER_BAR_X, TIMER_BAR_Y, fill_width, TIMER_BAR_HEIGHT, bar_color);
