@@ -3,14 +3,12 @@
 #include "../controllers/timer/timer.h"
 #include "background.h"
 #include "cursor/cursor.h"
-#include "modes/choose_mode.h"
 #include "modes/menu.h"
 #include "modes/pause.h"
 #include "modes/playing-modes/playing_kbd.h"
 #include "modes/playing-modes/playing_mouse.h"
 #include "modes/gameover.h"
 #include "modes/instructions.h"
-#include "title.h"
 #include <lcom/lcf.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -52,16 +50,10 @@ int game_main_loop(void) {
     return 1;
   }
 
-  if (title_init() != 0) {
-    printf("Failed to initialize title image\n");
-    background_destroy();
-    return 1;
-  }
 
   g_cursor = cursor_init();
   if (g_cursor == NULL) {
     printf("Failed to initialize cursor\n");
-    title_destroy();
     background_destroy();
     return 1;
   }
@@ -70,7 +62,6 @@ int game_main_loop(void) {
   if (keyboard_subscribe_int(&kbd_irq) != 0) {
     printf("Failed to subscribe keyboard interrupt\n");
     cursor_destroy(g_cursor);
-    title_destroy();
     background_destroy();
     return 1;
   }
@@ -80,7 +71,6 @@ int game_main_loop(void) {
     printf("Failed to subscribe mouse interrupt\n");
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
-    title_destroy();
     background_destroy();
     return 1;
   }
@@ -90,7 +80,6 @@ int game_main_loop(void) {
     mouse_unsubscribe_int();
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
-    title_destroy();
     background_destroy();
     return 1;
   }
@@ -102,7 +91,6 @@ int game_main_loop(void) {
     mouse_unsubscribe_int();
     keyboard_unsubscribe_int();
     cursor_destroy(g_cursor);
-    title_destroy();
     background_destroy();
     return 1;
   }
@@ -142,12 +130,18 @@ int game_main_loop(void) {
 
                 // Only update game timer if not in paused state
                 if (current_mode == MODE_PLAYING) {
-                  if (mode_selected == 0) { // Keyboard mode
-                    playing_kbd_update();
+                  // update the timer
+                  game_timer_counter++;
+                  if (game_timer_counter >= sys_hz()) {
+                    if (game_time_left > 0) game_time_left--;
+                    game_timer_counter = 0;
+                    if (game_time_left == 0) {
+                      current_mode = MODE_GAMEOVER;
+                    }
                   }
-                  else { // Mouse mode
-                    playing_mouse_update();
-                  }
+
+                  
+                  playing_kbd_update();
 
                   swap_buffers();
                 }
@@ -165,9 +159,6 @@ int game_main_loop(void) {
               switch (current_mode) {
                 case MODE_MENU:
                   menu_handle_input(scancode);
-                  break;
-                case MODE_CHOOSE_MODE:
-                  choose_mode_handle_input(scancode);
                   break;
                 case MODE_PLAYING:
                   playing_handle_input(scancode);
@@ -197,8 +188,8 @@ int game_main_loop(void) {
             if (byte_index == 3) {
               assemble_mouse_packet();
 
-              // update cursor position if in menu or choose mode
-              if (g_cursor != NULL && (current_mode == MODE_MENU || current_mode == MODE_CHOOSE_MODE || current_mode == MODE_GAMEOVER)) {
+              // update cursor position if in menu or gameover mode
+              if (g_cursor != NULL && (current_mode == MODE_MENU || current_mode == MODE_GAMEOVER)) {
                 cursor_handle_mouse_packet(g_cursor, &mouse_packet);
 
                 bool left_button_pressed = mouse_packet.lb;
@@ -209,9 +200,6 @@ int game_main_loop(void) {
                 // Handle mouse input based on current mode
                 if (current_mode == MODE_MENU) {
                   menu_handle_mouse(g_cursor->x, g_cursor->y, left_button_clicked);
-                }
-                else if (current_mode == MODE_CHOOSE_MODE) {
-                  choose_mode_handle_mouse(g_cursor->x, g_cursor->y, left_button_clicked);
                 }
               }
 
@@ -249,21 +237,6 @@ int game_main_loop(void) {
           render_frame = true;
           break;
 
-        case MODE_CHOOSE_MODE:
-          choose_mode_init();
-
-          set_drawing_to_static();
-
-          bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
-          buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
-          memset(static_buffer, 0, buffer_size);
-
-          draw_choose_mode_bg_and_buttons();
-          set_drawing_to_back();
-
-          render_frame = true;
-          break;
-
         case MODE_PLAYING:
           // clear the display completely
           bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
@@ -273,13 +246,8 @@ int game_main_loop(void) {
           memset(static_buffer, 0, buffer_size);
           memset(back_buffer, 0, buffer_size);
 
-          // Always initialize playing mode
-          if (mode_selected == 0) { // Keyboard mode
-            playing_kbd_init();
-          }
-          else { // Mouse mode
-            playing_mouse_init();
-          }
+          // initialize game
+          playing_kbd_init();
 
           set_drawing_to_back();
 
@@ -324,7 +292,7 @@ int game_main_loop(void) {
     bool mouse_moving_now = (mouse_packet.delta_x != 0 || mouse_packet.delta_y != 0);
 
     if (mouse_moving_now) {
-      // Process mouse movement in menu or choose mode
+      // Process mouse movement in menu
       if (current_mode == MODE_MENU) {
         copy_static_to_back();
         draw_menu_selection();
@@ -335,33 +303,12 @@ int game_main_loop(void) {
         mouse_moved_recently = true;
         render_frame = false; // reset frame timer
       }
-      else if (current_mode == MODE_CHOOSE_MODE) {
-        copy_static_to_back();
-        choose_mode_update_selection();
-        if (g_cursor != NULL) {
-          cursor_draw(g_cursor);
-        }
-        swap_buffers();
-        mouse_moved_recently = true;
-        render_frame = false;
-      }
     }
     // regular rendering (not actively moving mouse)
     else if (render_frame || mouse_moved_recently) {
       if (current_mode == MODE_MENU) {
         copy_static_to_back();
         draw_menu_selection();
-
-        // draw cursor on top
-        if (g_cursor != NULL) {
-          cursor_draw(g_cursor);
-        }
-
-        swap_buffers();
-      }
-      else if (current_mode == MODE_CHOOSE_MODE) {
-        copy_static_to_back();
-        choose_mode_update_selection();
 
         // draw cursor on top
         if (g_cursor != NULL) {
@@ -401,7 +348,6 @@ int game_main_loop(void) {
   mouse_unsubscribe_int();
   keyboard_unsubscribe_int();
   timer_unsubscribe_int();
-  title_destroy();
   background_destroy();
   cursor_destroy(g_cursor);
   

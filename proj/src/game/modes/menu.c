@@ -4,13 +4,16 @@
 #include "../../fonts/testfont.h"
 #include "../background.h"
 #include "../game.h"
-#include "../title.h"
+#include "playing-modes/playing_kbd.h"
 
-extern Sprite *title_sprite;
 
 extern GameMode current_mode;
 extern GameMode prev_mode;
 extern int running;
+
+extern void *back_buffer;
+extern void *static_buffer;
+extern void *middle_buffer;
 
 unsigned int bytes_per_pixel;
 
@@ -22,9 +25,11 @@ static int prev_selected = -1;
 void menu_handle_input(uint8_t scancode) {
   if (scancode == 0x48) { // Up arrow key
     selected = (selected - 1 + MENU_ITEMS) % MENU_ITEMS;
+    prev_selected = -1;
   }
   else if (scancode == 0x50) { // Down arrow key
     selected = (selected + 1) % MENU_ITEMS;
+    prev_selected = -1;
 
   }
   else if (scancode == 0x1C) { // Enter key
@@ -36,22 +41,21 @@ void menu_handle_input(uint8_t scancode) {
 void draw_menu_bg_and_buttons(void) {
   background_draw();
 
-  if (title_sprite != NULL) {
-    title_draw();
-  }
-  else {
-    printf("ERROR: Title sprite is NULL\n");
-  }
+  int title_scale = 4;
+  const char *title = "WHACK'A DIGLETT";
+  int title_width = strlen(title) * 8 * title_scale;
+  int title_x = (800 - title_width) / 2;
+  draw_text_scaled(title, title_x, 100, 0xe27a3f, title_scale);
 
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
   int btn_x = (screen_w - btn_w) / 2; // Centrar
-  int btn_y[MENU_ITEMS] = {300, 370, 440};
+  int btn_y[MENU_ITEMS] = {250, 320, 390};
   const char *btn_labels[MENU_ITEMS] = {"Start Game", "Instructions", "Exit"};
 
   for (int i = 0; i < MENU_ITEMS; ++i) {
-    // change button color based on selection status
-    uint32_t btn_color = (i == selected) ? 0xe27a3f : 0xffd789; // orange when selected, beige otherwise
+
+    uint32_t btn_color = 0xffd789;
     vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, btn_color);
 
     int scale = 2;
@@ -59,15 +63,64 @@ void draw_menu_bg_and_buttons(void) {
     int text_x = btn_x + (btn_w - text_width) / 2;
     int text_y = btn_y[i] + (btn_h - 8 * scale) / 2;
 
-    // change text color based on selection status
-    uint32_t text_color = (i == selected) ? 0xffd789 : 0xe27a3f; // beige when selected, orange otherwise
+    uint32_t text_color = 0xe27a3f;
     draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
+
   }
 }
 
-void draw_menu_selection(void) {
 
-  draw_menu_bg_and_buttons();
+void draw_menu_selection(void) {
+  bool selection_changed = (selected != prev_selected && prev_selected >= 0 && prev_selected < MENU_ITEMS);
+
+  int screen_w = 800;
+  int btn_w = 300;
+  int btn_x = (screen_w - btn_w) / 2;
+  int btn_y[MENU_ITEMS] = {250, 320, 390};
+  int arrow_x = btn_x + btn_w + 10;
+  int arrow_w = 30, arrow_h = 50;
+
+  void *target_buffer = get_current_buffer();
+  bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+
+  uint32_t bg_color_bytes[4] = {0};  // Background color (0x04)
+  uint32_t sel_color_bytes[4] = {0}; // Selection color (0x0000FF) - blue
+
+  bg_color_bytes[0] = 0xffd789;
+  sel_color_bytes[0] = 0xe27a3f;
+
+  if (selection_changed) {
+    for (int y = btn_y[prev_selected]; y < btn_y[prev_selected] + arrow_h; y++) {
+      if (y < 0 || y >= m_info.YResolution)
+        continue;
+
+      for (int x = arrow_x; x < arrow_x + arrow_w; x++) {
+        if (x < 0 || x >= m_info.XResolution)
+          continue;
+
+        unsigned int pixel_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
+        for (unsigned i = 0; i < bytes_per_pixel; i++) {
+          *((uint8_t *) target_buffer + pixel_pos + i) = bg_color_bytes[i];
+        }
+      }
+    }
+  }
+
+  for (int y = btn_y[selected]; y < btn_y[selected] + arrow_h; y++) {
+    if (y < 0 || y >= m_info.YResolution)
+      continue;
+
+    for (int x = arrow_x; x < arrow_x + arrow_w; x++) {
+      if (x < 0 || x >= m_info.XResolution)
+        continue;
+
+      unsigned int pixel_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
+      for (unsigned i = 0; i < bytes_per_pixel; i++) {
+        *((uint8_t *) target_buffer + pixel_pos + i) = sel_color_bytes[i];
+      }
+    }
+  }
+
   prev_selected = selected;
 }
 
@@ -92,7 +145,7 @@ void menu_handle_mouse(int x, int y, bool left_button_clicked) {
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
   int btn_x = (screen_w - btn_w) / 2;
-  int btn_y[MENU_ITEMS] = {300, 370, 440};
+  int btn_y[MENU_ITEMS] = {250, 320, 390};
 
   bool mouse_over_any_button = false;
 
@@ -103,36 +156,21 @@ void menu_handle_mouse(int x, int y, bool left_button_clicked) {
 
       if (selected != i) {
         selected = i;
+        prev_selected = -1;
       }
 
       if (left_button_clicked) {
-        switch (i) {
-          case 0: // "Start Game" button
-            current_mode = MODE_CHOOSE_MODE;
-            break;
-          case 1: // "Instructions" button
-            current_mode = MODE_INSTRUCTIONS;
-            break;
-          case 2: // "Exit" button
-            running = 0;
-            break;
-        }
+        menu_select_option();
       }
 
-      // Exit after finding the right button
       break;
     }
   }
 }
 
-// Handles the selection of a menu item
-void menu_select_option(void) {
-  extern GameMode current_mode;
-  extern GameMode prev_mode;
-  extern void *back_buffer;
-  extern void *static_buffer;
-  extern void *middle_buffer;
 
+void menu_select_option(void) {
+  
   switch (selected) {
     case 0: // Start Game
       // First force a clean state for all buffers
@@ -147,14 +185,15 @@ void menu_select_option(void) {
       // Set to -1 to force reinitialization
       prev_mode = -1;
 
-      // Now change the mode to choose input mode instead of going directly to playing
-      current_mode = MODE_CHOOSE_MODE;
+      current_mode = MODE_PLAYING;
+      // initialize game
+      playing_kbd_init();
       break;
     case 1: // Instructions
       current_mode = MODE_INSTRUCTIONS;
       break;
     case 2: // Exit
-      // Exit functionality will be handled in the game loop
+      running = false;
       break;
   }
 }
