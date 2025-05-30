@@ -236,7 +236,7 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
   return 0;
 }
 
-void draw_pixel(int x, int y, uint32_t color, uint8_t *buffer) {
+int (draw_pixel)(uint16_t x, uint16_t y, uint32_t color, uint8_t *buffer) {
   if (x >= m_info.XResolution || y >= m_info.YResolution) return 1;
 
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
