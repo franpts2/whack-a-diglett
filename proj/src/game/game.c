@@ -273,13 +273,12 @@ int game_main_loop(void) {
           memset(static_buffer, 0, buffer_size);
           memset(back_buffer, 0, buffer_size);
 
-          if (prev_mode == MODE_GAMEOVER) {
-            if (mode_selected == 0) { // Keyboard mode
-              playing_kbd_init();
-            }
-            else { // Mouse mode
-              playing_mouse_init();
-            }
+          // Always initialize playing mode
+          if (mode_selected == 0) { // Keyboard mode
+            playing_kbd_init();
+          }
+          else { // Mouse mode
+            playing_mouse_init();
           }
 
           set_drawing_to_back();
@@ -317,6 +316,7 @@ int game_main_loop(void) {
     if (current_mode == MODE_PLAYING && game_time_left == 0) {
       current_mode = MODE_GAMEOVER;
       render_frame = true;
+      continue; // Immediately process the mode change in the next loop iteration
     }
 
     // render on mouse movement for responsiveness, use timer for animations, track recent movement for smoothness
@@ -393,12 +393,6 @@ int game_main_loop(void) {
           post_movement_frames = 0;
         }
       }
-    }
-
-    // After rendering (in the main loop), check for game over:
-    if (current_mode == MODE_PLAYING && game_time_left == 0) {
-      current_mode = MODE_GAMEOVER;
-      render_frame = true;
     }
   }
 
