@@ -80,6 +80,7 @@ void draw_menu_selection(void) {
   int btn_x = (screen_w - btn_w) / 2;
   int btn_y[MENU_ITEMS] = {250, 320, 390};
   int arrow_x = btn_x + btn_w + 10;
+  //int arrow_w = 30, arrow_h = 50;
   
   static Sprite *triangle = NULL;
   
