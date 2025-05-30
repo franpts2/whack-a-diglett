@@ -9,6 +9,7 @@
 #include "modes/playing-modes/playing_kbd.h"
 #include "modes/playing-modes/playing_mouse.h"
 #include "modes/gameover.h"
+#include "modes/instructions.h"
 #include "title.h"
 #include <lcom/lcf.h>
 #include <stdbool.h>
@@ -186,6 +187,9 @@ int game_main_loop(void) {
                 case MODE_GAMEOVER:
                   gameover_handle_input(scancode);
                   break;
+                case MODE_INSTRUCTIONS:
+                  instructions_handle_input(scancode);
+                  break;
                 default:
                   break;
               }
@@ -308,7 +312,8 @@ int game_main_loop(void) {
           break;
 
         case MODE_INSTRUCTIONS:
-          // instructions_init();
+          instructions_init();
+          render_frame = true;
           break;
 
         default:
@@ -374,6 +379,10 @@ int game_main_loop(void) {
         if (g_cursor != NULL) {
           cursor_draw(g_cursor);
         }
+        swap_buffers();
+      }
+      else if (current_mode == MODE_INSTRUCTIONS) {
+        draw_instructions();
         swap_buffers();
       }
 
