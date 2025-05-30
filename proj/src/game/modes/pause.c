@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
+#include "../background.h"
 
 extern GameMode current_mode;
 extern GameMode prev_mode;
@@ -18,15 +19,6 @@ extern double total_paused_time;
 // Add declaration of the draw_background function from playing.c
 extern void draw_background(void);
 
-// Add declaration for drawing title
-void draw_game_title(void) {
-  // Draw title centered at the top
-  int title_scale = 3;
-  const char *title = "WHACK'A DIGLETT";
-  int title_width = strlen(title) * 8 * title_scale;
-  int title_x = (800 - title_width) / 2;
-  draw_text_scaled(title, title_x, 50, 0xFFFFFF, title_scale);
-}
 
 void pause_init(void) {
   // Store the previous mode to return to it when unpausing
@@ -46,8 +38,7 @@ void draw_pause_screen(void) {
   // Create semi-transparent overlay
   set_drawing_to_back();
   
-  // Draw a semi-transparent dark overlay
-  vg_draw_rectangle(0, 0, 800, 600, 0x222222);
+  background_draw();
   
   // Draw "PAUSED" text centered on screen
   int title_scale = 4;
@@ -71,11 +62,6 @@ void draw_pause_screen(void) {
   
   // Swap buffers to show pause screen
   swap_buffers();
-}
-
-void pause_update(void) {
-  // Nothing to update in pause mode
-  // Game state is frozen until player resumes
 }
 
 void pause_handle_input(uint8_t scancode) {
@@ -114,10 +100,7 @@ void pause_resume_game(void) {
   // Draw the green background to static buffer
   vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
   
-  // Draw the game title
-  draw_game_title();
-  
-  // Call the function to draw all Diglett holes (dirt spots)
+  // Call the function to draw all Diglett holes
   draw_background();
   
   // Now prepare the back buffer

@@ -9,7 +9,6 @@
 void pause_init(void);
 void pause_handle_input(uint8_t scancode);
 void draw_pause_screen(void);
-void pause_update(void);
 void pause_resume_game(void);
 
 #endif // _PAUSE_H_
