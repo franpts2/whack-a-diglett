@@ -144,7 +144,7 @@ void menu_handle_mouse(int x, int y, bool left_button_clicked) {
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
   int btn_x = (screen_w - btn_w) / 2;
-  int btn_y[MENU_ITEMS] = {300, 370, 440};
+  int btn_y[MENU_ITEMS] = {250, 320, 390};
 
   bool mouse_over_any_button = false;
 
@@ -159,31 +159,17 @@ void menu_handle_mouse(int x, int y, bool left_button_clicked) {
       }
 
       if (left_button_clicked) {
-
         menu_select_option();
-        // switch (i) {
-        //   case 0: // "Start Game" button
-        //     current_mode = MODE_CHOOSE_MODE;
-        //     break;
-        //   case 1: // "Instructions" button
-        //     current_mode = MODE_INSTRUCTIONS;
-        //     break;
-        //   case 2: // "Exit" button
-        //     running = 0;
-        //     break;
-        //}
       }
 
-      // Exit after finding the right button
       break;
     }
   }
 }
 
-// Handles the selection of a menu item
+
 void menu_select_option(void) {
   
-
   switch (selected) {
     case 0: // Start Game
       // First force a clean state for all buffers
@@ -205,7 +191,7 @@ void menu_select_option(void) {
       current_mode = MODE_INSTRUCTIONS;
       break;
     case 2: // Exit
-      // Exit functionality will be handled in the game loop
+      running = false;
       break;
   }
 }
