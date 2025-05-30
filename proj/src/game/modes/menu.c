@@ -191,7 +191,7 @@ void menu_select_option(void) {
       current_mode = MODE_INSTRUCTIONS;
       break;
     case 2: // Exit
-      // Exit functionality will be handled in the game loop
+      running = false;
       break;
   }
 }
