@@ -40,7 +40,7 @@ void menu_handle_input(uint8_t scancode) {
 void draw_menu_bg_and_buttons(void) {
   background_draw();
 
-  int title_scale = 3;
+  int title_scale = 4;
   const char *title = "WHACK'A DIGLETT";
   int title_width = strlen(title) * 8 * title_scale;
   int title_x = (800 - title_width) / 2;
@@ -54,19 +54,7 @@ void draw_menu_bg_and_buttons(void) {
 
   for (int i = 0; i < MENU_ITEMS; ++i) {
 
-    // uint32_t btn_color = 0xAAAAAA;
-    // vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, btn_color);
-
-    // int scale = 2;
-    // int text_width = strlen(btn_labels[i]) * 8 * scale;
-    // int text_x = btn_x + (btn_w - text_width) / 2;
-    // int text_y = btn_y[i] + (btn_h - 8 * scale) / 2;
-
-    // uint32_t text_color = 0x04;
-    // draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
-
-    // change button color based on selection status
-    uint32_t btn_color = (i == selected) ? 0xe27a3f : 0xffd789; // orange when selected, beige otherwise
+    uint32_t btn_color = 0xffd789;
     vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, btn_color);
 
     int scale = 2;
@@ -74,17 +62,12 @@ void draw_menu_bg_and_buttons(void) {
     int text_x = btn_x + (btn_w - text_width) / 2;
     int text_y = btn_y[i] + (btn_h - 8 * scale) / 2;
 
-    // change text color based on selection status
-    uint32_t text_color = (i == selected) ? 0xffd789 : 0xe27a3f; // beige when selected, orange otherwise
+    uint32_t text_color = 0xe27a3f;
     draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
+
   }
 }
 
-// void draw_menu_selection(void) {
-
-//   draw_menu_bg_and_buttons();
-//   prev_selected = selected;
-// }
 
 void draw_menu_selection(void) {
   bool selection_changed = (selected != prev_selected && prev_selected >= 0 && prev_selected < MENU_ITEMS);
@@ -99,11 +82,11 @@ void draw_menu_selection(void) {
   void *target_buffer = get_current_buffer();
   bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
 
-  uint8_t bg_color_bytes[4] = {0};  // Background color (0x04)
-  uint8_t sel_color_bytes[4] = {0}; // Selection color (0x0000FF) - blue
+  uint32_t bg_color_bytes[4] = {0};  // Background color (0x04)
+  uint32_t sel_color_bytes[4] = {0}; // Selection color (0x0000FF) - blue
 
-  bg_color_bytes[0] = 0x04;
-  sel_color_bytes[0] = 0xFF;
+  bg_color_bytes[0] = 0xffd789;
+  sel_color_bytes[0] = 0xe27a3f;
 
   if (selection_changed) {
     for (int y = btn_y[prev_selected]; y < btn_y[prev_selected] + arrow_h; y++) {
