@@ -4,6 +4,7 @@
 #include "../../fonts/testfont.h"
 #include "../background.h"
 #include "../game.h"
+#include "playing-modes/playing_kbd.h"
 
 
 extern GameMode current_mode;
@@ -184,8 +185,9 @@ void menu_select_option(void) {
       // Set to -1 to force reinitialization
       prev_mode = -1;
 
-      // Now change the mode to choose input mode instead of going directly to playing
-      current_mode = MODE_CHOOSE_MODE;
+      current_mode = MODE_PLAYING;
+      // initialize game
+      playing_kbd_init();
       break;
     case 1: // Instructions
       current_mode = MODE_INSTRUCTIONS;
