@@ -4,7 +4,6 @@
 #include "../../fonts/testfont.h"
 #include "../background.h"
 #include "../game.h"
-#include "../title.h"
 
 extern Sprite *title_sprite;
 
@@ -36,12 +35,11 @@ void menu_handle_input(uint8_t scancode) {
 void draw_menu_bg_and_buttons(void) {
   background_draw();
 
-  if (title_sprite != NULL) {
-    title_draw();
-  }
-  else {
-    printf("ERROR: Title sprite is NULL\n");
-  }
+  int title_scale = 3;
+  const char *title = "WHACK'A DIGLETT";
+  int title_width = strlen(title) * 8 * title_scale;
+  int title_x = (800 - title_width) / 2;
+  draw_text_scaled(title, title_x, 100, 0xe27a3f, title_scale);
 
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
