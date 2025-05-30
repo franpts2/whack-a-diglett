@@ -47,10 +47,14 @@ Sprite *diglett_boink5;
 Sprite *diglett_boink6;
 Sprite *diglett_boink7;
 
-Sprite *sprite_create_from_xpm(xpm_map_t xpm_map, int x, int y);
+Sprite *sprite_create_from_xpm(xpm_map_t xpm_map);
 
 int sprite_draw(Sprite *sprite, uint16_t x, uint16_t y, uint8_t *buffer);
 
 void sprite_destroy(Sprite *sprite);
+
+int load_sprites();
+
+void free_sprites();
 
 #endif /* _SPRITE_H_ */

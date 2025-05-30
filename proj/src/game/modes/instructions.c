@@ -14,8 +14,6 @@ extern void *back_buffer;
 extern void *static_buffer;
 extern void *middle_buffer;
 
-// static sprite for the instructions image
-static Sprite *instructions_sprite = NULL;
 
 // Initialize the instructions screen
 void instructions_init(void) {
@@ -36,13 +34,10 @@ void instructions_init(void) {
   // Draw the background
   background_draw();
   
-  // create and draw the instructions sprite
-  if (instructions_sprite == NULL) {
-    instructions_sprite = sprite_create_from_xpm((xpm_map_t)instructions_xpm, 0, 0);
-  }
+ 
   
-  if (instructions_sprite != NULL) {
-    sprite_draw(instructions_sprite);
+  if (instructions != NULL) {
+    sprite_draw(instructions, 0, 0, NULL);
   } else {
     printf("ERROR: Failed to load instructions image!\n");
   }
@@ -78,9 +73,9 @@ void instructions_handle_input(uint8_t scancode) {
 
 // cleanup resources used by the instructions screen
 void instructions_destroy(void) {
-  if (instructions_sprite != NULL) {
-    sprite_destroy(instructions_sprite);
-    instructions_sprite = NULL;
+  if (instructions != NULL) {
+    sprite_destroy(instructions);
+    instructions = NULL;
   }
 }
 

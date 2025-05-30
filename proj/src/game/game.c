@@ -14,6 +14,7 @@
 #include <lcom/lcf.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include "sprites/sprite.h"
 
 #include "../controllers/kbdmouse/aux.h"
 #include "../controllers/video/video.h"
@@ -112,10 +113,13 @@ int game_main_loop(void) {
 
   last_fps_time = time(NULL);
 
+  
+
   int ipc_status;
   message msg;
 
   while (running) {
+    
     if (driver_receive(ANY, &msg, &ipc_status) != 0) {
       printf("driver_receive failed\n");
       continue;
@@ -405,6 +409,7 @@ int game_main_loop(void) {
   title_destroy();
   background_destroy();
   cursor_destroy(g_cursor);
+  free_sprites();
   
   if (current_mode == MODE_INSTRUCTIONS) {
     instructions_destroy();

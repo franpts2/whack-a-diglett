@@ -213,9 +213,8 @@ void draw_background(void) {
       int x = start_x + col * (rect_width + spacing);
       int y = start_y + row * (rect_height + spacing);
 
-      Sprite *dirt = sprite_create_from_xpm((xpm_map_t) dirt_xpm, x, y);
       if (dirt) {
-        sprite_draw(dirt);
+        sprite_draw(dirt, x, y, NULL);
         sprite_destroy(dirt);
       }
     }

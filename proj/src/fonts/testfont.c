@@ -141,7 +141,7 @@ void draw_char(char c, int x, int y, uint32_t color) {
     uint8_t bits = font8x8_basic[uc][row];
     for (int col = 0; col < 8; ++col) {
       if (bits & (1 << col)) {
-        draw_pixel(x + col, y + row, color);
+        draw_pixel(x + col, y + row, color, NULL);
       }
     }
   }

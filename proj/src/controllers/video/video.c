@@ -138,7 +138,7 @@ int draw_pixmap(xpm_map_t xpm, uint16_t x, uint16_t y) {
   for (uint16_t row = 0; row < img.height; row++) {
     for (uint16_t col = 0; col < img.width; col++) {
       uint32_t color = pixmap[row * img.width + col];
-      draw_pixel(x + col, y + row, color);
+      draw_pixel(x + col, y + row, color, NULL);
     }
   }
   return 0;

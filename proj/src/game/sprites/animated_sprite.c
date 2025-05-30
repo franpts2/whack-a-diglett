@@ -8,7 +8,7 @@ AnimatedSprite *animated_sprite_create(xpm_map_t *xpm_maps, int num_frames, int 
   anim->frames = malloc(sizeof(Sprite*) * num_frames);
   if (!anim->frames) { free(anim); return NULL; }
   for (int i = 0; i < num_frames; i++) {
-    anim->frames[i] = sprite_create_from_xpm(xpm_maps[i], x, y);
+    anim->frames[i] = sprite_create_from_xpm(xpm_maps[i]);
     if (!anim->frames[i]) {
       for (int j = 0; j < i; j++) sprite_destroy(anim->frames[j]);
       free(anim->frames); free(anim); return NULL;
@@ -39,7 +39,7 @@ int animated_sprite_draw(AnimatedSprite *anim) {
   frame->x = anim->x;
   frame->y = anim->y;
   frame->is_visible = true;
-  return sprite_draw(frame);
+  return sprite_draw(frame, frame->x, frame->y, NULL);
 }
 
 void animated_sprite_destroy(AnimatedSprite *anim) {

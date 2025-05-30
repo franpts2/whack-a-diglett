@@ -6,7 +6,6 @@
 #include "../game.h"
 #include "../title.h"
 
-extern Sprite *title_sprite;
 
 extern GameMode current_mode;
 extern GameMode prev_mode;
@@ -36,7 +35,7 @@ void menu_handle_input(uint8_t scancode) {
 void draw_menu_bg_and_buttons(void) {
   background_draw();
 
-  if (title_sprite != NULL) {
+  if (title != NULL) {
     title_draw();
   }
   else {

@@ -105,3 +105,4 @@ void free_sprites(){
   sprite_destroy(diglett_boink6);
   sprite_destroy(diglett_boink7);
 }
+

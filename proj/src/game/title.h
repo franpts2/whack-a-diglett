@@ -3,7 +3,6 @@
 
 #include "sprites/sprite.h"
 
-extern Sprite *title_sprite;
 
 int title_init();
 

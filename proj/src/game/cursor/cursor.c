@@ -12,14 +12,14 @@ float mouse_accel = 1.0;
 
 Cursor *cursor_init() {
   // Center of the screen (800x600 mode)
-  int center_x = 400;
-  int center_y = 300;
+  // int center_x = 400;
+  // int center_y = 300;
 
-  return sprite_create_from_xpm((xpm_map_t) cursor_xpm, center_x, center_y);
+  return sprite_create_from_xpm((xpm_map_t) cursor_xpm);
 }
 
 int cursor_draw(Cursor *cursor) {
-  return sprite_draw(cursor);
+  return sprite_draw(cursor, 0, 0, NULL);
 }
 
 void cursor_set_position(Cursor *cursor, int x, int y) {
