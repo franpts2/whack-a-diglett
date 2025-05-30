@@ -33,7 +33,7 @@ uint32_t get_rectangle_color(uint8_t row, uint8_t col, uint32_t first, uint8_t s
 
 int draw_pixmap(xpm_map_t xpm, uint16_t x, uint16_t y);
 
-void draw_pixel(int x, int y, uint32_t color);
+void draw_pixel(int x, int y, uint32_t color, uint8_t *buffer);
 
 void draw_pixel_scaled(int x, int y, uint32_t color, int scale);
 
