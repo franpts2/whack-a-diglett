@@ -63,11 +63,11 @@ void draw_pause_screen(void) {
   int instruction_x = (800 - instruction_width) / 2;
   draw_text_scaled(instruction, instruction_x, 300, 0xFFFFFF, instruction_scale);
   
-  // Draw instruction for menu
-  const char *menu_instruction = "Press Q to return to menu";
-  int menu_width = strlen(menu_instruction) * 8 * instruction_scale;
-  int menu_x = (800 - menu_width) / 2;
-  draw_text_scaled(menu_instruction, menu_x, 350, 0xFFFFFF, instruction_scale);
+  // Draw instruction for game over
+  const char *gameover_instruction = "Press Q to quit";
+  int gameover_width = strlen(gameover_instruction) * 8 * instruction_scale;
+  int gameover_x = (800 - gameover_width) / 2;
+  draw_text_scaled(gameover_instruction, gameover_x, 350, 0xFFFFFF, instruction_scale);
   
   // Swap buffers to show pause screen
   swap_buffers();
@@ -81,9 +81,9 @@ void pause_update(void) {
 void pause_handle_input(uint8_t scancode) {
   if (scancode == 0x19) { // 'p' key to resume
     pause_resume_game();
-  } else if (scancode == 0x10) { // 'q' key to return to menu
+  } else if (scancode == 0x10) { // 'q' key to end game and go to gameover
     current_mode = MODE_MENU;
-  }
+  } 
 }
 
 void pause_resume_game(void) {
