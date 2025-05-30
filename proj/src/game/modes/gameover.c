@@ -6,6 +6,9 @@
 #include "../game.h"
 #include "playing/playing_kbd.h"
 #include <stdio.h>
+#include "playing/playing_kbd.h"
+#include "../sprites/pixelart/triangle_xpm.h"
+#include "../sprites/sprite.h"
 #include <string.h>
 
 extern GameMode current_mode;
@@ -17,12 +20,68 @@ extern void *back_buffer;
 extern void *static_buffer;
 extern void *middle_buffer;
 
+<<<<<<< proj/src/game/modes/gameover.c
+// Draw game over screen
+void gameover_draw(void) {
+    // Clear screen with same background color as menu
+    vg_draw_rectangle(0, 0, 800, 600, GAMEOVER_BG_COLOR);
+    
+    // Draw "GAME OVER" title
+    int title_scale = 3;
+    const char *title = "GAME OVER";
+    int title_width = strlen(title) * 8 * title_scale;
+    int title_x = (800 - title_width) / 2;
+    draw_text_scaled(title, title_x, 100, 0xFF, title_scale);
+    
+    // Draw score
+    char score_text[32];
+    sprintf(score_text, "Your score: %d", player_points);
+    int score_scale = 2;
+    int score_width = strlen(score_text) * 8 * score_scale;
+    int score_x = (800 - score_width) / 2;
+    draw_text_scaled(score_text, score_x, 200, 0xFF, score_scale);
+    
+    // Draw buttons
+    for (int i = 0; i < NUM_BUTTONS; i++) {
+        // Draw button background with standard color (same as menu buttons)
+        vg_draw_rectangle(buttons[i].x, buttons[i].y, 
+                        buttons[i].width, buttons[i].height, 
+                        BUTTON_COLOR);
+        
+        // Draw button text
+        int text_scale = 2;
+        int text_width = strlen(buttons[i].text) * 8 * text_scale;
+        int text_x = buttons[i].x + (buttons[i].width - text_width) / 2;
+        int text_y = buttons[i].y + (buttons[i].height - 8 * text_scale) / 2; // 8 is half of font height (16)
+        draw_text_scaled(buttons[i].text, text_x, text_y, TEXT_COLOR, text_scale);
+    }
+    
+    // Draw selection indicator using triangle sprite
+    int arrow_x = buttons[selected].x + buttons[selected].width + 10;
+    static Sprite *triangle = NULL;
+    
+    // Only create the sprite once
+    if (triangle == NULL) {
+        triangle = sprite_create_from_xpm((xpm_map_t)triangle_xpm, arrow_x, buttons[selected].y);
+    }
+    
+    // Position the triangle at the currently selected button
+    if (triangle != NULL) {
+        triangle->x = arrow_x;
+        triangle->y = buttons[selected].y;
+        sprite_draw(triangle);
+    }
+    
+    prev_selected = selected;
+}
+=======
 unsigned int bytes_per_pixel;
 
 #define NUM_BUTTONS 2
 
 int gameover_selected = 0;
 static int prev_selected = -1;
+>>>>>>> proj/src/game/modes/gameover.c
 
 void gameover_handle_input(uint8_t scancode) {
   if (scancode == 0x48) { // Up arrow key
@@ -87,47 +146,42 @@ void draw_gameover_selection(void) {
   int btn_x = (screen_w - btn_w) / 2;
   int btn_y[NUM_BUTTONS] = {300, 370};
   int arrow_x = btn_x + btn_w + 10;
-  int arrow_w = 30, arrow_h = 50;
+  //int arrow_w = 30, arrow_h = 50;
 
-  void *target_buffer = get_current_buffer();
-  bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
-
-  uint32_t bg_color_bytes[4] = {0};  // Background color
-  uint32_t sel_color_bytes[4] = {0}; // Selection color
-
-  bg_color_bytes[0] = 0xffd789;
-  sel_color_bytes[0] = 0xe27a3f;
+  static Sprite *triangle = NULL;
+  
+  // Only create the sprite once
+  if (triangle == NULL) {
+    triangle = sprite_create_from_xpm((xpm_map_t)triangle_xpm, arrow_x, btn_y[selected]);
+  }
 
   if (selection_changed) {
-    for (int y = btn_y[prev_selected]; y < btn_y[prev_selected] + arrow_h; y++) {
-      if (y < 0 || y >= m_info.YResolution)
-        continue;
-
-      for (int x = arrow_x; x < arrow_x + arrow_w; x++) {
-        if (x < 0 || x >= m_info.XResolution)
-          continue;
-
-        unsigned int pixel_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
-        for (unsigned i = 0; i < bytes_per_pixel; i++) {
-          *((uint8_t *) target_buffer + pixel_pos + i) = bg_color_bytes[i];
-        }
-      }
+    // Redraw the background on the previously selected area
+    // We'll use the static buffer to get this area redrawn
+    background_draw();
+    
+    // Redraw all buttons to ensure clarity
+    int btn_h = 50;
+    for (int i = 0; i < MENU_ITEMS; ++i) {
+      uint32_t btn_color = 0xffd789;
+      vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, btn_color);
+      
+      const char *btn_labels[MENU_ITEMS] = {"Start Game", "Instructions", "Exit"};
+      int scale = 2;
+      int text_width = strlen(btn_labels[i]) * 8 * scale;
+      int text_x = btn_x + (btn_w - text_width) / 2;
+      int text_y = btn_y[i] + (btn_h - 8 * scale) / 2;
+      
+      uint32_t text_color = 0xe27a3f;
+      draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
     }
   }
 
-  for (int y = btn_y[gameover_selected]; y < btn_y[gameover_selected] + arrow_h; y++) {
-    if (y < 0 || y >= m_info.YResolution)
-      continue;
-
-    for (int x = arrow_x; x < arrow_x + arrow_w; x++) {
-      if (x < 0 || x >= m_info.XResolution)
-        continue;
-
-      unsigned int pixel_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
-      for (unsigned i = 0; i < bytes_per_pixel; i++) {
-        *((uint8_t *) target_buffer + pixel_pos + i) = sel_color_bytes[i];
-      }
-    }
+  // Position the triangle at the currently selected button
+  if (triangle != NULL) {
+    triangle->x = arrow_x;
+    triangle->y = btn_y[selected];
+    sprite_draw(triangle);
   }
 
   prev_selected = gameover_selected;
