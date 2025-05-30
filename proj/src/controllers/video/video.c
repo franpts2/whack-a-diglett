@@ -296,15 +296,12 @@ void(swap_buffers)(void) {
   // back buffer to video memory (display)
   memcpy(video_mem, back_buffer, buffer_size);
 
-  // buffer rotation 
   void *temp = back_buffer;
   back_buffer = middle_buffer;
-  middle_buffer = temp;
-
-  // skip new back buffer clearing - content will be copied from static buffer next frame
+  middle_buffer = static_buffer;
+  static_buffer = temp;
 
   current_drawing_buffer = back_buffer;
-
   current_buffer = (current_buffer + 1) % 3;
 }
 
@@ -331,16 +328,14 @@ void(set_drawing_to_static)(void) {
   current_drawing_buffer = static_buffer;
 }
 
-void(set_drawing_to_back)(void) { // reset to drawing to the back buffer
+void(set_drawing_to_back)(void) {
   current_drawing_buffer = back_buffer;
 }
 
 void(copy_static_to_back)(void) {
-  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
-  unsigned int buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
-
-  // static buffer to back buffer
-  memcpy(back_buffer, static_buffer, buffer_size);
-
+  // swap to avoid the expensive copy
+  void *temp = back_buffer;
+  back_buffer = static_buffer;
+  static_buffer = temp;
   current_drawing_buffer = back_buffer;
 }
