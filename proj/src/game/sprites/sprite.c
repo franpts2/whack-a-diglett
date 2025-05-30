@@ -99,3 +99,29 @@ int load_sprites(){
   diglett_boink7 = sprite_create_from_xpm((xpm_map_t) diglett_boink_7);
   return 0;
 }
+
+void free_sprites(){
+  sprite_destroy(background);
+  sprite_destroy(title);
+  sprite_destroy(instructions);
+  sprite_destroy(dirt);
+  sprite_destroy(cursor);
+  sprite_destroy(diglett_appear0);
+  sprite_destroy(diglett_appear1);
+  sprite_destroy(diglett_appear2);
+  sprite_destroy(diglett_appear3);
+  sprite_destroy(diglett_appear4);
+  sprite_destroy(diglett_appear5);
+  sprite_destroy(diglett_appear6);
+  sprite_destroy(diglett_appear7);
+  sprite_destroy(diglett_appear8);
+  sprite_destroy(diglett_appear9);
+  sprite_destroy(diglett_boink0);
+  sprite_destroy(diglett_boink1);
+  sprite_destroy(diglett_boink2);
+  sprite_destroy(diglett_boink3);
+  sprite_destroy(diglett_boink4);
+  sprite_destroy(diglett_boink5);
+  sprite_destroy(diglett_boink6);
+  sprite_destroy(diglett_boink7);
+}
