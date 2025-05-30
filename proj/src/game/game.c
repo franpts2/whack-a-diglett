@@ -148,6 +148,7 @@ int game_main_loop(void) {
               }
               frame_timer = 0;
             }
+            
           }
 
           if (msg.m_notify.interrupts & kbd_irq) {
@@ -277,6 +278,13 @@ int game_main_loop(void) {
           break;
       }
       prev_mode = current_mode;
+    }
+
+    // After updating game state, check for game over BEFORE rendering:
+    if (current_mode == MODE_PLAYING && game_time_left == 0) {
+      current_mode = MODE_GAMEOVER;
+      render_frame = true;
+      continue; // Immediately process the mode change in the next loop iteration
     }
 
     // render on mouse movement for responsiveness, use timer for animations, track recent movement for smoothness
