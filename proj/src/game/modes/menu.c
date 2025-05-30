@@ -4,7 +4,7 @@
 #include "../../fonts/testfont.h"
 #include "../background.h"
 #include "../game.h"
-#include "playing-modes/playing_kbd.h"
+#include "playing/playing_kbd.h"
 
 
 extern GameMode current_mode;
@@ -83,8 +83,8 @@ void draw_menu_selection(void) {
   void *target_buffer = get_current_buffer();
   bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
 
-  uint32_t bg_color_bytes[4] = {0};  // Background color (0x04)
-  uint32_t sel_color_bytes[4] = {0}; // Selection color (0x0000FF) - blue
+  uint32_t bg_color_bytes[4] = {0};
+  uint32_t sel_color_bytes[4] = {0};
 
   bg_color_bytes[0] = 0xffd789;
   sel_color_bytes[0] = 0xe27a3f;
