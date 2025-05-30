@@ -224,10 +224,6 @@ void draw_background(void) {
 
 // update game state
 void playing_update(bool is_kbd) {
-  // 1. Copy static background to back buffer (full frame redraw)
-  copy_static_to_back();
-
-  // 2. Update diglett timers and visibility
   for (int i = 0; i < NUM_DIGLETTS; i++) {
     if (!digletts[i].active)
       continue;
