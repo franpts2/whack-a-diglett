@@ -75,3 +75,8 @@ void sprite_destroy(Sprite *sprite) {
     free(sprite);
   }
 }
+
+
+int load_sprites(){
+
+}
