@@ -2,6 +2,7 @@
 #include "../../controllers/kbdmouse/keyboard.h"
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
+#include "../background.h"
 #include "../game.h"
 #include "playing-modes/playing_kbd.h"
 #include "playing-modes/playing_mouse.h"
@@ -39,7 +40,7 @@ void choose_mode_handle_input(uint8_t scancode) {
 }
 
 void draw_choose_mode_bg_and_buttons(void) {
-  vg_draw_rectangle(0, 0, 800, 600, 0x04);
+  background_draw();
 
   // title centrado
   int title_scale = 3;
