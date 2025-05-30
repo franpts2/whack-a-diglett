@@ -20,7 +20,7 @@
 #define TIMER_BAR_WIDTH 160 
 #define TIMER_BAR_HEIGHT 20
 #define TIMER_BAR_X 50 
-#define TIMER_BAR_Y 10
+#define TIMER_BAR_Y 15
 
 typedef struct {
   int x;        // x position of the rectangle
