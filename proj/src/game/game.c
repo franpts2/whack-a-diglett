@@ -347,7 +347,6 @@ int game_main_loop(void) {
     // regular rendering (not actively moving mouse)
     else if (render_frame || mouse_moved_recently) {
       if (current_mode == MODE_MENU) {
-        copy_static_to_back();
         draw_menu_selection();
 
         // draw cursor on top
@@ -358,7 +357,6 @@ int game_main_loop(void) {
         swap_buffers();
       }
       else if (current_mode == MODE_CHOOSE_MODE) {
-        copy_static_to_back();
         choose_mode_update_selection();
 
         // draw cursor on top
