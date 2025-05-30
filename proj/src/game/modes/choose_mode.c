@@ -76,7 +76,7 @@ void draw_choose_mode_bg_and_buttons(void) {
     draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
   }
 
-  const char *back_msg = "Press Q to go back";
+  const char *back_msg = "Press P to pause game";
   int back_scale = 1;
   int back_width = strlen(back_msg) * 8 * back_scale;
   int back_x = (800 - back_width) / 2;
