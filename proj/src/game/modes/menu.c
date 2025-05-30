@@ -4,7 +4,7 @@
 #include "../../fonts/testfont.h"
 #include "../background.h"
 #include "../game.h"
-#include "playing-modes/playing_kbd.h"
+#include "playing/playing_kbd.h"
 
 
 extern GameMode current_mode;

@@ -1,7 +1,7 @@
 #include "pause.h"
 #include "../../controllers/video/video.h"
 #include "../../fonts/testfont.h"
-#include "../modes/playing-modes/playing.h" // Added to access BACKGROUND_COLOR
+#include "../modes/playing/playing.h" // Added to access BACKGROUND_COLOR
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>

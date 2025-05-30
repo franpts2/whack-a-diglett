@@ -4,7 +4,7 @@
 #include "../game.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include "playing-modes/playing_kbd.h"
+#include "playing/playing_kbd.h"
 
 // Constants for button positions and sizes
 #define BUTTON_WIDTH 300
