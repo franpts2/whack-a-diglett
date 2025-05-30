@@ -17,7 +17,6 @@ extern void *middle_buffer;
 // static sprite for the instructions image
 static Sprite *instructions_sprite = NULL;
 
-// Initialize the instructions screen
 void instructions_init(void) {
   // Get the bytes per pixel for the current video mode
   unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
@@ -33,10 +32,8 @@ void instructions_init(void) {
   // Set to drawing to static buffer for background elements
   set_drawing_to_static();
   
-  // Draw the background
   background_draw();
   
-  // create and draw the instructions sprite
   if (instructions_sprite == NULL) {
     instructions_sprite = sprite_create_from_xpm((xpm_map_t)instructions_xpm, 0, 0);
   }
@@ -48,10 +45,8 @@ void instructions_init(void) {
   }
   
   
-  // Set mode as initialized
   prev_mode = MODE_INSTRUCTIONS;
   
-  // Set to drawing to back buffer for variable elements
   set_drawing_to_back();
   
   // Draw the static content to the back buffer
@@ -61,7 +56,6 @@ void instructions_init(void) {
   swap_buffers();
 }
 
-// Handle keyboard input in the instructions screen
 void instructions_handle_input(uint8_t scancode) {
   // Q key (0x10) to return to the menu
   if (scancode == 0x10) {
@@ -84,7 +78,6 @@ void instructions_destroy(void) {
   }
 }
 
-// Draw the instructions screen
 void draw_instructions(void) {
   // Copy static buffer to back buffer since we don't have dynamic content yet
   copy_static_to_back();
