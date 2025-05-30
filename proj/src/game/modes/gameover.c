@@ -6,13 +6,11 @@
 #include <stdio.h>
 #include "playing/playing_kbd.h"
 
-// Constants for button positions and sizes
 #define BUTTON_WIDTH 300
 #define BUTTON_HEIGHT 50
 #define BUTTON_SPACING 30
 #define NUM_BUTTONS 2
 
-// Game over screen buttons
 typedef struct {
     int x, y;
     int width, height;
@@ -24,21 +22,17 @@ static GameOverButton buttons[NUM_BUTTONS];
 static int selected = 0;
 static int prev_selected = -1;
 
-// Colors
 #define GAMEOVER_BG_COLOR 0x02
 #define BUTTON_COLOR 0xAAAAAA
 #define BUTTON_HOVER_COLOR 0xCCCCCC
 #define TEXT_COLOR 0x02
 #define SELECTION_COLOR 0xFF
 
-// Reference to external variables
 extern int player_points;
 extern GameMode current_mode;
 extern GameMode prev_mode;
 
-// Initialize game over screen
 void gameover_init(void) {
-    // Setup the buttons
     int screen_center_x = 800 / 2;
     int start_y = 300;
     
@@ -62,14 +56,11 @@ void gameover_init(void) {
     selected = 0;
     prev_selected = -1;
     
-    // Set prev_mode to record we're in the game over screen
     prev_mode = MODE_GAMEOVER;
     
-    // Draw the screen
     gameover_draw();
 }
 
-// Draw game over screen
 void gameover_draw(void) {
     // Clear screen with same background color as menu
     vg_draw_rectangle(0, 0, 800, 600, GAMEOVER_BG_COLOR);
@@ -91,12 +82,10 @@ void gameover_draw(void) {
     
     // Draw buttons
     for (int i = 0; i < NUM_BUTTONS; i++) {
-        // Draw button background with standard color (same as menu buttons)
         vg_draw_rectangle(buttons[i].x, buttons[i].y, 
                         buttons[i].width, buttons[i].height, 
                         BUTTON_COLOR);
         
-        // Draw button text
         int text_scale = 2;
         int text_width = strlen(buttons[i].text) * 8 * text_scale;
         int text_x = buttons[i].x + (buttons[i].width - text_width) / 2;
@@ -104,7 +93,6 @@ void gameover_draw(void) {
         draw_text_scaled(buttons[i].text, text_x, text_y, TEXT_COLOR, text_scale);
     }
     
-    // Draw selection indicator (similar to menu)
     int arrow_x = buttons[selected].x + buttons[selected].width + 10;
     int arrow_w = 30, arrow_h = 50;
     vg_draw_rectangle(arrow_x, buttons[selected].y, arrow_w, arrow_h, SELECTION_COLOR);
@@ -112,7 +100,6 @@ void gameover_draw(void) {
     prev_selected = selected;
 }
 
-// Handle keyboard input
 void gameover_handle_input(uint8_t scancode) {
     if (scancode == 0x48) { // Up arrow key
         selected = (selected - 1 + NUM_BUTTONS) % NUM_BUTTONS;
@@ -126,7 +113,6 @@ void gameover_handle_input(uint8_t scancode) {
         // Execute selected action
         if (selected == 0) { // Play again
             current_mode = MODE_PLAYING;
-            // Initialize keyboard mode directly
             playing_kbd_init();
         } else { // Return to menu
             current_mode = MODE_MENU;

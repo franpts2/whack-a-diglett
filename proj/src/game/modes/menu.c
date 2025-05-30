@@ -37,7 +37,6 @@ void menu_handle_input(uint8_t scancode) {
   }
 }
 
-// Desenha as coisas que não precisam de refresh (botões fundo etc)
 void draw_menu_bg_and_buttons(void) {
   background_draw();
 
@@ -49,7 +48,7 @@ void draw_menu_bg_and_buttons(void) {
 
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
-  int btn_x = (screen_w - btn_w) / 2; // Centrar
+  int btn_x = (screen_w - btn_w) / 2;
   int btn_y[MENU_ITEMS] = {250, 320, 390};
   const char *btn_labels[MENU_ITEMS] = {"Start Game", "Instructions", "Exit"};
 
@@ -124,7 +123,6 @@ void draw_menu_selection(void) {
   prev_selected = selected;
 }
 
-// Chamado 1 vez quando o menu é loaded
 void menu_init(void) {
   selected = 0;
   prev_selected = -1;
@@ -135,13 +133,11 @@ void menu_init(void) {
   }
 }
 
-// Chamado sempre que atualizarmos o selected
 void menu_update_selection(void) {
   draw_menu_selection();
 }
 
 void menu_handle_mouse(int x, int y, bool left_button_clicked) {
-  // menu button dimensions
   int screen_w = 800;
   int btn_w = 300, btn_h = 50;
   int btn_x = (screen_w - btn_w) / 2;
@@ -186,7 +182,6 @@ void menu_select_option(void) {
       prev_mode = -1;
 
       current_mode = MODE_PLAYING;
-      // initialize game
       playing_kbd_init();
       break;
     case 1: // Instructions
