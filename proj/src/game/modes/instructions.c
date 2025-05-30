@@ -37,7 +37,7 @@ void instructions_init(void) {
  
   
   if (instructions != NULL) {
-    sprite_draw(instructions, 0, 0, NULL);
+    sprite_draw(instructions, 0, 0, (uint8_t *)get_current_buffer());
   } else {
     printf("ERROR: Failed to load instructions image!\n");
   }

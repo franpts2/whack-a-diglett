@@ -39,7 +39,7 @@ int animated_sprite_draw(AnimatedSprite *anim) {
   frame->x = anim->x;
   frame->y = anim->y;
   frame->is_visible = true;
-  return sprite_draw(frame, frame->x, frame->y, NULL);
+  return sprite_draw(frame, frame->x, frame->y, (uint8_t *)get_current_buffer());
 }
 
 void animated_sprite_destroy(AnimatedSprite *anim) {

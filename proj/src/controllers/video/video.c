@@ -135,10 +135,13 @@ int draw_pixmap(xpm_map_t xpm, uint16_t x, uint16_t y) {
   if (!pixmap)
     return 1;
 
+  // Get the current drawing buffer
+  uint8_t *current_buffer = (uint8_t *)get_current_buffer();
+
   for (uint16_t row = 0; row < img.height; row++) {
     for (uint16_t col = 0; col < img.width; col++) {
       uint32_t color = pixmap[row * img.width + col];
-      draw_pixel(x + col, y + row, color, NULL);
+      draw_pixel(x + col, y + row, color, current_buffer);
     }
   }
   return 0;
@@ -239,10 +242,18 @@ int(video_test_move)(xpm_map_t xpm, uint16_t xi, uint16_t yi, uint16_t xf, uint1
 int (draw_pixel)(uint16_t x, uint16_t y, uint32_t color, uint8_t *buffer) {
   if (x >= m_info.XResolution || y >= m_info.YResolution) return 1;
 
-  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
-  unsigned int index = (x+ m_info.XResolution * y) * bytes_per_pixel;
+  // If buffer is NULL, use the current drawing buffer or back_buffer as fallback
+  uint8_t *target_buffer = buffer;
+  if (target_buffer == NULL) {
+    target_buffer = current_drawing_buffer != NULL ? 
+                    (uint8_t *)current_drawing_buffer : 
+                    (uint8_t *)back_buffer;
+  }
 
-  if (memcpy(&buffer[index], &color, bytes_per_pixel) == NULL) return 1;
+  unsigned int bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+  unsigned int index = (x + m_info.XResolution * y) * bytes_per_pixel;
+
+  if (memcpy(&target_buffer[index], &color, bytes_per_pixel) == NULL) return 1;
 
   return 0;
 }

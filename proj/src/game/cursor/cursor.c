@@ -19,7 +19,7 @@ Cursor *cursor_init() {
 }
 
 int cursor_draw(Cursor *cursor) {
-  return sprite_draw(cursor, 0, 0, NULL);
+  return sprite_draw(cursor, 0, 0, (uint8_t *)get_current_buffer());
 }
 
 void cursor_set_position(Cursor *cursor, int x, int y) {

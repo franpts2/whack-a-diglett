@@ -33,7 +33,7 @@ int title_draw() {
     return 1;
   }
 
-  if (sprite_draw(title, title->x, title->y, NULL) != 0) {
+  if (sprite_draw(title, title->x, title->y, (uint8_t *)get_current_buffer()) != 0) {
     printf("Failed to draw title sprite\n");
     return 1;
   }

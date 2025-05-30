@@ -26,7 +26,7 @@ int background_draw() {
     }
   }
 
-  return sprite_draw(background, 0, 0, NULL);
+  return sprite_draw(background, 0, 0, (uint8_t *)get_current_buffer());
 }
 
 void background_destroy() {

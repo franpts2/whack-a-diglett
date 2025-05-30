@@ -214,7 +214,7 @@ void draw_background(void) {
       int y = start_y + row * (rect_height + spacing);
 
       if (dirt) {
-        sprite_draw(dirt, x, y, NULL);
+        sprite_draw(dirt, x, y, (uint8_t *)get_current_buffer());
         sprite_destroy(dirt);
       }
     }
