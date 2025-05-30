@@ -66,6 +66,8 @@ void draw_points_counter() {
   // clear the number area
   vg_draw_rectangle(number_area_x, 10, max_number_width, 30, BACKGROUND_COLOR);
 
+  draw_text_scaled("Points:", counter_x + 10, 10, 0xFFFFFF, 2);
+
   char points_str[20] = {0};
 
   int safe_points = player_points;
