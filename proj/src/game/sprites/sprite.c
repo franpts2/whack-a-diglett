@@ -2,16 +2,13 @@
 #include "../../controllers/video/video.h"
 #include <stdio.h>
 
-Sprite *sprite_create_from_xpm(xpm_map_t xpm_map, int x, int y) {
+Sprite *sprite_create_from_xpm(xpm_map_t xpm_map) {
   Sprite *sprite = (Sprite *) malloc(sizeof(Sprite));
   if (sprite == NULL) {
     printf("Failed to allocate memory for sprite\n");
     return NULL;
   }
 
-  // Initialize sprite position
-  sprite->x = x;
-  sprite->y = y;
   sprite->is_visible = true;
 
   // Load the XPM image
@@ -78,5 +75,27 @@ void sprite_destroy(Sprite *sprite) {
 
 
 int load_sprites(){
-
+  background = sprite_create_from_xpm((xpm_map_t) background_xpm);
+  title = sprite_create_from_xpm((xpm_map_t) title_xpm);
+  instructions = sprite_create_from_xpm((xpm_map_t) instructions_xpm);
+  dirt = sprite_create_from_xpm((xpm_map_t) dirt_xpm);
+  cursor = sprite_create_from_xpm((xpm_map_t) cursor_xpm);
+  diglett_appear0 = sprite_create_from_xpm((xpm_map_t) diglett_appear_0);
+  diglett_appear1 = sprite_create_from_xpm((xpm_map_t) diglett_appear_1);
+  diglett_appear2 = sprite_create_from_xpm((xpm_map_t) diglett_appear_2);
+  diglett_appear3 = sprite_create_from_xpm((xpm_map_t) diglett_appear_3);
+  diglett_appear4 = sprite_create_from_xpm((xpm_map_t) diglett_appear_4);
+  diglett_appear5 = sprite_create_from_xpm((xpm_map_t) diglett_appear_5);
+  diglett_appear6 = sprite_create_from_xpm((xpm_map_t) diglett_appear_6);
+  diglett_appear7 = sprite_create_from_xpm((xpm_map_t) diglett_appear_7);
+  diglett_appear8 = sprite_create_from_xpm((xpm_map_t) diglett_appear_8);
+  diglett_appear9 = sprite_create_from_xpm((xpm_map_t) diglett_appear_9);
+  diglett_boink0 = sprite_create_from_xpm((xpm_map_t) diglett_boink_0);
+  diglett_boink1 = sprite_create_from_xpm((xpm_map_t) diglett_boink_2);
+  diglett_boink3 = sprite_create_from_xpm((xpm_map_t) diglett_boink_3);
+  diglett_boink4 = sprite_create_from_xpm((xpm_map_t) diglett_boink_4);
+  diglett_boink5 = sprite_create_from_xpm((xpm_map_t) diglett_boink_5);
+  diglett_boink6 = sprite_create_from_xpm((xpm_map_t) diglett_boink_6);
+  diglett_boink7 = sprite_create_from_xpm((xpm_map_t) diglett_boink_7);
+  return 0;
 }

@@ -4,6 +4,13 @@
 #include "../../controllers/video/video.h"
 #include <lcom/lcf.h>
 #include <stdlib.h>
+#include "pixelart/background_xpm.h"
+#include "pixelart/dirt_xpm.h"
+#include "pixelart/instructions_xpm.h"
+#include "pixelart/title_xpm.h"
+#include "animations/diglett_appear_xpm.h"
+#include "animations/diglett_boink_xpm.h"
+#include "../cursor/cursor_xpm.h"
 
 typedef struct {
   int x;            // x position
@@ -20,24 +27,24 @@ Sprite *title;
 Sprite *instructions;
 Sprite *dirt;
 Sprite *cursor;
-Sprite *diglett_appear_0;
-Sprite *diglett_appear_1;
-Sprite *diglett_appear_2;
-Sprite *diglett_appear_3;
-Sprite *diglett_appear_4;
-Sprite *diglett_appear_5;
-Sprite *diglett_appear_6;
-Sprite *diglett_appear_7;
-Sprite *diglett_appear_8;
-Sprite *diglett_appear_9;
-Sprite *diglett_boink_0;
-Sprite *diglett_boink_1;
-Sprite *diglett_boink_2;
-Sprite *diglett_boink_3;
-Sprite *diglett_boink_4;
-Sprite *diglett_boink_5;
-Sprite *diglett_boink_6;
-Sprite *diglett_boink_7;
+Sprite *diglett_appear0;
+Sprite *diglett_appear1;
+Sprite *diglett_appear2;
+Sprite *diglett_appear3;
+Sprite *diglett_appear4;
+Sprite *diglett_appear5;
+Sprite *diglett_appear6;
+Sprite *diglett_appear7;
+Sprite *diglett_appear8;
+Sprite *diglett_appear9;
+Sprite *diglett_boink0;
+Sprite *diglett_boink1;
+Sprite *diglett_boink2;
+Sprite *diglett_boink3;
+Sprite *diglett_boink4;
+Sprite *diglett_boink5;
+Sprite *diglett_boink6;
+Sprite *diglett_boink7;
 
 Sprite *sprite_create_from_xpm(xpm_map_t xpm_map, int x, int y);
 
