@@ -66,7 +66,7 @@ void draw_points_counter() {
   // clear the number area
   vg_draw_rectangle(number_area_x, 10, max_number_width, 30, BACKGROUND_COLOR);
 
-  draw_text_scaled("Points:", counter_x + 10, 10, 0xFFFFFF, 2);
+  draw_text_scaled("Points:", counter_x + 10, 15, 0xFFFFFF, 2);
 
   char points_str[20] = {0};
 
@@ -78,7 +78,7 @@ void draw_points_counter() {
 
   sprintf(points_str, "%d", safe_points);
 
-  draw_text_scaled(points_str, number_area_x, 10, 0xFFFFFF, 2);
+  draw_text_scaled(points_str, number_area_x, 15, 0xFFFFFF, 2);
 }
 
 void playing_init(bool is_kbd) {
@@ -486,5 +486,5 @@ void draw_timer_bar() {
   // countdown
   char buf[16];
   sprintf(buf, "%02d", game_time_left);
-  draw_text_scaled(buf, TIMER_BAR_X + TIMER_BAR_WIDTH + 12, TIMER_BAR_Y - 2, 0xFFFFFF, 2);
+  draw_text_scaled(buf, TIMER_BAR_X + TIMER_BAR_WIDTH + 12, TIMER_BAR_Y + 4, 0xFFFFFF, 2);
 }
