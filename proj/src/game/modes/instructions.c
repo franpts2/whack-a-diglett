@@ -3,8 +3,6 @@
 #include "../../fonts/testfont.h"
 #include "../background.h"
 #include "../game.h"
-#include "../sprites/sprite.h"
-#include "../sprites/pixelart/instructions_xpm.h"
 #include <stdbool.h>
 #include <string.h>
 
@@ -13,9 +11,6 @@ extern GameMode prev_mode;
 extern void *back_buffer;
 extern void *static_buffer;
 extern void *middle_buffer;
-
-// static sprite for the instructions image
-static Sprite *instructions_sprite = NULL;
 
 // Initialize the instructions screen
 void instructions_init(void) {
@@ -36,16 +31,6 @@ void instructions_init(void) {
   // Draw the background
   background_draw();
   
-  // create and draw the instructions sprite
-  if (instructions_sprite == NULL) {
-    instructions_sprite = sprite_create_from_xpm((xpm_map_t)instructions_xpm, 0, 0);
-  }
-  
-  if (instructions_sprite != NULL) {
-    sprite_draw(instructions_sprite);
-  } else {
-    printf("ERROR: Failed to load instructions image!\n");
-  }
   
   
   // Set mode as initialized
@@ -65,22 +50,11 @@ void instructions_init(void) {
 void instructions_handle_input(uint8_t scancode) {
   // Q key (0x10) to return to the menu
   if (scancode == 0x10) {
-    // clean up resources
-    instructions_destroy();
-    
     // Set to menu mode, but let game.c handle the buffer transition
     current_mode = MODE_MENU;
     
     // Mark prev_mode as changed to force reinitialization of the menu
     prev_mode = -1;
-  }
-}
-
-// cleanup resources used by the instructions screen
-void instructions_destroy(void) {
-  if (instructions_sprite != NULL) {
-    sprite_destroy(instructions_sprite);
-    instructions_sprite = NULL;
   }
 }
 
