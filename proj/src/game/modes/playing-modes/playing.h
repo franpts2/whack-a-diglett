@@ -33,6 +33,8 @@ typedef struct {
   bool active;  // whether the diglett is in play (for game progression)
   bool boinking;  
   int boink_timer;  
+  bool timing_out;
+  int timeout_timer;
 } Diglett;
 
 #define NUM_DIGLETTS 9
