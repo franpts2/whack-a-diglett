@@ -244,6 +244,9 @@ int game_main_loop(void) {
                 if (current_mode == MODE_MENU) {
                   menu_handle_mouse(g_cursor->x, g_cursor->y, left_button_clicked);
                 }
+                else if (current_mode == MODE_GAMEOVER) {
+                  gameover_handle_mouse(g_cursor->x, g_cursor->y, left_button_clicked);
+                }
               }
               
               // Reset byte index for next packet
@@ -303,7 +306,19 @@ int game_main_loop(void) {
           break;
           
         case MODE_GAMEOVER:
+          // reset gameover and selection
           gameover_init();
+          
+          set_drawing_to_static();
+
+          // clear static buffer and draw static content
+          bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
+          buffer_size = m_info.XResolution * m_info.YResolution * bytes_per_pixel;
+          memset(static_buffer, 0, buffer_size);
+
+          draw_gameover_bg_and_buttons();
+          set_drawing_to_back();
+          
           render_frame = true;
           break;
           
@@ -330,7 +345,7 @@ int game_main_loop(void) {
     bool mouse_moving_now = (mouse_packet.delta_x != 0 || mouse_packet.delta_y != 0);
     
     if (mouse_moving_now) {
-      // Process mouse movement in menu
+      // Process mouse movement in menu or gameover screen
       if (current_mode == MODE_MENU) {
         copy_static_to_back();
         draw_menu_selection();
@@ -340,6 +355,16 @@ int game_main_loop(void) {
         swap_buffers(); // Swap immediately for low latency
         mouse_moved_recently = true;
         render_frame = false; // Reset frame timer
+      }
+      else if (current_mode == MODE_GAMEOVER) {
+        copy_static_to_back();
+        draw_gameover_selection();
+        if (g_cursor != NULL) {
+          cursor_draw(g_cursor);
+        }
+        swap_buffers(); // swap immediately for low latency
+        mouse_moved_recently = true;
+        render_frame = false; // reset frame timer
       }
     }
     // Regular rendering (not actively moving mouse)
@@ -354,8 +379,8 @@ int game_main_loop(void) {
         swap_buffers();
       }
       else if (current_mode == MODE_GAMEOVER) {
-        // Redraw game over screen with cursor
-        gameover_draw();
+        copy_static_to_back();
+        draw_gameover_selection();
         if (g_cursor != NULL) {
           cursor_draw(g_cursor);
         }

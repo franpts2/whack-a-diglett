@@ -27,12 +27,14 @@ void gameover_init(void);
  * @param scancode The keyboard scancode to process
  */
 void gameover_handle_input(uint8_t scancode);
+void gameover_update_selection(void);
+void gameover_select_option(void);
 
-/**
- * @brief Draws the game over screen
- * 
- * Renders the game over screen including score and options.
- */
-void gameover_draw(void);
+void gameover_handle_mouse(int x, int y, bool left_button_pressed);
+
+void draw_gameover_bg_and_buttons(void);
+void draw_gameover_selection(void);
+
+extern int gameover_selected;
 
 #endif // GAMEOVER_H

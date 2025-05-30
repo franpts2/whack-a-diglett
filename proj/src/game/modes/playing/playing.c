@@ -59,6 +59,8 @@ void draw_points_counter() {
 
   vg_draw_rectangle(number_area_x, 10, max_number_width, 30, BACKGROUND_COLOR);
 
+  draw_text_scaled("Points:", counter_x + 10, 15, 0xFFFFFF, 2);
+
   char points_str[20] = {0};
 
   int safe_points = player_points;
@@ -69,7 +71,7 @@ void draw_points_counter() {
 
   sprintf(points_str, "%d", safe_points);
 
-  draw_text_scaled(points_str, number_area_x, 10, 0xFFFFFF, 2);
+  draw_text_scaled(points_str, number_area_x, 15, 0xFFFFFF, 2);
 }
 
 void playing_init(bool is_kbd) {
@@ -124,7 +126,7 @@ void playing_init(bool is_kbd) {
     int grid_width = 3 * rect_width + 2 * spacing;
 
     int start_x = (800 - grid_width) / 2 - spacing/2;
-    int start_y = 150;
+    int start_y = 120;
 
     // 3x3 grid - draw holes to static buffer
     for (int row = 0; row < 3; row++) {
@@ -198,7 +200,7 @@ void draw_background(void) {
   int spacing = 60;
   int grid_width = 3 * rect_width + 2 * spacing;
   int start_x = (800 - grid_width) / 2 - spacing/2;
-  int start_y = 150;
+  int start_y = 120;
 
   for (int row = 0; row < 3; row++) {
     for (int col = 0; col < 3; col++) {
@@ -457,5 +459,5 @@ void draw_timer_bar() {
   // countdown
   char buf[16];
   sprintf(buf, "%02d", game_time_left);
-  draw_text_scaled(buf, TIMER_BAR_X + TIMER_BAR_WIDTH + 12, TIMER_BAR_Y - 2, 0xFFFFFF, 2);
+  draw_text_scaled(buf, TIMER_BAR_X + TIMER_BAR_WIDTH + 12, TIMER_BAR_Y + 4, 0xFFFFFF, 2);
 }

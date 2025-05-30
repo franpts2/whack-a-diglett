@@ -35,19 +35,6 @@ void pause_handle_input(uint8_t scancode);
  * Renders the pause screen with options.
  */
 void draw_pause_screen(void);
-
-/**
- * @brief Updates the pause state
- * 
- * Handles any logic updates needed while in pause state.
- */
-void pause_update(void);
-
-/**
- * @brief Resumes the game
- * 
- * Exits the pause state and returns to gameplay.
- */
 void pause_resume_game(void);
 
 #endif // _PAUSE_H_

@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
+#include "../background.h"
 
 extern GameMode current_mode;
 extern GameMode prev_mode;
@@ -16,13 +17,6 @@ extern double total_paused_time;
 
 extern void draw_background(void);
 
-void draw_game_title(void) {
-  int title_scale = 3;
-  const char *title = "WHACK'A DIGLETT";
-  int title_width = strlen(title) * 8 * title_scale;
-  int title_x = (800 - title_width) / 2;
-  draw_text_scaled(title, title_x, 50, 0xFFFFFF, title_scale);
-}
 
 void pause_init(void) {
   previous_game_mode = prev_mode;
@@ -38,7 +32,7 @@ void pause_init(void) {
 void draw_pause_screen(void) {
   set_drawing_to_back();
   
-  vg_draw_rectangle(0, 0, 800, 600, 0x222222);
+  background_draw();
   
   int title_scale = 4;
   const char *title = "PAUSED";
@@ -96,8 +90,7 @@ void pause_resume_game(void) {
   
   vg_draw_rectangle(0, 0, 800, 600, BACKGROUND_COLOR);
   
-  draw_game_title();
-  
+  // Call the function to draw all Diglett holes
   draw_background();
   
   set_drawing_to_back();

@@ -45,9 +45,7 @@
 
 /** @brief X-coordinate of the timer bar */
 #define TIMER_BAR_X 50 
-
-/** @brief Y-coordinate of the timer bar */
-#define TIMER_BAR_Y 10
+#define TIMER_BAR_Y 15
 
 /**
  * @brief Structure representing a diglett game element

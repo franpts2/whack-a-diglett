@@ -5,6 +5,8 @@
 #include "../background.h"
 #include "../game.h"
 #include "playing/playing_kbd.h"
+#include "../sprites/pixelart/triangle_xpm.h"
+#include "../sprites/sprite.h"
 
 
 extern GameMode current_mode;
@@ -77,49 +79,45 @@ void draw_menu_selection(void) {
   int btn_x = (screen_w - btn_w) / 2;
   int btn_y[MENU_ITEMS] = {250, 320, 390};
   int arrow_x = btn_x + btn_w + 10;
-  int arrow_w = 30, arrow_h = 50;
-
-  void *target_buffer = get_current_buffer();
-  bytes_per_pixel = (m_info.BitsPerPixel + 7) / 8;
-
-  uint32_t bg_color_bytes[4] = {0};  // Background color (0x04)
-  uint32_t sel_color_bytes[4] = {0}; // Selection color (0x0000FF) - blue
-
-  bg_color_bytes[0] = 0xffd789;
-  sel_color_bytes[0] = 0xe27a3f;
-
+  //int arrow_w = 30, arrow_h = 50;
+  
+  static Sprite *triangle = NULL;
+  
+  // Only create the sprite once
+  if (triangle == NULL) {
+    triangle = sprite_create_from_xpm((xpm_map_t)triangle_xpm, arrow_x, btn_y[selected]);
+  }
+  
+  // Clear the previous selection if needed
   if (selection_changed) {
-    for (int y = btn_y[prev_selected]; y < btn_y[prev_selected] + arrow_h; y++) {
-      if (y < 0 || y >= m_info.YResolution)
-        continue;
-
-      for (int x = arrow_x; x < arrow_x + arrow_w; x++) {
-        if (x < 0 || x >= m_info.XResolution)
-          continue;
-
-        unsigned int pixel_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
-        for (unsigned i = 0; i < bytes_per_pixel; i++) {
-          *((uint8_t *) target_buffer + pixel_pos + i) = bg_color_bytes[i];
-        }
-      }
+    // Redraw the background on the previously selected area
+    // We'll use the static buffer to get this area redrawn
+    background_draw();
+    
+    // Redraw all buttons to ensure clarity
+    int btn_h = 50;
+    for (int i = 0; i < MENU_ITEMS; ++i) {
+      uint32_t btn_color = 0xffd789;
+      vg_draw_rectangle(btn_x, btn_y[i], btn_w, btn_h, btn_color);
+      
+      const char *btn_labels[MENU_ITEMS] = {"Start Game", "Instructions", "Exit"};
+      int scale = 2;
+      int text_width = strlen(btn_labels[i]) * 8 * scale;
+      int text_x = btn_x + (btn_w - text_width) / 2;
+      int text_y = btn_y[i] + (btn_h - 8 * scale) / 2;
+      
+      uint32_t text_color = 0xe27a3f;
+      draw_text_scaled(btn_labels[i], text_x, text_y, text_color, scale);
     }
   }
-
-  for (int y = btn_y[selected]; y < btn_y[selected] + arrow_h; y++) {
-    if (y < 0 || y >= m_info.YResolution)
-      continue;
-
-    for (int x = arrow_x; x < arrow_x + arrow_w; x++) {
-      if (x < 0 || x >= m_info.XResolution)
-        continue;
-
-      unsigned int pixel_pos = (y * m_info.XResolution + x) * bytes_per_pixel;
-      for (unsigned i = 0; i < bytes_per_pixel; i++) {
-        *((uint8_t *) target_buffer + pixel_pos + i) = sel_color_bytes[i];
-      }
-    }
+  
+  // Position the triangle at the currently selected button
+  if (triangle != NULL) {
+    triangle->x = arrow_x;
+    triangle->y = btn_y[selected];
+    sprite_draw(triangle);
   }
-
+  
   prev_selected = selected;
 }
 
