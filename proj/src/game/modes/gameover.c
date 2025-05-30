@@ -4,6 +4,7 @@
 #include "../game.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include "playing-modes/playing_kbd.h"
 
 // Constants for button positions and sizes
 #define BUTTON_WIDTH 300
@@ -124,7 +125,9 @@ void gameover_handle_input(uint8_t scancode) {
     else if (scancode == 0x1C) { // Enter key
         // Execute selected action
         if (selected == 0) { // Play again
-            current_mode = MODE_CHOOSE_MODE;
+            current_mode = MODE_PLAYING;
+            // Initialize keyboard mode directly
+            playing_kbd_init();
         } else { // Return to menu
             current_mode = MODE_MENU;
         }
