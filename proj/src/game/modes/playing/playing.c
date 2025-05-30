@@ -134,7 +134,7 @@ void playing_init(bool is_kbd) {
 
     // calculate starting position to center the grid
     int start_x = (800 - grid_width) / 2 - spacing/2;
-    int start_y = 150;
+    int start_y = 120;
 
     // 3x3 grid - draw holes to static buffer
     for (int row = 0; row < 3; row++) {
@@ -215,7 +215,7 @@ void draw_background(void) {
   int spacing = 60;
   int grid_width = 3 * rect_width + 2 * spacing;
   int start_x = (800 - grid_width) / 2 - spacing/2;
-  int start_y = 150;
+  int start_y = 120;
 
   for (int row = 0; row < 3; row++) {
     for (int col = 0; col < 3; col++) {
