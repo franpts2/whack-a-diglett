@@ -313,6 +313,12 @@ int game_main_loop(void) {
       prev_mode = current_mode;
     }
 
+    // After updating game state, check for game over BEFORE rendering:
+    if (current_mode == MODE_PLAYING && game_time_left == 0) {
+      current_mode = MODE_GAMEOVER;
+      render_frame = true;
+    }
+
     // render on mouse movement for responsiveness, use timer for animations, track recent movement for smoothness
     static bool mouse_moved_recently = false;
     bool mouse_moving_now = (mouse_packet.delta_x != 0 || mouse_packet.delta_y != 0);
