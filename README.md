@@ -1,4 +1,4 @@
-# LCOM Project
+# Whack'a Diglett
 
 LCOM Project for group GRUPO_2LEIC02_4.
 
