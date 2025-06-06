@@ -3,6 +3,23 @@
 A Minix-based implementation of a whack-a-mole style game featuring Diglett Pokémon characters. 
 This project was developed as part of the LCOM (Laboratory of Computers) course at FEUP.
 
+## 📋 Table of Contents
+
+- [Video Demo](#video-demo)
+- [Project Overview](#project-overview)
+    * [Game Features](#game-features)
+- [System architecture](#system-architecture)
+    * [Core Architecture Diagram](#core-architecture-diagram)
+    * [Key Components](#key-components)
+    * [Project Structure](#project-structure)
+- [Building and Running the Project](#building-and-running-the-project)
+    * [Prerequisites](#prerequisites)
+    * [Compilation](#compilation)
+    * [Running](#running)
+- [Development Team](#development-team)
+- [Acknowledgements](#acknowledgments)
+
+
 ## Video Demo
 <a href='https://uporto.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=88df2542-6c0e-475b-951b-b2ef012c267f'>video demo</a>
 
@@ -13,7 +30,7 @@ Whack'a Diglett is a 2D game built from scratch for the Minix operating system, 
 ### Game Features
 
 - **Multiple Game Modes**: Menu, gameplay, pause, instructions, and game over screens
-- **Dual Input Support**: Play using either keyboard or mouse controls
+- **Dual Input Support**: You can use either keyboard or mouse controls
 - **Real-time Progress Tracking**: Dynamic time bar and score counter
 - **Smooth Animations**: Triple buffering for flicker-free animation transitions
 - **Randomized Gameplay**: Unpredictable Diglett appearances for engaging replay value
@@ -44,19 +61,25 @@ Whack'a Diglett is a 2D game built from scratch for the Minix operating system, 
 - **Buffer Management**: Multi-buffer system for smooth rendering
 - **UI Elements**: Score display, time bar, menus, and cursor
 
-### Differentiating Features
+### Project Structure
 
-#### Advanced Diglett System
-
-- Independent timer scheduling for each Diglett
-- Randomized show/hide durations to prevent predictable patterns
-- Five-state lifecycle (hidden→visible→boinking→timing_out→hidden)
-
-#### Real-time Progress Indicators
-
-- Dynamic time bar with color transitions based on remaining time
-- Immediate score updates upon successful or missed whacks
-- Accurate time tracking using system clock for reliable game duration
+```
+proj/
+├── src/
+│   ├── main.c                 # Program entry point
+│   ├── controllers/           # Hardware abstraction layer
+│   │   ├── kbdmouse/         # Keyboard and mouse controllers
+│   │   ├── timer/            # Timer controller
+│   │   └── video/            # Video controller
+│   ├── game/
+│   │   ├── game.c/h          # Main game loop and state machine
+│   │   ├── background.c/h    # Background management
+│   │   ├── cursor/           # Cursor implementation
+│   │   ├── modes/            # Game modes (menu, playing, etc.)
+│   │   └── sprites/          # Sprite management
+│   └── fonts/                # Text rendering
+└── doc/                      # Documentation
+```
 
 ## Building and Running the Project
 
@@ -77,36 +100,6 @@ $ make clean && make
 ```
 $ lcom_run proj
 ```
-
-## Project Structure
-
-```
-proj/
-├── src/
-│   ├── main.c                 # Program entry point
-│   ├── controllers/           # Hardware abstraction layer
-│   │   ├── kbdmouse/         # Keyboard and mouse controllers
-│   │   ├── timer/            # Timer controller
-│   │   └── video/            # Video controller
-│   ├── game/
-│   │   ├── game.c/h          # Main game loop and state machine
-│   │   ├── background.c/h    # Background management
-│   │   ├── cursor/           # Cursor implementation
-│   │   ├── modes/            # Game modes (menu, playing, etc.)
-│   │   └── sprites/          # Sprite management
-│   └── fonts/                # Text rendering
-└── doc/                      # Documentation
-```
-
-## Gameplay Instructions
-
-1. Start the game from the main menu
-2. When Digletts appear, whack them by:
-   - Pressing the corresponding key in keyboard mode
-   - Clicking directly on the Diglett in mouse mode
-3. Score points for successful whacks before they disappear
-4. The game ends after 60 seconds
-5. Try to achieve the highest score possible!
 
 ## Development Team
 
