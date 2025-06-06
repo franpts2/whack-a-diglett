@@ -8,6 +8,7 @@ This project was developed as part of the LCOM (Laboratory of Computers) course 
 - [Video Demo](#video-demo)
 - [Project Overview](#project-overview)
     * [Game Features](#game-features)
+    * [Report](#report)
 - [System architecture](#system-architecture)
     * [Core Architecture Diagram](#core-architecture-diagram)
     * [Key Components](#key-components)
@@ -34,6 +35,9 @@ Whack'a Diglett is a 2D game built from scratch for the Minix operating system, 
 - **Real-time Progress Tracking**: Dynamic time bar and score counter
 - **Smooth Animations**: Triple buffering for flicker-free animation transitions
 - **Randomized Gameplay**: Unpredictable Diglett appearances for engaging replay value
+
+### Report
+<a href="docs/Whack&apos;a_Diglett-report.pdf">report</a>
 
 ## System Architecture
 
