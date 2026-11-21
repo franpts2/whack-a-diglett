@@ -1,9 +1,13 @@
 # Whack'a Diglett
 
-A Minix-based implementation of a whack-a-mole style game featuring Diglett Pokémon characters. 
-This project was developed as part of the LCOM (Laboratory of Computers) course at FEUP.
+A Minix-based whack-a-mole game with real-time graphics, keyboard and mouse input, and Diglett.
 
-## 📋 Table of Contents
+<p align="left">
+  <img src="https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white" alt="C">
+  <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux">
+</p>
+
+## Table of Contents
 
 - [Video Demo](#video-demo)
 - [Project Overview](#project-overview)
@@ -17,9 +21,8 @@ This project was developed as part of the LCOM (Laboratory of Computers) course 
     * [Prerequisites](#prerequisites)
     * [Compilation](#compilation)
     * [Running](#running)
-- [Development Team](#development-team)
+- [Team & Course](#team--course)
 - [Acknowledgements](#acknowledgments)
-
 
 ## Video Demo
 <a href='https://uporto.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=88df2542-6c0e-475b-951b-b2ef012c267f'>video demo</a>
@@ -105,16 +108,29 @@ $ make clean && make
 $ lcom_run proj
 ```
 
-## Development Team
+## Team & Course
+
+**Team**
 
 - <a href='https://github.com/franpts2'>Francisca Portugal</a>
 - <a href='https://github.com/gab1demattos'>Gabriela de Mattos</a>
 - <a href='https://github.com/maluviieira'>Maria Luiza Vieira</a>
 - <a href='https://github.com/staragarcia'>Sara García</a>
 
+**Course**
+
+Developed for **LCOM (Laboratory of Computers)** at FEUP.
 
 ## Acknowledgments
 
 - LCOM teaching staff at FEUP
 - Minix operating system developers
 - Pokémon franchise for the Diglett character inspiration
+
+## License
+
+Coursework submitted at FEUP. Shared for reference; all rights reserved unless stated otherwise.
+
+---
+
+_Whack'a Diglett — whack fast, score high._
