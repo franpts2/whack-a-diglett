@@ -119,7 +119,7 @@ $ lcom_run proj
 
 **Course**
 
-Developed for **LCOM (Laboratory of Computers)** at FEUP.
+Developed for **LCOM (Laboratory of Computers)** in 2024/25 at FEUP.
 
 ## Acknowledgments
 
